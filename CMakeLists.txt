@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.11)
 
-set (CMAKE_PREFIX_PATH "C:\\Qt\\5.10.1\\msvc2017_64\\")
+if (WIN32)
+    set (CMAKE_PREFIX_PATH "C:\\Qt\\5.10.1\\msvc2017_64\\")
+elseif (APPLE AND EXISTS /usr/local/opt/qt5)
+    list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
+endif()
 
 project(book)
 
