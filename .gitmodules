@@ -1,0 +1,6 @@
+[submodule "ext/doctest"]
+	path = ext/doctest
+	url = https://github.com/onqtam/doctest
+[submodule "ext/rapidxml"]
+	path = ext/rapidxml
+	url = https://github.com/dwd/rapidxml

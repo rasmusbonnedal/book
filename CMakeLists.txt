@@ -1,4 +1,12 @@
 cmake_minimum_required(VERSION 2.8.11)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+project(book)
+
+enable_testing()
+add_subdirectory(ext)
+add_subdirectory(src)
 
 if (WIN32)
     set (CMAKE_PREFIX_PATH "C:\\Qt\\5.10.1\\msvc2017_64\\")
@@ -6,7 +14,6 @@ elseif (APPLE AND EXISTS /usr/local/opt/qt5)
     list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
 endif()
 
-project(book)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
