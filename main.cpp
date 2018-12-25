@@ -107,11 +107,11 @@ bool BookDocument::calcChecksum(const QString& xmlText, quint32& result)
 void openDoc()
 {
     BookDocument b;
-    if (!b.open("../docs/bok2017.bollbok"))
+    if (!b.open("../docs/bok1.bollbok"))
     {
         return;
     }
-    b.save("../docs/bok2017_rewrite.bollbok");
+    b.save("../docs/bok1_rewrite.bollbok");
 }
 
 int main(int argc, char *argv[]) {

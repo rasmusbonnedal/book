@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<bollbok version="2074" kontrollsumma="41374C4E">
+	<info avslutat="1" firma="" orgnummer="" bokföringsår="2018" valuta="SEK" />
+
+	<kontoplan kptyp="">
+		<konto unid="1110" text="Byggnader" typ="1" />
+		<konto unid="1910" text="Kassa" typ="1" />
+		<konto unid="2010" text="Eget kapital" typ="1" />
+		<konto unid="2350" text="Andra långfristiga skulder" typ="1" />
+		<konto unid="3000" text="Försäljning inom Sverige" typ="3" normalt="-" />
+		<konto unid="5010" text="Lokalhyra" typ="3" normalt="+" />
+	</kontoplan>
+	<kontogrupper>
+
+	</kontogrupper>
+	<objektlista>
+	</objektlista>
+	<verifikationer>
+		<verifikat unid="0" text="Ingående saldon" transdatum="0000-01-01">
+			<rad bokdatum="2018-12-25" konto="1110" pengar="1000000"/>
+			<rad bokdatum="2018-12-25" konto="2350" pengar="-800000"/>
+			<rad bokdatum="2018-12-25" konto="2010" pengar="-300000"/>
+			<rad bokdatum="2018-12-25" konto="1910" pengar="100000"/>
+		</verifikat>
+		<verifikat unid="1" text="Hyra" transdatum="2018-01-01">
+			<rad bokdatum="2018-12-25" konto="1910" pengar="-8000"/>
+			<rad bokdatum="2018-12-25" konto="5010" pengar="8000"/>
+		</verifikat>
+		<verifikat unid="2" text="Försäljning" transdatum="2018-02-01">
+			<rad bokdatum="2018-12-25" konto="1910" pengar="3000"/>
+			<rad bokdatum="2018-12-25" konto="3000" pengar="-3000"/>
+		</verifikat>
+	</verifikationer>
+</bollbok>
