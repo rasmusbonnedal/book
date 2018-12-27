@@ -1,4 +1,5 @@
 #include "bolldoc.h"
+#include "utils.h"
 
 #include <iostream>
 #include <optional>
@@ -52,12 +53,30 @@ BollDoc loadDocument(std::istream& input) {
 
     auto kontoplan = getNode(bollbok, "kontoplan");
     for (auto konto = getNode(kontoplan, "konto"); konto; konto = konto->next_sibling("konto")) {
+        // TODO: attr k1
         int unid = getAttrInt(konto, "unid");
         auto text = getAttrString(konto, "text");
         auto typ = getAttrInt(konto, "typ");
         auto normalt = getAttrStringOpt(konto, "normalt");
         BollDoc::Konto k(unid, std::move(text), typ, std::move(normalt));
         bolldoc.addKonto(std::move(k));
+    }
+
+    auto verifikationer = getNode(bollbok, "verifikationer");
+    for (auto verifikat = getNode(verifikationer, "verifikat"); verifikat; verifikat = verifikat->next_sibling("verifikat")) {
+        auto unid = getAttrInt(verifikat, "unid");
+        auto text = getAttrString(verifikat, "text");
+        auto transdatum = getAttrString(verifikat, "transdatum");
+        BollDoc::Verifikat v(unid, std::move(text), std::move(transdatum));
+        for (auto rad = getNode(verifikat, "rad"); rad; rad = rad->next_sibling("rad")) {
+            // TODO: attr struken
+            auto bokdatum = getAttrString(rad, "bokdatum");
+            auto konto = getAttrInt(rad, "konto");
+            auto pengar = Utils::parsePengar(getAttrString(rad, "pengar"));
+            BollDoc::Rad r{std::move(bokdatum), konto, pengar};
+            v.addRad(std::move(r));
+        }
+        bolldoc.addVerifikat(std::move(v));
     }
 
     return bolldoc;
@@ -109,6 +128,27 @@ const BollDoc::Konto& BollDoc::getKonto(int unid) const {
     return it->second;
 }
 
+void BollDoc::addVerifikat(Verifikat&& verifikat) {
+    if (verifikat.getUnid() != _verifikat.size()) {
+        std::stringstream ss;
+        ss << "Verifikat has unid " << verifikat.getUnid() << ", should be " << _verifikat.size();
+        throw std::runtime_error(ss.str());
+    }
+    _verifikat.push_back(std::move(verifikat));
+}
+
+const BollDoc::Verifikat& BollDoc::getVerifikat(int unid) const {
+    if (unid >= _verifikat.size() || unid < 0) {
+        std::stringstream ss;
+        ss << "Verifikat " << unid << " requested, document only has 0-" << _verifikat.size() - 1;
+        throw std::runtime_error(ss.str());
+    }
+    return _verifikat[unid];
+}
+
+const std::vector<BollDoc::Verifikat>& BollDoc::getVerifikat() const {
+    return _verifikat;
+}
 
 BollDoc::Konto::Konto(int unid, std::string text, int typ, std::optional<std::string> normalt)
 : _unid(unid)
@@ -132,3 +172,57 @@ int BollDoc::Konto::getTyp() const {
 std::optional<std::string> BollDoc::Konto::getNormalt() const {
     return _normalt;
 }
+
+BollDoc::Rad::Rad(std::string bokdatum, int konto, int64_t pengar)
+: _bokdatum(std::move(bokdatum))
+, _konto(konto)
+, _pengar(pengar) {
+}
+
+const std::string& BollDoc::Rad::getBokdatum() const {
+    return _bokdatum;
+}
+
+int BollDoc::Rad::getKonto() const {
+    return _konto;
+}
+
+int64_t BollDoc::Rad::getPengar() const {
+    return _pengar;
+}
+
+BollDoc::Verifikat::Verifikat(int unid, std::string text, std::string transdatum)
+: _unid(unid)
+, _text(std::move(text))
+, _transdatum(std::move(transdatum)) {
+}
+
+int BollDoc::Verifikat::getUnid() const {
+    return _unid;
+}
+
+const std::string& BollDoc::Verifikat::getText() const {
+    return _text;
+}
+
+const std::string& BollDoc::Verifikat::getTransdatum() const {
+    return _transdatum;
+}
+
+void BollDoc::Verifikat::addRad(Rad&& rad) {
+    _rader.push_back(std::move(rad));
+}
+
+const BollDoc::Rad& BollDoc::Verifikat::getRad(int i) const {
+    if (i >= _rader.size() || i < 0) {
+        std::stringstream ss;
+        ss << "Rad " << i << " requested, verifikat only has 0-" << _rader.size() - 1;
+        throw std::runtime_error(ss.str());
+    }
+    return _rader[i];
+}
+
+const std::vector<BollDoc::Rad>& BollDoc::Verifikat::getRader() const {
+    return _rader;
+}
+
