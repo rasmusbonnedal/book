@@ -67,13 +67,13 @@ BollDoc loadDocument(std::istream& input) {
         auto unid = getAttrInt(verifikat, "unid");
         auto text = getAttrString(verifikat, "text");
         auto transdatum = getAttrString(verifikat, "transdatum");
-        BollDoc::Verifikat v(unid, std::move(text), std::move(transdatum));
+        BollDoc::Verifikat v(unid, std::move(text), parseDate(transdatum));
         for (auto rad = getNode(verifikat, "rad"); rad; rad = rad->next_sibling("rad")) {
             // TODO: attr struken
             auto bokdatum = getAttrString(rad, "bokdatum");
             auto konto = getAttrInt(rad, "konto");
             auto pengar = Utils::parsePengar(getAttrString(rad, "pengar"));
-            BollDoc::Rad r{std::move(bokdatum), konto, pengar};
+            BollDoc::Rad r{parseDate(bokdatum), konto, pengar};
             v.addRad(std::move(r));
         }
         bolldoc.addVerifikat(std::move(v));
@@ -173,13 +173,13 @@ std::optional<std::string> BollDoc::Konto::getNormalt() const {
     return _normalt;
 }
 
-BollDoc::Rad::Rad(std::string bokdatum, int konto, int64_t pengar)
+BollDoc::Rad::Rad(Date bokdatum, int konto, int64_t pengar)
 : _bokdatum(std::move(bokdatum))
 , _konto(konto)
 , _pengar(pengar) {
 }
 
-const std::string& BollDoc::Rad::getBokdatum() const {
+const Date& BollDoc::Rad::getBokdatum() const {
     return _bokdatum;
 }
 
@@ -191,7 +191,7 @@ int64_t BollDoc::Rad::getPengar() const {
     return _pengar;
 }
 
-BollDoc::Verifikat::Verifikat(int unid, std::string text, std::string transdatum)
+BollDoc::Verifikat::Verifikat(int unid, std::string text, Date transdatum)
 : _unid(unid)
 , _text(std::move(text))
 , _transdatum(std::move(transdatum)) {
@@ -205,7 +205,7 @@ const std::string& BollDoc::Verifikat::getText() const {
     return _text;
 }
 
-const std::string& BollDoc::Verifikat::getTransdatum() const {
+const Date& BollDoc::Verifikat::getTransdatum() const {
     return _transdatum;
 }
 

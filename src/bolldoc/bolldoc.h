@@ -3,6 +3,8 @@
 #include <optional>
 #include <vector>
 
+#include "date.h"
+
 class BollDoc {
 public:
     class Konto {
@@ -28,25 +30,25 @@ public:
 
     class Rad {
     public:
-        Rad(std::string bokdatum, int konto, int64_t pengar);
+        Rad(Date bokdatum, int konto, int64_t pengar);
         Rad(Rad&&) = default;
         Rad& operator=(Rad&&) = default;
 
-        const std::string& getBokdatum() const;
+        const Date& getBokdatum() const;
 
         int getKonto() const;
 
         int64_t getPengar() const;
 
     private:
-        std::string _bokdatum;
+        Date _bokdatum;
         int _konto;
         int64_t _pengar;
     };
 
     class Verifikat {
     public:
-        Verifikat(int unid, std::string text, std::string transdatum);
+        Verifikat(int unid, std::string text, Date transdatum);
         Verifikat(Verifikat&&) = default;
         Verifikat& operator=(Verifikat&&) = default;
 
@@ -54,7 +56,7 @@ public:
 
         const std::string& getText() const;
 
-        const std::string& getTransdatum() const;
+        const Date& getTransdatum() const;
 
         void addRad(Rad&& rad);
 
@@ -65,7 +67,7 @@ public:
     private:
         int _unid;
         std::string _text;
-        std::string _transdatum;
+        Date _transdatum;
         std::vector<Rad> _rader;
     };
 
