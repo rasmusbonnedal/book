@@ -1,6 +1,7 @@
 #include "bolldoc.h"
 #include "utils.h"
 
+#include <cstdint>
 #include <iostream>
 #include <optional>
 #include <sstream>
@@ -34,16 +35,33 @@ namespace {
         }
         return n;
     }
+
+    uint32_t hexToInt(const std::string& s) {
+        uint32_t x;
+        std::stringstream ss;
+        ss << std::hex << s;
+        ss >> x;
+        return x;
+    }
 }
 
 BollDoc loadDocument(std::istream& input) {
     using namespace rapidxml;
-    std::string xmlText(std::istreambuf_iterator<char>(input), {});
     xml_document<> doc;
-    doc.parse<0>(&xmlText[0]);
+    uint32_t checksum;
+    {
+        std::string xmlText(std::istreambuf_iterator<char>(input), {});
+        checksum = Utils::calcChecksum(xmlText);
+        doc.parse<0>(&xmlText[0]);
+    }
+
 
     auto bollbok = getNode(&doc, "bollbok");
     auto version = getAttrInt(bollbok, "version");
+    auto kontrollsumma = hexToInt(getAttrString(bollbok, "kontrollsumma"));
+    if (kontrollsumma != checksum) {
+        throw std::runtime_error("Checksum error while loading document");
+    }
     auto info = getNode(bollbok, "info");
     auto firma = getAttrString(info, "firma");
     auto orgnummer = getAttrString(info, "orgnummer");
