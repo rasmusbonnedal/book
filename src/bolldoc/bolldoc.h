@@ -106,5 +106,3 @@ private:
     std::map<int, Konto> _kontoplan;
     std::vector<Verifikat> _verifikat;
 };
-
-BollDoc loadDocument(std::istream& input);
