@@ -4,33 +4,37 @@
 #include <vector>
 
 #include "date.h"
+#include "pengar.h"
 
 class BollDoc {
 public:
     class Konto {
     public:
-        Konto(int unid, std::string text, int typ, std::optional<std::string> normalt);
+        Konto(int unid, std::string text, int typ, std::optional<std::string> normalt = std::nullopt, std::optional<std::string> tagg = std::nullopt);
         Konto(Konto&&) = default;
         Konto& operator=(Konto&&) = default;
 
         int getUnid() const;
 
-        const std::string getText() const;
+        const std::string& getText() const;
 
         int getTyp() const;
 
-        std::optional<std::string> getNormalt() const;
+        const std::optional<std::string>& getNormalt() const;
+
+        const std::optional<std::string>& getTagg() const;
 
     private:
         int _unid;
         std::string _text;
         int _typ;
         std::optional<std::string> _normalt;
+        std::optional<std::string> _tagg;
     };
 
     class Rad {
     public:
-        Rad(Date bokdatum, int konto, int64_t pengar);
+        Rad(Date bokdatum, int konto, Pengar pengar, std::optional<Date> struken = std::nullopt);
         Rad(Rad&&) = default;
         Rad& operator=(Rad&&) = default;
 
@@ -38,12 +42,15 @@ public:
 
         int getKonto() const;
 
-        int64_t getPengar() const;
+        Pengar getPengar() const;
+
+        const std::optional<Date>& getStruken() const;
 
     private:
         Date _bokdatum;
         int _konto;
-        int64_t _pengar;
+        Pengar _pengar;
+        std::optional<Date> _struken;
     };
 
     class Verifikat {
@@ -75,7 +82,8 @@ public:
             std::string firma,
             std::string orgnummer,
             int bokforingsar,
-            std::string valuta);
+            std::string valuta,
+            bool avslutat);
 
     int getVersion() const;
 
@@ -87,15 +95,19 @@ public:
 
     const std::string& getValuta() const;
 
+    bool getAvslutat() const;
+
     void addKonto(Konto&& konto);
 
     const Konto& getKonto(int unid) const;
+
+    const std::map<int, Konto>& getKontoPlan() const;
 
     void addVerifikat(Verifikat&& verifikat);
 
     const Verifikat& getVerifikat(int unid) const;
 
-    const std::vector<Verifikat>& getVerifikat() const;
+    const std::vector<Verifikat>& getVerifikationer() const;
 
 private:
     int _version;
@@ -103,6 +115,7 @@ private:
     std::string _orgnummer;
     int _bokforingsar;
     std::string _valuta;
+    bool _avslutat;
     std::map<int, Konto> _kontoplan;
     std::vector<Verifikat> _verifikat;
 };

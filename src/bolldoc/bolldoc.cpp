@@ -8,12 +8,14 @@ BollDoc::BollDoc(int version,
                  std::string firma,
                  std::string orgnummer,
                  int bokforingsar,
-                 std::string valuta)
+                 std::string valuta,
+                 bool avslutat)
 : _version(version)
 , _firma(std::move(firma))
 , _orgnummer(std::move(orgnummer))
 , _bokforingsar(bokforingsar)
-, _valuta(std::move(valuta)) {
+, _valuta(std::move(valuta))
+, _avslutat(avslutat) {
 }
 
 int BollDoc::getVersion() const {
@@ -36,6 +38,10 @@ const std::string& BollDoc::getValuta() const {
     return _valuta;
 }
 
+bool BollDoc::getAvslutat() const {
+    return _avslutat;
+}
+
 void BollDoc::addKonto(BollDoc::Konto&& konto) {
     _kontoplan.insert(std::make_pair(konto.getUnid(), std::move(konto)));
 }
@@ -48,6 +54,10 @@ const BollDoc::Konto& BollDoc::getKonto(int unid) const {
         throw std::runtime_error(ss.str());
     }
     return it->second;
+}
+
+const std::map<int, BollDoc::Konto>& BollDoc::getKontoPlan() const {
+    return _kontoplan;
 }
 
 void BollDoc::addVerifikat(Verifikat&& verifikat) {
@@ -68,22 +78,23 @@ const BollDoc::Verifikat& BollDoc::getVerifikat(int unid) const {
     return _verifikat[unid];
 }
 
-const std::vector<BollDoc::Verifikat>& BollDoc::getVerifikat() const {
+const std::vector<BollDoc::Verifikat>& BollDoc::getVerifikationer() const {
     return _verifikat;
 }
 
-BollDoc::Konto::Konto(int unid, std::string text, int typ, std::optional<std::string> normalt)
+BollDoc::Konto::Konto(int unid, std::string text, int typ, std::optional<std::string> normalt, std::optional<std::string> tagg)
 : _unid(unid)
 , _text(std::move(text))
 , _typ(typ)
-, _normalt(std::move(normalt)) {
+, _normalt(std::move(normalt))
+, _tagg(std::move(tagg)) {
 }
 
 int BollDoc::Konto::getUnid() const {
     return _unid;
 }
 
-const std::string BollDoc::Konto::getText() const {
+const std::string& BollDoc::Konto::getText() const {
     return _text;
 }
 
@@ -91,14 +102,19 @@ int BollDoc::Konto::getTyp() const {
     return _typ;
 }
 
-std::optional<std::string> BollDoc::Konto::getNormalt() const {
+const std::optional<std::string>& BollDoc::Konto::getNormalt() const {
     return _normalt;
 }
 
-BollDoc::Rad::Rad(Date bokdatum, int konto, int64_t pengar)
+const std::optional<std::string>& BollDoc::Konto::getTagg() const {
+    return _tagg;    
+}
+
+BollDoc::Rad::Rad(Date bokdatum, int konto, Pengar pengar, std::optional<Date> struken)
 : _bokdatum(std::move(bokdatum))
 , _konto(konto)
-, _pengar(pengar) {
+, _pengar(pengar)
+, _struken(struken) {
 }
 
 const Date& BollDoc::Rad::getBokdatum() const {
@@ -109,8 +125,12 @@ int BollDoc::Rad::getKonto() const {
     return _konto;
 }
 
-int64_t BollDoc::Rad::getPengar() const {
+Pengar BollDoc::Rad::getPengar() const {
     return _pengar;
+}
+
+const std::optional<Date>& BollDoc::Rad::getStruken() const {
+    return _struken;
 }
 
 BollDoc::Verifikat::Verifikat(int unid, std::string text, Date transdatum)

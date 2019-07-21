@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<bollbok version="2074" kontrollsumma="41374C4E">
+<bollbok version="2074" kontrollsumma="30813E6F">
 	<info avslutat="1" firma="" orgnummer="" bokföringsår="2018" valuta="SEK" />
 
 	<kontoplan kptyp="">
@@ -7,7 +7,8 @@
 		<konto unid="1910" text="Kassa" typ="1" />
 		<konto unid="2010" text="Eget kapital" typ="1" />
 		<konto unid="2350" text="Andra långfristiga skulder" typ="1" />
-		<konto unid="3000" text="Försäljning inom Sverige" typ="3" normalt="-" />
+		<konto unid="3000" text="Försäljning inom Sverige" typ="3" k1="F" normalt="-" />
+		<konto unid="3001" text="Försäljning inom EU" typ="3" k1="F" normalt="-" />
 		<konto unid="5010" text="Lokalhyra" typ="3" normalt="+" />
 	</kontoplan>
 	<kontogrupper>
@@ -28,7 +29,12 @@
 		</verifikat>
 		<verifikat unid="2" text="Försäljning" transdatum="2018-02-01">
 			<rad bokdatum="2018-12-25" konto="1910" pengar="3000"/>
-			<rad bokdatum="2018-12-25" konto="3000" pengar="-3000"/>
+			<rad bokdatum="2018-12-25" konto="3000" pengar="-3000" struken="2019-07-21"/>
+			<rad bokdatum="2019-07-21" konto="3001" pengar="-3000"/>
+		</verifikat>
+		<verifikat unid="3" text="Försäljning" transdatum="2018-03-01">
+			<rad bokdatum="2019-07-21" konto="1910" pengar="2000"/>
+			<rad bokdatum="2019-07-21" konto="3000" pengar="-2000"/>
 		</verifikat>
 	</verifikationer>
 </bollbok>
