@@ -23,6 +23,8 @@ Date parseDate(const std::string& s);
 
 bool operator<(const Date& lhs, const Date& rhs);
 
+bool operator>=(const Date& lhs, const Date& rhs);
+
 bool operator==(const Date& lhs, const Date& rhs);
 
 bool operator!=(const Date& lhs, const Date& rhs);

@@ -82,6 +82,26 @@ const std::vector<BollDoc::Verifikat>& BollDoc::getVerifikationer() const {
     return _verifikat;
 }
 
+std::vector<const BollDoc::Verifikat*> BollDoc::getVerifikatRange(const Date& start, const Date& end) const {
+    std::vector<const Verifikat*> retval;
+    for (auto& v : _verifikat) {
+        if (v.getTransdatum() >= start && v.getTransdatum() < end) {
+            retval.push_back(&v);
+        }
+    }
+    return retval;
+}
+
+std::vector<const BollDoc::Verifikat*> BollDoc::getVerifikatRange(const int unidStart, const int unidEnd) const {
+    std::vector<const Verifikat*> retval;
+    for (auto& v : _verifikat) {
+        if (v.getUnid() >= unidStart && v.getUnid() < unidEnd) {
+            retval.push_back(&v);
+        }
+    }
+    return retval;
+}
+
 BollDoc::Konto::Konto(int unid, std::string text, int typ, std::optional<std::string> normalt, std::optional<std::string> tagg)
 : _unid(unid)
 , _text(std::move(text))

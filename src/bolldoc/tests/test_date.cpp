@@ -20,6 +20,16 @@ TEST_CASE("Date <") {
     CHECK(Date(2001, 10, 2) < Date(2001, 10, 3));
 }
 
+TEST_CASE("Date >=") {
+    CHECK(Date(2001, 10, 2) >= Date(2000, 11, 3));
+    CHECK(Date(2001, 10, 2) >= Date(2001, 9, 3));
+    CHECK(Date(2001, 10, 2) >= Date(2001, 10, 1));
+    CHECK(Date(2001, 10, 2) >= Date(2001, 10, 2));
+    CHECK_FALSE(Date(2001, 10, 2) >= Date(2002, 9, 1));
+    CHECK_FALSE(Date(2001, 10, 2) >= Date(2001, 11, 1));
+    CHECK_FALSE(Date(2001, 10, 2) >= Date(2001, 10, 3));
+}
+
 TEST_CASE("Valid Date") {
     CHECK_NOTHROW(Date(0, 1, 1));
     CHECK_NOTHROW(Date(1987, 12, 1));

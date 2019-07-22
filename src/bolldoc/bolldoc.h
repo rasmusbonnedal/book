@@ -109,6 +109,10 @@ public:
 
     const std::vector<Verifikat>& getVerifikationer() const;
 
+    std::vector<const Verifikat*> getVerifikatRange(const Date& start, const Date& end) const;
+
+    std::vector<const Verifikat*> getVerifikatRange(const int unidStart, const int unidEnd) const;
+
 private:
     int _version;
     std::string _firma;

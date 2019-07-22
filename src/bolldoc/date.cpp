@@ -85,6 +85,10 @@ bool operator<(const Date& lhs, const Date& rhs) {
     }
 }
 
+bool operator>=(const Date& lhs, const Date& rhs) {
+    return !(lhs < rhs);
+}
+
 bool operator==(const Date& lhs, const Date& rhs) {
     return lhs.getYear() == rhs.getYear() &&
            lhs.getMonth() == rhs.getMonth() &&
