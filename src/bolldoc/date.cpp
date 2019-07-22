@@ -8,7 +8,31 @@
 namespace {
     bool isLeapYear(int year) {
         return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
-    }    
+    }
+
+    int lastDayOfMonth(int year, int month) {
+        switch(month) {
+        case 1:
+        case 3:
+        case 5:
+        case 7:
+        case 8:
+        case 10:
+        case 12:
+            return 31;
+        case 4:
+        case 6:
+        case 9:
+        case 11:
+            return 30;
+        case 2:
+            return isLeapYear(year) ? 29 : 28;
+        default:
+            std::stringstream ss;
+            ss << "Invalid month " << month;
+            throw std::runtime_error(ss.str());
+        }
+    }
 }
 
 Date::Date(int year, int month, int day) 
@@ -36,27 +60,7 @@ int Date::getDay() const {
 
 bool Date::checkDate() const {
     if (_year < 0 || _month < 1 || _month > 12 || _day < 1) return false;
-    switch(_month) {
-    case 1:
-    case 3:
-    case 5:
-    case 7:
-    case 8:
-    case 10:
-    case 12:
-        if (_day > 31) return false;
-        break;
-    case 4:
-    case 6:
-    case 9:
-    case 11:
-        if (_day > 30) return false;
-        break;
-    case 2:
-        if (_day > (isLeapYear(_year) ? 29 : 28)) return false;
-        break;
-    }
-    return true;
+    return _day <= lastDayOfMonth(_year, _month);
 }
 
 Date parseDate(const std::string& s) {
@@ -97,3 +101,6 @@ std::ostream& operator<<(std::ostream& stream, const Date& d) {
     return stream;
 }
 
+Date lastDayOfMonth(const Date& d) {
+    return Date(d.getYear(), d.getMonth(), lastDayOfMonth(d.getYear(), d.getMonth()));
+}

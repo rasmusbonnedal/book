@@ -65,3 +65,14 @@ TEST_CASE("Invalid Date") {
 TEST_CASE("Date parse fail") {
     CHECK_THROWS_WITH(parseDate("230-10-10"), "Could not parse 230-10-10 as a date");
 }
+
+TEST_CASE("Last day of month") {
+    for (int i : { 1, 3, 5, 7, 8, 10, 12 }) {
+        CHECK(lastDayOfMonth(Date(1999, i, 1)) == Date(1999, i, 31));
+    }
+    for (int i : { 4, 6, 9, 11 }) {
+        CHECK(lastDayOfMonth(Date(1999, i, 1)) == Date(1999, i, 30));
+    }
+    CHECK(lastDayOfMonth(Date(1999, 2, 1)) == Date(1999, 2, 28));
+    CHECK(lastDayOfMonth(Date(2000, 2, 1)) == Date(2000, 2, 29));
+}
