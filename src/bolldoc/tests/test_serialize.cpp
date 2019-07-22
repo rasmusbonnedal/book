@@ -6,7 +6,7 @@
 #include <fstream>
 
 TEST_CASE("Serialize load") {
-    std::ifstream input("../../../docs/bok1.bollbok");
+    std::ifstream input("../../../../docs/bok1.bollbok");
     REQUIRE(input.good());
     BollDoc doc = Serialize::loadDocument(input);
     CHECK(doc.getVersion() == 2074);
@@ -68,7 +68,7 @@ TEST_CASE("Serialize save") {
     v3.addRad({parseDate("2019-07-21"), 3001, parsePengar("-3000")});
     doc.addVerifikat(std::move(v3));
 
-    std::ofstream output("../../../docs/output.bollbok");
+    std::ofstream output("../../../../docs/output.bollbok");
     REQUIRE(output.good());
     Serialize::saveDocument(doc, output);
 }
