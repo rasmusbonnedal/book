@@ -1,5 +1,7 @@
 #include "utils.h"
 
+#include <ww898/utf_converters.hpp>
+
 #include <codecvt>
 #include <iostream>
 #include <locale>

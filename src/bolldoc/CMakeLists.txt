@@ -16,5 +16,5 @@ set(SRCS
 )
 
 add_library(bolldoc STATIC ${SRCS})
-target_link_libraries(bolldoc rapidxml)
+target_link_libraries(bolldoc rapidxml utf-cpp)
 target_include_directories(bolldoc PUBLIC .)
