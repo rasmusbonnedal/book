@@ -7,6 +7,8 @@ set(SRCS
     date.h
     pengar.cpp
     pengar.h
+    resultat.cpp
+    resultat.h
     serialize.cpp
     serialize.h
     utils.cpp

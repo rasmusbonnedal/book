@@ -15,6 +15,11 @@ Pengar::Pengar() : _pengar(0) {}
 
 Pengar::Pengar(const int64_t v) : _pengar(v) {}
 
+Pengar& Pengar::operator+=(const Pengar& rhs) {
+    _pengar += rhs.get();
+    return *this;
+}
+
 int64_t Pengar::get() const {
     return _pengar;
 }

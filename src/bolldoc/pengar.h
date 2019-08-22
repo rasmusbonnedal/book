@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <string>
 
@@ -8,6 +10,8 @@ public:
     Pengar(const int64_t v);
 
     int64_t get() const;
+
+    Pengar& operator+=(const Pengar& rhs);
 
 private:
     int64_t _pengar;

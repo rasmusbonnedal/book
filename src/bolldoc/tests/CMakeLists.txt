@@ -2,6 +2,7 @@ set(TEST_SRCS
     test_bolldoc.cpp
     test_date.cpp
     test_pengar.cpp
+    test_resultat.cpp
     test_serialize.cpp
     test_utils.cpp
 )
