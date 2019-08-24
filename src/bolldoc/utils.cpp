@@ -10,8 +10,7 @@
 
 namespace {
     std::u16string toUTF16(const std::string& s) {
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> u16conv;
-        return u16conv.from_bytes(s);
+        return ww898::utf::conv<char16_t>(s);
     }
 
     size_t findThrows(const std::string& s, const std::string& what, size_t start = 0) {
