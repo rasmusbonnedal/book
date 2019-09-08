@@ -48,7 +48,8 @@ std::string toString(const Pengar& p) {
 std::ostream& operator<<(std::ostream& stream, const Pengar& p) {
     int64_t value = p.get();
     stream << (value / 100);
-    int oren = abs(value) % 100;
+    int oren = std::abs(value) % 100;
+
     if (oren != 0) {
         stream << "." << std::setfill('0') << std::setw(2) << oren;
     }
