@@ -73,7 +73,7 @@ const std::map<int, BollDoc::Konto>& BollDoc::getKontoPlan() const {
 }
 
 void BollDoc::addVerifikat(Verifikat&& verifikat) {
-    if (verifikat.getUnid() != _verifikat.size()) {
+    if (verifikat.getUnid() != (int)_verifikat.size()) {
         std::stringstream ss;
         ss << "Verifikat has unid " << verifikat.getUnid() << ", should be " << _verifikat.size();
         throw std::runtime_error(ss.str());
@@ -82,7 +82,7 @@ void BollDoc::addVerifikat(Verifikat&& verifikat) {
 }
 
 const BollDoc::Verifikat& BollDoc::getVerifikat(int unid) const {
-    if (unid >= _verifikat.size() || unid < 0) {
+    if (unid >= (int)_verifikat.size() || unid < 0) {
         std::stringstream ss;
         ss << "Verifikat " << unid << " requested, document only has 0-" << _verifikat.size() - 1;
         throw std::runtime_error(ss.str());
@@ -210,7 +210,7 @@ void BollDoc::Verifikat::addRad(Rad&& rad) {
 }
 
 const BollDoc::Rad& BollDoc::Verifikat::getRad(int i) const {
-    if (i >= _rader.size() || i < 0) {
+    if (i >= (int)_rader.size() || i < 0) {
         std::stringstream ss;
         ss << "Rad " << i << " requested, verifikat only has 0-" << _rader.size() - 1;
         throw std::runtime_error(ss.str());
