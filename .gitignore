@@ -3,3 +3,4 @@ build_debug
 .DS_Store
 docs/bok1_rewrite.bollbok
 docs/output.bollbok
+*.aps

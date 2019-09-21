@@ -1,0 +1,25 @@
+#include <afxres.h>
+#include "Resource.h"
+
+STRINGTABLE PRELOAD DISCARDABLE
+BEGIN
+  IDR_MAINFRAME "Book Keeper\nSheet\nWorksheet\n Worksheets (*.bollbok)\n.bollbok\nBollbok\n Bollbok Worksheet"
+END
+
+STRINGTABLE
+BEGIN
+	ID_FILE_NEW             "Create a new document\nNew"
+END
+
+IDR_MAINFRAME MENU
+BEGIN
+	POPUP "&File"
+	BEGIN
+		MENUITEM "&New\tCtrl+N", ID_FILE_NEW
+		MENUITEM "&Open...\tCtrl+O", ID_FILE_OPEN
+		MENUITEM "&Save\tCtrl+S", ID_FILE_SAVE
+		MENUITEM "Save &As...", ID_FILE_SAVE_AS
+		MENUITEM SEPARATOR
+		MENUITEM "E&xit", ID_APP_EXIT
+	END
+END
