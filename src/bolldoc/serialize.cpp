@@ -69,7 +69,9 @@ BollDoc Serialize::loadDocument(std::istream& input) {
     auto version = getAttrInt(bollbok, "version");
     auto kontrollsumma = getAttrString(bollbok, "kontrollsumma");
     if (kontrollsumma != intToHex(checksum)) {
-        throw std::runtime_error("Checksum error while loading document");
+		std::stringstream error;
+		error << "Checksum error while loading document (" << intToHex(checksum) << " != " << kontrollsumma << ")";
+        throw std::runtime_error(error.str());
     }
     auto info = getNode(bollbok, "info");
     auto firma = getAttrString(info, "firma");

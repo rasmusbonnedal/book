@@ -50,3 +50,31 @@ TEST_CASE("Ranges") {
     CHECK(doc.getVerifikatRange(7, 11).size() == 4);
     CHECK(doc.getVerifikatRange(11, 13).size() == 2);
 }
+
+TEST_CASE("Verifikat omslutning") {
+    std::vector<std::vector<int64_t>> verifikat = {
+        { 100, 150, -250 },
+        { -100, -100, -150, 350 },
+        { -10, -15, -20, 12, 18, 7, 8 },
+        { 1, 5, 7, -21 },
+    };
+    BollDoc doc(2074, "Ruffel & Båg", "551122-1234", 2018, "SEK", false);
+
+    int verifikatNum = 0;
+    for (auto& v : verifikat) {
+        BollDoc::Verifikat nyttVerifikat{ verifikatNum++, "Abc", Date(2018, 1, 1) };
+        for (auto& r : v) {
+            nyttVerifikat.addRad({ Date(2018, 12, 25), 1910, r });
+        }
+        doc.addVerifikat(std::move(nyttVerifikat));
+    }
+    Pengar omslutning;
+    CHECK_UNARY(doc.getVerifikat(0).getOmslutning(omslutning));
+    CHECK(omslutning.get() == 250);
+    CHECK_UNARY(doc.getVerifikat(1).getOmslutning(omslutning));
+    CHECK(omslutning.get() == 350);
+    CHECK_UNARY(doc.getVerifikat(2).getOmslutning(omslutning));
+    CHECK(omslutning.get() == 45);
+    CHECK_FALSE(doc.getVerifikat(3).getOmslutning(omslutning));
+    CHECK(omslutning.get() == 0);
+}

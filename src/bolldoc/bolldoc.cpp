@@ -188,3 +188,20 @@ const std::vector<BollDoc::Rad>& BollDoc::Verifikat::getRader() const {
     return _rader;
 }
 
+bool BollDoc::Verifikat::getOmslutning(Pengar& omslutning) const {
+    Pengar sum;
+    omslutning = 0;
+    for (auto& r : _rader) {
+        if (!r.getStruken()) {
+            sum += r.getPengar();
+            if (r.getPengar().get() > 0) {
+                omslutning += r.getPengar();
+            }
+        }
+    }
+    if (sum.get() != 0) {
+        omslutning = 0;
+        return false;
+    }
+    return true;
+}

@@ -73,6 +73,8 @@ public:
 
         const std::vector<Rad>& getRader() const;
 
+        bool getOmslutning(Pengar& omslutning) const;
+
     private:
         int _unid;
         std::string _text;
