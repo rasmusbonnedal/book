@@ -43,19 +43,14 @@ void MFCBollDoc::Serialize(CArchive& ar) {
             readBytes = ar.Read(buf, sizeof(buf));
             s.append(buf, readBytes);
         } while (readBytes == sizeof(buf));
-        
-        std::string s_ref;
-        {
-            std::ifstream input("c:/git/book/docs/bok1.bollbok", std::ios_base::binary);
-            s_ref.assign((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
-        }
-        
+
         std::stringstream ss;
         ss.str(s);
         try {
             m_bolldoc = std::make_unique<BollDoc>(std::move(Serialize::loadDocument(ss)));
         } catch (std::exception& e) {
             AfxMessageBox(fromUtf8(e.what()));
+            AfxThrowArchiveException(CArchiveException::badIndex, ar.GetFile()->GetFileName());
         }
     }
 }
