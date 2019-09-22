@@ -1,8 +1,14 @@
 #add_subdirectory(tests)
 
 set(SRCS
+    bollapp.rc
+    bollframe.cpp
+    bollframe.h
+    bollview.cpp
+    bollview.h
     main.cpp
-	bollapp.rc
+    mfcbolldoc.cpp
+    mfcbolldoc.h
 )
 
 add_definitions(-D_AFXDLL -D_WIN32_WINNT=_WIN32_WINNT_WIN10)
