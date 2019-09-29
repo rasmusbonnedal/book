@@ -14,8 +14,10 @@ protected:
     CListCtrl m_mainList;
 
     MFCBollDoc* GetDocument();
-    
+
+    afx_msg void OnSize(UINT nType, int cx, int cy);
 public:
+    virtual void OnDestroy();
     virtual void OnInitialUpdate();
     virtual void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint);
     virtual void OnDraw(CDC* pDC);

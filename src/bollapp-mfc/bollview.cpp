@@ -10,6 +10,7 @@
 IMPLEMENT_DYNCREATE(BollView, CView);
 
 BEGIN_MESSAGE_MAP(BollView, CView)
+    ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 BollView::BollView() {
@@ -19,11 +20,12 @@ MFCBollDoc* BollView::GetDocument() {
     return dynamic_cast<MFCBollDoc*>(m_pDocument);
 }
 
+void BollView::OnDestroy() {
+    m_mainList.DestroyWindow();
+}
+
 void BollView::OnInitialUpdate() {
-    if (m_mainList.GetSafeHwnd() != 0) {
-        AfxMessageBox(L"Already created m_mainList control");
-    }
-    else {
+    if (!IsWindow(m_mainList.GetSafeHwnd())) {
         BOOL result = m_mainList.Create(WS_CHILD | WS_VISIBLE | WS_BORDER | LVS_REPORT | LVS_SINGLESEL, { 100, 100, 800, 600 }, this, 1001);
         if (!result) {
             TRACE("Error could not create CListCtrl");
@@ -69,5 +71,12 @@ void BollView::OnDraw(CDC* /*pDC*/)
     ASSERT_VALID(pDoc);
     if (!pDoc) {
         return;
+    }
+}
+
+void BollView::OnSize(UINT nType, int cx, int cy) {
+    CView::OnSize(nType, cx, cy);
+    if (IsWindow(m_mainList.GetSafeHwnd())) {
+        m_mainList.MoveWindow(0, 0, cx, cy);
     }
 }
