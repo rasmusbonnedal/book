@@ -18,6 +18,18 @@ BollDoc::BollDoc(int version,
 , _avslutat(avslutat) {
 }
 
+bool BollDoc::operator==(const BollDoc& other) const {
+    return _version == other._version &&
+        _firma == other._firma &&
+        _orgnummer == other._orgnummer &&
+        _bokforingsar == other._bokforingsar &&
+        _valuta == other._valuta &&
+        _avslutat == other._avslutat &&
+        _kontoplan == other._kontoplan &&
+        _verifikat == other._verifikat;
+}
+
+
 int BollDoc::getVersion() const {
     return _version;
 }
@@ -110,6 +122,14 @@ BollDoc::Konto::Konto(int unid, std::string text, int typ, std::optional<std::st
 , _tagg(std::move(tagg)) {
 }
 
+bool BollDoc::Konto::operator==(const Konto& other) const {
+    return _unid == other._unid &&
+        _text == other._text &&
+        _typ == other._typ &&
+        _normalt == other._normalt &&
+        _tagg == other._tagg;
+}
+
 int BollDoc::Konto::getUnid() const {
     return _unid;
 }
@@ -137,6 +157,13 @@ BollDoc::Rad::Rad(Date bokdatum, int konto, Pengar pengar, std::optional<Date> s
 , _struken(struken) {
 }
 
+bool BollDoc::Rad::operator==(const Rad& other) const {
+    return _bokdatum == other._bokdatum &&
+        _konto == other._konto &&
+        _pengar == other._pengar &&
+        _struken == other._struken;
+}
+
 const Date& BollDoc::Rad::getBokdatum() const {
     return _bokdatum;
 }
@@ -157,6 +184,13 @@ BollDoc::Verifikat::Verifikat(int unid, std::string text, Date transdatum)
 : _unid(unid)
 , _text(std::move(text))
 , _transdatum(std::move(transdatum)) {
+}
+
+bool BollDoc::Verifikat::operator==(const Verifikat& other) const {
+    return _unid == other._unid &&
+        _text == other._text &&
+        _transdatum == other._transdatum &&
+        _rader == other._rader;
 }
 
 int BollDoc::Verifikat::getUnid() const {

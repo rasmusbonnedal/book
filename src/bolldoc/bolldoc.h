@@ -16,6 +16,8 @@ public:
         Konto(Konto&&) = default;
         Konto& operator=(Konto&&) = default;
 
+        bool operator==(const Konto& other) const;
+
         int getUnid() const;
 
         const std::string& getText() const;
@@ -40,6 +42,8 @@ public:
         Rad(Rad&&) = default;
         Rad& operator=(Rad&&) = default;
 
+        bool operator==(const Rad& other) const;
+
         const Date& getBokdatum() const;
 
         int getKonto() const;
@@ -60,6 +64,8 @@ public:
         Verifikat(int unid, std::string text, Date transdatum);
         Verifikat(Verifikat&&) = default;
         Verifikat& operator=(Verifikat&&) = default;
+
+        bool operator==(const Verifikat& other) const;
 
         int getUnid() const;
 
@@ -88,6 +94,8 @@ public:
             int bokforingsar,
             std::string valuta,
             bool avslutat);
+
+    bool operator==(const BollDoc& other) const;
 
     int getVersion() const;
 

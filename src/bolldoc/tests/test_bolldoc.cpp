@@ -14,6 +14,7 @@ namespace {
             v.addRad({Date(2018, 12, 25), 5010, parsePengar("8000")});
             doc.addVerifikat(std::move(v));
         }
+        doc.addKonto({ 0, "Foo", 0 });
         return doc;
     }
 }
@@ -77,4 +78,15 @@ TEST_CASE("Verifikat omslutning") {
     CHECK(omslutning.get() == 45);
     CHECK_FALSE(doc.getVerifikat(3).getOmslutning(omslutning));
     CHECK(omslutning.get() == 0);
+}
+
+TEST_CASE("Equality") {
+    BollDoc ref = createDoc();
+    BollDoc cmp = createDoc();
+    CHECK(ref == cmp);
+    cmp.addKonto({ 1, "Bar", 0 });
+    CHECK_FALSE(ref == cmp);
+    cmp = createDoc();
+    cmp.addVerifikat({ 13, "FooBar", Date(2018, 5, 1) });
+    CHECK_FALSE(ref == cmp);
 }

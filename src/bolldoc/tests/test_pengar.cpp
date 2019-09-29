@@ -29,3 +29,12 @@ TEST_CASE("Pengar Stream") {
     CHECK("1000" == toString(Pengar(100000)));
     CHECK("-8000000000.01" == toString(Pengar(-800000000001)));
 }
+
+TEST_CASE("Pengar equality") {
+    bool b = parsePengar("-123.45") == Pengar(-12345);
+    CHECK(b);
+    b = parsePengar("123.45") == Pengar(12345);
+    CHECK(b);
+    b = parsePengar("123.45") == Pengar(-12345);
+    CHECK_FALSE(b);
+}

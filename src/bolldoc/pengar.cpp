@@ -54,3 +54,7 @@ std::ostream& operator<<(std::ostream& stream, const Pengar& p) {
     }
     return stream;
 }
+
+bool operator==(const Pengar& lhs, const Pengar& rhs) {
+    return lhs.get() == rhs.get();
+}

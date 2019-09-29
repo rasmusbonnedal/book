@@ -178,5 +178,5 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
     ss << *doc;
     uint32_t checksum = Utils::calcChecksum(ss.str());
     appendAttribute(doc, bollbok, "kontrollsumma", doc->allocate_string(intToHex(checksum).c_str()));
-    output << doc;
+    output << *doc;
 }

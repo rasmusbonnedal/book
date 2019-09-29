@@ -68,7 +68,15 @@ TEST_CASE("Serialize save") {
     v3.addRad({parseDate("2019-07-21"), 3001, parsePengar("-3000")});
     doc.addVerifikat(std::move(v3));
 
-    std::ofstream output("../../../../docs/output.bollbok", std::ios_base::binary);
+    const std::string testfile = "../../../../docs/output.bollbok";
+
+    std::ofstream output(testfile, std::ios_base::binary);
     REQUIRE(output.good());
     Serialize::saveDocument(doc, output);
+    output.close();
+
+    std::ifstream input(testfile, std::ios_base::binary);
+    REQUIRE(input.good());
+    auto loadedDoc = Serialize::loadDocument(input);
+    REQUIRE(doc == loadedDoc);
 }
