@@ -1,4 +1,6 @@
 if (WIN32)
 	add_subdirectory(bollapp-mfc)
+elseif (UNIX)
+	add_subdirectory(bollapp-gtk)
 endif ()
 add_subdirectory(bolldoc)
