@@ -2,6 +2,7 @@ find_package (PkgConfig REQUIRED)
 pkg_check_modules (GTKMM REQUIRED gtkmm-3.0)
 
 set(SRCS
+    cellrenderertextcompletion.cpp
     main.cpp
 )
 
