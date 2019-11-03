@@ -10,27 +10,28 @@
 IMPLEMENT_DYNCREATE(BollView, CView);
 
 BEGIN_MESSAGE_MAP(BollView, CView)
-    ON_WM_SIZE()
+ON_WM_SIZE()
 END_MESSAGE_MAP()
 
-BollView::BollView() {
-}
+BollView::BollView() {}
 
 MFCBollDoc* BollView::GetDocument() {
     return dynamic_cast<MFCBollDoc*>(m_pDocument);
 }
 
-void BollView::OnDestroy() {
-    m_mainList.DestroyWindow();
-}
+void BollView::OnDestroy() { m_mainList.DestroyWindow(); }
 
 void BollView::OnInitialUpdate() {
     if (!IsWindow(m_mainList.GetSafeHwnd())) {
-        BOOL result = m_mainList.Create(WS_CHILD | WS_VISIBLE | WS_BORDER | LVS_REPORT | LVS_SINGLESEL, { 100, 100, 800, 600 }, this, 1001);
+        BOOL result = m_mainList.Create(WS_CHILD | WS_VISIBLE | WS_BORDER |
+                                            LVS_REPORT | LVS_SINGLESEL,
+                                        {100, 100, 800, 600}, this, 1001);
         if (!result) {
             TRACE("Error could not create CListCtrl");
         }
-        m_mainList.SetExtendedStyle(m_mainList.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_AUTOSIZECOLUMNS | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER);
+        m_mainList.SetExtendedStyle(
+            m_mainList.GetExtendedStyle() | LVS_EX_FULLROWSELECT |
+            LVS_EX_AUTOSIZECOLUMNS | LVS_EX_GRIDLINES | LVS_EX_DOUBLEBUFFER);
         m_mainList.InsertColumn(0, L"Verifikat");
         m_mainList.InsertColumn(1, L"Datum");
         m_mainList.InsertColumn(2, L"Text");
@@ -65,8 +66,7 @@ void BollView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) {
     CView::OnUpdate(pSender, lHint, pHint);
 }
 
-void BollView::OnDraw(CDC* /*pDC*/)
-{
+void BollView::OnDraw(CDC* /*pDC*/) {
     CDocument* pDoc = GetDocument();
     ASSERT_VALID(pDoc);
     if (!pDoc) {

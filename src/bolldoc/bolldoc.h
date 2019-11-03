@@ -12,7 +12,9 @@ class BollDoc {
 public:
     class Konto {
     public:
-        Konto(int unid, std::string text, int typ, std::optional<std::string> normalt = std::nullopt, std::optional<std::string> tagg = std::nullopt);
+        Konto(int unid, std::string text, int typ,
+              std::optional<std::string> normalt = std::nullopt,
+              std::optional<std::string> tagg = std::nullopt);
         Konto(Konto&&) = default;
         Konto& operator=(Konto&&) = default;
 
@@ -38,7 +40,8 @@ public:
 
     class Rad {
     public:
-        Rad(Date bokdatum, int konto, Pengar pengar, std::optional<Date> struken = std::nullopt);
+        Rad(Date bokdatum, int konto, Pengar pengar,
+            std::optional<Date> struken = std::nullopt);
         Rad(Rad&&) = default;
         Rad& operator=(Rad&&) = default;
 
@@ -88,12 +91,8 @@ public:
         std::vector<Rad> _rader;
     };
 
-    BollDoc(int version,
-            std::string firma,
-            std::string orgnummer,
-            int bokforingsar,
-            std::string valuta,
-            bool avslutat);
+    BollDoc(int version, std::string firma, std::string orgnummer,
+            int bokforingsar, std::string valuta, bool avslutat);
 
     bool operator==(const BollDoc& other) const;
 
@@ -121,9 +120,11 @@ public:
 
     const std::vector<Verifikat>& getVerifikationer() const;
 
-    std::vector<const Verifikat*> getVerifikatRange(const Date& start, const Date& end) const;
+    std::vector<const Verifikat*> getVerifikatRange(const Date& start,
+                                                    const Date& end) const;
 
-    std::vector<const Verifikat*> getVerifikatRange(const int unidStart, const int unidEnd) const;
+    std::vector<const Verifikat*> getVerifikatRange(const int unidStart,
+                                                    const int unidEnd) const;
 
 private:
     int _version;

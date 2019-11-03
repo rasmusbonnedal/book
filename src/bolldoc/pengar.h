@@ -24,4 +24,3 @@ std::string toString(const Pengar& p);
 std::ostream& operator<<(std::ostream& stream, const Pengar& p);
 
 bool operator==(const Pengar& lhs, const Pengar& rhs);
-

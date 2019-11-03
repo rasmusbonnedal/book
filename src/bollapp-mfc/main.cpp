@@ -13,9 +13,9 @@ public:
 };
 
 BEGIN_MESSAGE_MAP(BollApp, CWinApp)
-    // Standard file based document commands
-    ON_COMMAND(ID_FILE_NEW, &CWinApp::OnFileNew)
-    ON_COMMAND(ID_FILE_OPEN, &CWinApp::OnFileOpen)
+// Standard file based document commands
+ON_COMMAND(ID_FILE_NEW, &CWinApp::OnFileNew)
+ON_COMMAND(ID_FILE_OPEN, &CWinApp::OnFileOpen)
 END_MESSAGE_MAP()
 
 BollApp theApp;
@@ -23,9 +23,8 @@ BollApp theApp;
 BOOL BollApp::InitInstance() {
     CWinApp::InitInstance();
 
-    CSingleDocTemplate* pDocTemplate = new CSingleDocTemplate(IDR_MAINFRAME,
-        RUNTIME_CLASS(MFCBollDoc),
-        RUNTIME_CLASS(BollFrame),
+    CSingleDocTemplate* pDocTemplate = new CSingleDocTemplate(
+        IDR_MAINFRAME, RUNTIME_CLASS(MFCBollDoc), RUNTIME_CLASS(BollFrame),
         RUNTIME_CLASS(BollView));
 
     if (!pDocTemplate) {

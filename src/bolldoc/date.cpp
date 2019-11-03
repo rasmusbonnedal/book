@@ -2,43 +2,41 @@
 
 #include <iomanip>
 #include <regex>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace {
-    bool isLeapYear(int year) {
-        return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
-    }
-
-    int lastDayOfMonth(int year, int month) {
-        switch(month) {
-        case 1:
-        case 3:
-        case 5:
-        case 7:
-        case 8:
-        case 10:
-        case 12:
-            return 31;
-        case 4:
-        case 6:
-        case 9:
-        case 11:
-            return 30;
-        case 2:
-            return isLeapYear(year) ? 29 : 28;
-        default:
-            std::stringstream ss;
-            ss << "Invalid month " << month;
-            throw std::runtime_error(ss.str());
-        }
-    }
+bool isLeapYear(int year) {
+    return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
 }
 
-Date::Date(int year, int month, int day) 
-: _year(year)
-, _month(month)
-, _day(day) {
+int lastDayOfMonth(int year, int month) {
+    switch (month) {
+    case 1:
+    case 3:
+    case 5:
+    case 7:
+    case 8:
+    case 10:
+    case 12:
+        return 31;
+    case 4:
+    case 6:
+    case 9:
+    case 11:
+        return 30;
+    case 2:
+        return isLeapYear(year) ? 29 : 28;
+    default:
+        std::stringstream ss;
+        ss << "Invalid month " << month;
+        throw std::runtime_error(ss.str());
+    }
+}
+} // namespace
+
+Date::Date(int year, int month, int day)
+    : _year(year), _month(month), _day(day) {
     if (!checkDate()) {
         std::stringstream ss;
         ss << "Invalid date " << *this;
@@ -46,20 +44,15 @@ Date::Date(int year, int month, int day)
     }
 }
 
-int Date::getYear() const {
-    return _year;
-}
+int Date::getYear() const { return _year; }
 
-int Date::getMonth() const {
-    return _month;
-}
+int Date::getMonth() const { return _month; }
 
-int Date::getDay() const {
-    return _day;
-}
+int Date::getDay() const { return _day; }
 
 bool Date::checkDate() const {
-    if (_year < 0 || _month < 1 || _month > 12 || _day < 1) return false;
+    if (_year < 0 || _month < 1 || _month > 12 || _day < 1)
+        return false;
     return _day <= lastDayOfMonth(_year, _month);
 }
 
@@ -85,26 +78,22 @@ bool operator<(const Date& lhs, const Date& rhs) {
     }
 }
 
-bool operator>=(const Date& lhs, const Date& rhs) {
-    return !(lhs < rhs);
-}
+bool operator>=(const Date& lhs, const Date& rhs) { return !(lhs < rhs); }
 
 bool operator==(const Date& lhs, const Date& rhs) {
-    return lhs.getYear() == rhs.getYear() &&
-           lhs.getMonth() == rhs.getMonth() &&
+    return lhs.getYear() == rhs.getYear() && lhs.getMonth() == rhs.getMonth() &&
            lhs.getDay() == rhs.getDay();
 }
 
-bool operator!=(const Date& lhs, const Date& rhs) {
-    return !(lhs == rhs);
-}
+bool operator!=(const Date& lhs, const Date& rhs) { return !(lhs == rhs); }
 
 std::ostream& operator<<(std::ostream& stream, const Date& d) {
-    stream << std::setfill('0') << std::setw(4) << d.getYear() << "-" 
+    stream << std::setfill('0') << std::setw(4) << d.getYear() << "-"
            << std::setw(2) << d.getMonth() << "-" << std::setw(2) << d.getDay();
     return stream;
 }
 
 Date lastDayOfMonth(const Date& d) {
-    return Date(d.getYear(), d.getMonth(), lastDayOfMonth(d.getYear(), d.getMonth()));
+    return Date(d.getYear(), d.getMonth(),
+                lastDayOfMonth(d.getYear(), d.getMonth()));
 }

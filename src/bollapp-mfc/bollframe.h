@@ -1,6 +1,6 @@
 #pragma once
-#include <afxwin.h>
 #include <afxext.h>
+#include <afxwin.h>
 
 class BollFrame : public CFrameWnd {
 protected:

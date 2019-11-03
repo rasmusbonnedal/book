@@ -16,4 +16,5 @@ private:
     Pengar _pengar;
 };
 
-std::vector<Resultat> calcResultat(const std::vector<const BollDoc::Verifikat*>& verifikat);
+std::vector<Resultat>
+calcResultat(const std::vector<const BollDoc::Verifikat*>& verifikat);

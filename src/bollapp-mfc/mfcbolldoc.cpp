@@ -13,19 +13,17 @@ IMPLEMENT_DYNCREATE(MFCBollDoc, CDocument);
 BEGIN_MESSAGE_MAP(MFCBollDoc, CDocument)
 END_MESSAGE_MAP()
 
-MFCBollDoc::MFCBollDoc() {
-}
+MFCBollDoc::MFCBollDoc() {}
 
-BollDoc& MFCBollDoc::getDocument() {
-    return *m_bolldoc;
-}
+BollDoc& MFCBollDoc::getDocument() { return *m_bolldoc; }
 
 BOOL MFCBollDoc::OnNewDocument() {
     if (!CDocument::OnNewDocument()) {
         return FALSE;
     }
 
-    m_bolldoc = std::make_unique<BollDoc>(2074, "Firma", "556677-1234", 2019, "SEK", false);
+    m_bolldoc = std::make_unique<BollDoc>(2074, "Firma", "556677-1234", 2019,
+                                          "SEK", false);
 
     return TRUE;
 }
@@ -47,10 +45,12 @@ void MFCBollDoc::Serialize(CArchive& ar) {
         std::stringstream ss;
         ss.str(s);
         try {
-            m_bolldoc = std::make_unique<BollDoc>(std::move(Serialize::loadDocument(ss)));
+            m_bolldoc = std::make_unique<BollDoc>(
+                std::move(Serialize::loadDocument(ss)));
         } catch (std::exception& e) {
             AfxMessageBox(fromUtf8(e.what()));
-            AfxThrowArchiveException(CArchiveException::badIndex, ar.GetFile()->GetFileName());
+            AfxThrowArchiveException(CArchiveException::badIndex,
+                                     ar.GetFile()->GetFileName());
         }
     }
 }

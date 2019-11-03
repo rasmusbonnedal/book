@@ -1,6 +1,6 @@
 #pragma once
-#include <afxwin.h>
 #include <afxcmn.h>
+#include <afxwin.h>
 
 class MFCBollDoc;
 
@@ -16,6 +16,7 @@ protected:
     MFCBollDoc* GetDocument();
 
     afx_msg void OnSize(UINT nType, int cx, int cy);
+
 public:
     virtual void OnDestroy();
     virtual void OnInitialUpdate();

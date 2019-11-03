@@ -15,47 +15,49 @@
 using namespace rapidxml;
 
 namespace {
-    std::optional<std::string> getAttrStringOpt(xml_node<>* node, const std::string& name) {
-        auto attr = node->first_attribute(name.c_str());
-        return attr ? std::make_optional(attr->value()) : std::nullopt;
-    }
-
-    std::string getAttrString(xml_node<>* node, const std::string& name) {
-        auto attr = getAttrStringOpt(node, name);
-        if (!attr) {
-            throw std::runtime_error("Attribute " + name + " not found.");
-        }
-        return *attr;
-    }
-
-    int getAttrInt(xml_node<>* node, const std::string& name) {
-        return std::stoi(getAttrString(node, name));
-    }
-
-    xml_node<>* getNode(xml_node<>* node, const std::string& name) {
-        xml_node<>* n = node->first_node(name.c_str());
-        if (!n) {
-            throw std::runtime_error("Attribute " + name + " not found.");
-        }
-        return n;
-    }
-
-    template<class T>
-    void appendAttribute(std::unique_ptr<xml_document<>>& doc, xml_node<>* node, const std::string& name, const T& value) {
-        std::stringstream ss;
-        ss << value;
-        xml_attribute<> *attr = doc->allocate_attribute(
-            doc->allocate_string(name.c_str()),
-            doc->allocate_string(ss.str().c_str()));
-        node->append_attribute(attr);
-    }
-
-    std::string intToHex(const uint32_t x) {
-        std::stringstream ss;
-        ss << std::hex << std::setfill('0') << std::setw(8) << std::uppercase << x;
-        return ss.str();
-    }
+std::optional<std::string> getAttrStringOpt(xml_node<>* node,
+                                            const std::string& name) {
+    auto attr = node->first_attribute(name.c_str());
+    return attr ? std::make_optional(attr->value()) : std::nullopt;
 }
+
+std::string getAttrString(xml_node<>* node, const std::string& name) {
+    auto attr = getAttrStringOpt(node, name);
+    if (!attr) {
+        throw std::runtime_error("Attribute " + name + " not found.");
+    }
+    return *attr;
+}
+
+int getAttrInt(xml_node<>* node, const std::string& name) {
+    return std::stoi(getAttrString(node, name));
+}
+
+xml_node<>* getNode(xml_node<>* node, const std::string& name) {
+    xml_node<>* n = node->first_node(name.c_str());
+    if (!n) {
+        throw std::runtime_error("Attribute " + name + " not found.");
+    }
+    return n;
+}
+
+template <class T>
+void appendAttribute(std::unique_ptr<xml_document<>>& doc, xml_node<>* node,
+                     const std::string& name, const T& value) {
+    std::stringstream ss;
+    ss << value;
+    xml_attribute<>* attr =
+        doc->allocate_attribute(doc->allocate_string(name.c_str()),
+                                doc->allocate_string(ss.str().c_str()));
+    node->append_attribute(attr);
+}
+
+std::string intToHex(const uint32_t x) {
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0') << std::setw(8) << std::uppercase << x;
+    return ss.str();
+}
+} // namespace
 
 BollDoc Serialize::loadDocument(std::istream& input) {
     auto doc = std::make_unique<xml_document<>>();
@@ -70,7 +72,8 @@ BollDoc Serialize::loadDocument(std::istream& input) {
     auto kontrollsumma = getAttrString(bollbok, "kontrollsumma");
     if (kontrollsumma != intToHex(checksum)) {
         std::stringstream error;
-        error << "Checksum error while loading document (" << intToHex(checksum) << " != " << kontrollsumma << ")";
+        error << "Checksum error while loading document (" << intToHex(checksum)
+              << " != " << kontrollsumma << ")";
         throw std::runtime_error(error.str());
     }
     auto info = getNode(bollbok, "info");
@@ -82,29 +85,34 @@ BollDoc Serialize::loadDocument(std::istream& input) {
     BollDoc bolldoc(version, firma, orgnummer, bokforingsar, valuta, avslutat);
 
     auto kontoplan = getNode(bollbok, "kontoplan");
-    for (auto konto = getNode(kontoplan, "konto"); konto; konto = konto->next_sibling("konto")) {
+    for (auto konto = getNode(kontoplan, "konto"); konto;
+         konto = konto->next_sibling("konto")) {
         int unid = getAttrInt(konto, "unid");
         auto text = getAttrString(konto, "text");
         auto typ = getAttrInt(konto, "typ");
         auto normalt = getAttrStringOpt(konto, "normalt");
         auto tagg = getAttrStringOpt(konto, "k1");
-        BollDoc::Konto k(unid, std::move(text), typ, std::move(normalt), std::move(tagg));
+        BollDoc::Konto k(unid, std::move(text), typ, std::move(normalt),
+                         std::move(tagg));
         bolldoc.addKonto(std::move(k));
     }
 
     auto verifikationer = getNode(bollbok, "verifikationer");
-    for (auto verifikat = getNode(verifikationer, "verifikat"); verifikat; verifikat = verifikat->next_sibling("verifikat")) {
+    for (auto verifikat = getNode(verifikationer, "verifikat"); verifikat;
+         verifikat = verifikat->next_sibling("verifikat")) {
         auto unid = getAttrInt(verifikat, "unid");
         auto text = getAttrString(verifikat, "text");
         auto transdatum = getAttrString(verifikat, "transdatum");
         BollDoc::Verifikat v(unid, std::move(text), parseDate(transdatum));
-        for (auto rad = getNode(verifikat, "rad"); rad; rad = rad->next_sibling("rad")) {
+        for (auto rad = getNode(verifikat, "rad"); rad;
+             rad = rad->next_sibling("rad")) {
             auto bokdatum = getAttrString(rad, "bokdatum");
             auto konto = getAttrInt(rad, "konto");
             auto pengar = parsePengar(getAttrString(rad, "pengar"));
             auto struken = getAttrStringOpt(rad, "struken");
             std::optional<Date> strukenDate;
-            if (struken) strukenDate = parseDate(*struken);
+            if (struken)
+                strukenDate = parseDate(*struken);
             BollDoc::Rad r{parseDate(bokdatum), konto, pengar, strukenDate};
             v.addRad(std::move(r));
         }
@@ -115,7 +123,7 @@ BollDoc Serialize::loadDocument(std::istream& input) {
 }
 
 void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
-     auto doc = std::make_unique<xml_document<>>();
+    auto doc = std::make_unique<xml_document<>>();
     // xml declaration
     xml_node<>* decl = doc->allocate_node(node_declaration);
     decl->append_attribute(doc->allocate_attribute("version", "1.0"));
@@ -154,7 +162,8 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
         }
     }
 
-    xml_node<>* verifikationer = doc->allocate_node(node_element, "verifikationer");
+    xml_node<>* verifikationer =
+        doc->allocate_node(node_element, "verifikationer");
     bollbok->append_node(verifikationer);
     for (auto&& v : bolldoc.getVerifikationer()) {
         xml_node<>* verifikat = doc->allocate_node(node_element, "verifikat");
@@ -177,6 +186,7 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
     std::stringstream ss;
     ss << *doc;
     uint32_t checksum = Utils::calcChecksum(ss.str());
-    appendAttribute(doc, bollbok, "kontrollsumma", doc->allocate_string(intToHex(checksum).c_str()));
+    appendAttribute(doc, bollbok, "kontrollsumma",
+                    doc->allocate_string(intToHex(checksum).c_str()));
     output << *doc;
 }

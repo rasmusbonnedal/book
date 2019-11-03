@@ -25,7 +25,8 @@ TEST_CASE("Serialize load") {
 
     CHECK(doc.getVerifikat(1).getText() == "Hyra");
     CHECK(doc.getVerifikat(2).getTransdatum() == Date(2018, 2, 1));
-    CHECK_THROWS_WITH(doc.getVerifikat(4), "Verifikat 4 requested, document only has 0-3");
+    CHECK_THROWS_WITH(doc.getVerifikat(4),
+                      "Verifikat 4 requested, document only has 0-3");
 
     auto& v1 = doc.getVerifikat(1);
     CHECK(v1.getRad(1).getBokdatum() == Date(2018, 12, 25));
@@ -39,7 +40,8 @@ TEST_CASE("Serialize load") {
     for (auto&& v : doc.getVerifikationer()) {
         int64_t sum = 0;
         for (auto&& r : v.getRader()) {
-            if (!r.getStruken()) sum += r.getPengar().get();
+            if (!r.getStruken())
+                sum += r.getPengar().get();
         }
         CHECK(sum == 0);
     }
@@ -64,7 +66,8 @@ TEST_CASE("Serialize save") {
 
     BollDoc::Verifikat v3{2, "Försäljning", parseDate("2018-02-01")};
     v3.addRad({parseDate("2018-12-25"), 1910, parsePengar("3000")});
-    v3.addRad({parseDate("2018-12-25"), 3000, parsePengar("-3000"), parseDate("2019-07-21")});
+    v3.addRad({parseDate("2018-12-25"), 3000, parsePengar("-3000"),
+               parseDate("2019-07-21")});
     v3.addRad({parseDate("2019-07-21"), 3001, parsePengar("-3000")});
     doc.addVerifikat(std::move(v3));
 

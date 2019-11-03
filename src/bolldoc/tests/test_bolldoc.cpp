@@ -4,20 +4,20 @@
 #include "bolldoc.h"
 
 namespace {
-    BollDoc createDoc() {
-        BollDoc doc(2074, "Ruffel & Båg", "551122-1234", 2018, "SEK", false);
+BollDoc createDoc() {
+    BollDoc doc(2074, "Ruffel & Båg", "551122-1234", 2018, "SEK", false);
 
-        doc.addVerifikat({0, "Ingående saldon", Date(0, 1, 1)});
-        for (int i = 1; i <= 12; ++i) {
-            BollDoc::Verifikat v{i, "Hyra", Date(2018, i, 1)};
-            v.addRad({Date(2018, 12, 25), 1910, parsePengar("-8000")});
-            v.addRad({Date(2018, 12, 25), 5010, parsePengar("8000")});
-            doc.addVerifikat(std::move(v));
-        }
-        doc.addKonto({ 0, "Foo", 0 });
-        return doc;
+    doc.addVerifikat({0, "Ingående saldon", Date(0, 1, 1)});
+    for (int i = 1; i <= 12; ++i) {
+        BollDoc::Verifikat v{i, "Hyra", Date(2018, i, 1)};
+        v.addRad({Date(2018, 12, 25), 1910, parsePengar("-8000")});
+        v.addRad({Date(2018, 12, 25), 5010, parsePengar("8000")});
+        doc.addVerifikat(std::move(v));
     }
+    doc.addKonto({0, "Foo", 0});
+    return doc;
 }
+} // namespace
 
 TEST_CASE("Setup") {
     BollDoc doc = createDoc();
@@ -54,18 +54,19 @@ TEST_CASE("Ranges") {
 
 TEST_CASE("Verifikat omslutning") {
     std::vector<std::vector<int64_t>> verifikat = {
-        { 100, 150, -250 },
-        { -100, -100, -150, 350 },
-        { -10, -15, -20, 12, 18, 7, 8 },
-        { 1, 5, 7, -21 },
+        {100, 150, -250},
+        {-100, -100, -150, 350},
+        {-10, -15, -20, 12, 18, 7, 8},
+        {1, 5, 7, -21},
     };
     BollDoc doc(2074, "Ruffel & Båg", "551122-1234", 2018, "SEK", false);
 
     int verifikatNum = 0;
     for (auto& v : verifikat) {
-        BollDoc::Verifikat nyttVerifikat{ verifikatNum++, "Abc", Date(2018, 1, 1) };
+        BollDoc::Verifikat nyttVerifikat{verifikatNum++, "Abc",
+                                         Date(2018, 1, 1)};
         for (auto& r : v) {
-            nyttVerifikat.addRad({ Date(2018, 12, 25), 1910, r });
+            nyttVerifikat.addRad({Date(2018, 12, 25), 1910, r});
         }
         doc.addVerifikat(std::move(nyttVerifikat));
     }
@@ -84,9 +85,9 @@ TEST_CASE("Equality") {
     BollDoc ref = createDoc();
     BollDoc cmp = createDoc();
     CHECK(ref == cmp);
-    cmp.addKonto({ 1, "Bar", 0 });
+    cmp.addKonto({1, "Bar", 0});
     CHECK_FALSE(ref == cmp);
     cmp = createDoc();
-    cmp.addVerifikat({ 13, "FooBar", Date(2018, 5, 1) });
+    cmp.addVerifikat({13, "FooBar", Date(2018, 5, 1)});
     CHECK_FALSE(ref == cmp);
 }
