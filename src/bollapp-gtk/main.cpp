@@ -10,43 +10,6 @@
 #include <iostream>
 #include <memory>
 
-class KontoCombo : public Gtk::ComboBox {
-public:
-    KontoCombo() : Gtk::ComboBox() {
-        m_refTreeModel = Gtk::ListStore::create(m_columns);
-        set_model(m_refTreeModel);
-        m_columns.addColumns(*this);
-
-        auto row = *m_refTreeModel->append();
-        m_columns.setRow(row, 1910, "Bankkonto");
-        row = *m_refTreeModel->append();
-        m_columns.setRow(row, 2760, "Vino Tinto Español");
-    }
-
-private:
-    class ModelColumns : public Gtk::TreeModel::ColumnRecord {
-    public:
-        ModelColumns() {
-            add(m_colKonto);
-            add(m_colText);
-        }
-        void addColumns(Gtk::ComboBox& comboBox) {
-            comboBox.pack_start(m_colKonto);
-            comboBox.pack_start(m_colText);
-        }
-        void setRow(Gtk::TreeRow& row, int konto, const std::string& text) {
-            row[m_colKonto] = konto;
-            row[m_colText] = text;
-        }
-
-    private:
-        Gtk::TreeModelColumn<int> m_colKonto;
-        Gtk::TreeModelColumn<Glib::ustring> m_colText;
-    };
-    ModelColumns m_columns;
-    Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
-};
-
 class VerifikatView : public Gtk::TreeView {
 public:
     VerifikatView()
@@ -54,14 +17,18 @@ public:
         m_refTreeModel = Gtk::ListStore::create(m_columns);
         set_model(m_refTreeModel);
         m_columns.addColumns(*this);
+        clear();
+    }
 
+    void clear() { m_refTreeModel->clear(); }
+
+    void addRow(unsigned konto, const Pengar& pengar) {
         auto treeRow = *(m_refTreeModel->append());
-        m_columns.setRow(treeRow, 1910, Pengar(10000));
-        treeRow = *(m_refTreeModel->append());
-        m_columns.setRow(treeRow, 2760, Pengar(-10000));
+        m_columns.setRow(treeRow, konto, pengar);
     }
 
 private:
+    // TODO: Update konto-lista dynamically from doc
     Glib::RefPtr<Gtk::EntryCompletion> createEntryCompletion() {
         Glib::RefPtr<Gtk::EntryCompletion> completion =
             Gtk::EntryCompletion::create();
@@ -147,12 +114,23 @@ private:
     CellRendererTextCompletion m_cellRendererCompletion;
 };
 
+void setVerifikat(VerifikatView& view, const BollDoc::Verifikat& verifikat) {
+    view.clear();
+    for (auto& rad : verifikat.getRader()) {
+        view.addRow(rad.getKonto(), rad.getPengar());
+    }
+}
+
 class GrundbokView : public Gtk::TreeView {
 public:
     GrundbokView() : Gtk::TreeView() {
         m_refTreeModel = Gtk::ListStore::create(m_columns);
         set_model(m_refTreeModel);
         m_columns.addColumns(*this);
+    }
+
+    void setOnSelectionChanged(const Glib::SignalProxy<void>::SlotType& onSelectionChanged) {
+        get_selection()->signal_changed().connect(onSelectionChanged);
     }
 
     void updateWithDoc(const BollDoc& doc) {
@@ -208,24 +186,16 @@ private:
 class MainWindow : public Gtk::ApplicationWindow {
 public:
     MainWindow() {
-        m_addRow.set_label("Lägg till");
         m_paned.set_orientation(Gtk::ORIENTATION_VERTICAL);
         m_scrolledWindow.set_size_request(400, 200);
         m_scrolledWindow.add(m_grundbokView);
         m_paned.add1(m_scrolledWindow);
-#if 0
-        m_box.pack_start(m_konto);
-        m_box.pack_start(m_debetkredit);
-        m_box.pack_start(m_addRow);
-        m_paned.pack2(m_box, Gtk::AttachOptions::FILL);
-#elif 1
         m_verifikatView.set_size_request(400, 50);
         m_paned.pack2(m_verifikatView, Gtk::AttachOptions::FILL);
-#else
-        m_paned.pack2(m_kontoCombo, Gtk::AttachOptions::SHRINK);
-#endif
-
         add(m_paned);
+
+        m_grundbokView.setOnSelectionChanged(sigc::mem_fun(this, &MainWindow::onGrundbokSelectionChanged));
+
         m_header.set_title("Untitled");
         m_header.set_show_close_button(true);
         set_titlebar(m_header);
@@ -234,6 +204,12 @@ public:
     }
 
 private:
+    void onGrundbokSelectionChanged() {
+        unsigned id;
+        m_grundbokView.get_selection()->get_selected()->get_value(0, id);
+        setVerifikat(m_verifikatView, m_doc->getVerifikat(id));
+    }
+
     void loadFile(const std::string& path) {
         std::ifstream ifs(path);
         if (ifs.good()) {
@@ -241,23 +217,21 @@ private:
             set_titlebar(m_header);
             m_doc = std::make_unique<BollDoc>(Serialize::loadDocument(ifs));
             updateDoc();
+        } else {
+            std::cout << "Error loading " << path << std::endl;
         }
     }
 
     void updateDoc() {
         if (m_doc) {
             m_grundbokView.updateWithDoc(*m_doc);
+            m_verifikatView.clear();
         }
     }
     Gtk::ScrolledWindow m_scrolledWindow;
     GrundbokView m_grundbokView;
     VerifikatView m_verifikatView;
-    KontoCombo m_kontoCombo;
     Gtk::Box m_box;
-    Gtk::Entry m_konto;
-    Gtk::Entry m_debetkredit;
-    Gtk::Button m_addRow;
-
     Gtk::Paned m_paned;
     Gtk::HeaderBar m_header;
     std::unique_ptr<BollDoc> m_doc;
