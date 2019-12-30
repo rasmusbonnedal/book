@@ -18,7 +18,9 @@ Gtk::CellEditable* CellRendererTextCompletion::start_editing_vfunc(
         return 0;
     }
     Gtk::Entry* entry = Gtk::make_managed<Gtk::Entry>();
-    entry->set_text(property_text());
+    Glib::ustring s = property_text();
+    // Only edit the part up to the first space
+    entry->set_text(s.substr(0, s.find(" ")));
     entry->set_completion(m_completion);
     entry->signal_editing_done().connect(sigc::bind(
         sigc::mem_fun(*this, &CellRendererTextCompletion::editing_done),

@@ -20,6 +20,19 @@ public:
         clear();
     }
 
+    // Convert the int konto to a string with kontonummer and text
+    void onCellDataKontoColumn(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
+        Gtk::TreeModel::Row row = *iter;
+        unsigned int konto = row[m_columns.m_colKonto];
+        Gtk::CellRendererText* crt = dynamic_cast<Gtk::CellRendererText*>(cell);
+        auto it = m_kontoplan.find(konto);
+        std::string kontoText = "(Ogiltigt konto)";
+        if (it != m_kontoplan.end()) {
+            kontoText = it->second;
+        }
+        crt->property_text() = std::to_string(konto) + "     " + kontoText;
+    }
+
     void clear() { m_refTreeModel->clear(); }
 
     void addRow(unsigned konto, const Pengar& pengar) {
@@ -30,10 +43,12 @@ public:
     void updateKontoLista(const std::map<int, BollDoc::Konto>& kontoplan) {
         auto listStore = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(m_cellRendererCompletion.getCompletion()->get_model());
         listStore->clear();
+        m_kontoplan.clear();
 
         for (const auto& it : kontoplan) {
             auto row = *(listStore->append());
             m_completionRecord.setRow(row, std::to_string(it.first), it.second.getText());
+            m_kontoplan[it.first] = it.second.getText();
         }
     }
 
@@ -56,7 +71,7 @@ private:
     void onEdited(const Glib::ustring& path_string,
                   const Glib::ustring& new_text) {
         int new_value = atoi(new_text.c_str());
-        if (new_value) {
+        if (new_value && m_kontoplan.find(new_value) != m_kontoplan.end()) {
             Gtk::TreePath path(path_string);
             Gtk::TreeModel::iterator iter = m_refTreeModel->get_iter(path);
             if (iter) {
@@ -98,7 +113,7 @@ private:
             auto& column = treeView.m_kontoColumn;
             column.set_title("Konto");
             column.pack_start(cell);
-            column.add_attribute(cell.property_text(), m_colKonto);
+            column.set_cell_data_func(cell, sigc::mem_fun(&treeView, &VerifikatView::onCellDataKontoColumn));
             treeView.append_column(column);
             treeView.append_column_numeric_editable("Debet / Kredit",
                                                     m_colPengar, "%d kr");
@@ -113,6 +128,7 @@ private:
     ModelColumns m_columns;
     Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
     CellRendererTextCompletion m_cellRendererCompletion;
+    std::map<unsigned int, std::string> m_kontoplan;
 };
 
 void setVerifikat(VerifikatView& view, const BollDoc::Verifikat& verifikat) {
