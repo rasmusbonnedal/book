@@ -11,6 +11,8 @@ class CellRendererTextCompletion : public Gtk::CellRendererText {
 public:
     CellRendererTextCompletion(
         Glib::RefPtr<Gtk::EntryCompletion> entryCompletion);
+    
+    Glib::RefPtr<Gtk::EntryCompletion> getCompletion();
 
 protected:
     virtual Gtk::CellEditable* start_editing_vfunc(

@@ -6,6 +6,10 @@ CellRendererTextCompletion::CellRendererTextCompletion(
     Glib::RefPtr<Gtk::EntryCompletion> entryCompletion)
     : m_completion(entryCompletion) {}
 
+Glib::RefPtr<Gtk::EntryCompletion> CellRendererTextCompletion::getCompletion() {
+    return m_completion;
+}
+
 Gtk::CellEditable* CellRendererTextCompletion::start_editing_vfunc(
     GdkEvent* event, Gtk::Widget& widget, const Glib::ustring& path,
     const Gdk::Rectangle& background_area, const Gdk::Rectangle& cell_area,

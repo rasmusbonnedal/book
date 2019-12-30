@@ -27,21 +27,22 @@ public:
         m_columns.setRow(treeRow, konto, pengar);
     }
 
+    void updateKontoLista(const std::map<int, BollDoc::Konto>& kontoplan) {
+        auto listStore = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(m_cellRendererCompletion.getCompletion()->get_model());
+        listStore->clear();
+
+        for (const auto& it : kontoplan) {
+            auto row = *(listStore->append());
+            m_completionRecord.setRow(row, std::to_string(it.first), it.second.getText());
+        }
+    }
+
 private:
-    // TODO: Update konto-lista dynamically from doc
     Glib::RefPtr<Gtk::EntryCompletion> createEntryCompletion() {
         Glib::RefPtr<Gtk::EntryCompletion> completion =
             Gtk::EntryCompletion::create();
         Glib::RefPtr<Gtk::ListStore> listStore =
             Gtk::ListStore::create(m_completionRecord);
-        auto row = *(listStore->append());
-        m_completionRecord.setRow(row, "1920", "Bankkonto");
-        row = *(listStore->append());
-        m_completionRecord.setRow(row, "2760", "Vino Tinto Español");
-        row = *(listStore->append());
-        m_completionRecord.setRow(row, "2764", "Rioja");
-        row = *(listStore->append());
-        m_completionRecord.setRow(row, "5543", "Fastighetskostnader");
         completion->set_model(listStore);
         completion->set_text_column(m_completionRecord.m_colText);
         completion->pack_start(m_completionCellRenderer);
@@ -226,6 +227,7 @@ private:
         if (m_doc) {
             m_grundbokView.updateWithDoc(*m_doc);
             m_verifikatView.clear();
+            m_verifikatView.updateKontoLista(m_doc->getKontoPlan());
         }
     }
     Gtk::ScrolledWindow m_scrolledWindow;
