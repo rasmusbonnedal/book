@@ -32,5 +32,7 @@ Gtk::CellEditable* CellRendererTextCompletion::start_editing_vfunc(
 
 void CellRendererTextCompletion::editing_done(const Gtk::Entry& entry,
                                               const Glib::ustring& path) {
-    edited(path, entry.get_text());
+    if (!entry.property_editing_canceled()) {
+        edited(path, entry.get_text());
+    }
 }
