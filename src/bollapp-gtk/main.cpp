@@ -13,7 +13,7 @@
 class VerifikatView : public Gtk::TreeView {
 public:
     VerifikatView()
-        : Gtk::TreeView(), m_cellRendererCompletion(createEntryCompletion()) {
+        : Gtk::TreeView(), m_completion(createEntryCompletion()) {
         m_refTreeModel = Gtk::ListStore::create(m_columns);
         set_model(m_refTreeModel);
         m_columns.addColumns(*this);
@@ -41,7 +41,7 @@ public:
     }
 
     void updateKontoLista(const std::map<int, BollDoc::Konto>& kontoplan) {
-        auto listStore = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(m_cellRendererCompletion.getCompletion()->get_model());
+        auto listStore = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(m_completion->get_model());
         listStore->clear();
         m_kontoplan.clear();
 
@@ -97,7 +97,6 @@ private:
     };
     CompletionRecord m_completionRecord;
     Gtk::CellRendererText m_completionCellRenderer;
-    Gtk::TreeView::Column m_kontoColumn;
 
     class ModelColumns : public Gtk::TreeModel::ColumnRecord {
     public:
@@ -106,15 +105,15 @@ private:
             add(m_colPengar);
         }
         void addColumns(VerifikatView& treeView) {
-            auto& cell = treeView.m_cellRendererCompletion;
+            auto& cell = treeView.m_kontoCellRenderer;
             cell.property_editable() = true;
             cell.signal_edited().connect(
                 sigc::mem_fun(&treeView, &VerifikatView::onEdited));
-            auto& column = treeView.m_kontoColumn;
-            column.set_title("Konto");
-            column.pack_start(cell);
-            column.set_cell_data_func(cell, sigc::mem_fun(&treeView, &VerifikatView::onCellDataKontoColumn));
-            treeView.append_column(column);
+            makeCellRendererUseCompletion(cell, treeView.m_completion);
+            treeView.append_column("Konto", cell);
+            Gtk::TreeViewColumn* column = treeView.get_column(0);
+            column->set_cell_data_func(cell, sigc::mem_fun(&treeView, &VerifikatView::onCellDataKontoColumn));
+
             treeView.append_column_numeric_editable("Debet / Kredit",
                                                     m_colPengar, "%d kr");
         }
@@ -127,7 +126,8 @@ private:
     };
     ModelColumns m_columns;
     Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
-    CellRendererTextCompletion m_cellRendererCompletion;
+    Glib::RefPtr<Gtk::EntryCompletion> m_completion;
+    Gtk::CellRendererText m_kontoCellRenderer;
     std::map<unsigned int, std::string> m_kontoplan;
 };
 
