@@ -1,4 +1,5 @@
 #include "cellrenderertextcompletion.h"
+#include "treeview_enable_edit_next_field.h"
 
 #include "bolldoc.h"
 #include "date.h"
@@ -17,6 +18,7 @@ public:
         m_refTreeModel = Gtk::ListStore::create(m_columns);
         set_model(m_refTreeModel);
         m_columns.addColumns(*this);
+        // enableEditNextField({get_column(0), get_column(1)});
         clear();
     }
 
@@ -25,6 +27,15 @@ public:
         Gtk::TreeModel::Row row = *iter;
         unsigned int konto = row[m_columns.m_colKonto];
         Gtk::CellRendererText* crt = dynamic_cast<Gtk::CellRendererText*>(cell);
+
+        if (konto == 0) {
+            crt->property_foreground_rgba() = Gdk::RGBA("#bbb");
+            crt->property_text() = "Ny kontering";
+            return;
+        } else {
+            crt->property_foreground_rgba() = Gdk::RGBA("#000");
+        }
+
         auto it = m_kontoplan.find(konto);
         std::string kontoText = "(Ogiltigt konto)";
         if (it != m_kontoplan.end()) {
@@ -35,9 +46,9 @@ public:
 
     void clear() { m_refTreeModel->clear(); }
 
-    void addRow(unsigned konto, const Pengar& pengar) {
-        auto treeRow = *(m_refTreeModel->append());
-        m_columns.setRow(treeRow, konto, pengar);
+    void addRow(unsigned konto, const Pengar& pengar, bool first = false) {
+        Gtk::TreeIter treeIter = first ? m_refTreeModel->prepend() : m_refTreeModel->append();
+        m_columns.setRow(*treeIter, konto, pengar);
     }
 
     void updateKontoLista(const std::map<int, BollDoc::Konto>& kontoplan) {
@@ -68,8 +79,9 @@ private:
         return completion;
     }
 
-    void onEdited(const Glib::ustring& path_string,
+    void onEditedKonto(const Glib::ustring& path_string,
                   const Glib::ustring& new_text) {
+        std::cout << "VerifikatView::onEdited(" << path_string << ")" << std::endl;
         int new_value = atoi(new_text.c_str());
         if (new_value && m_kontoplan.find(new_value) != m_kontoplan.end()) {
             Gtk::TreePath path(path_string);
@@ -77,6 +89,21 @@ private:
             if (iter) {
                 Gtk::TreeModel::Row row = *iter;
                 row[m_columns.m_colKonto] = new_value;
+            }
+        }
+    }
+
+    void onEditedPengar(const Glib::ustring& path_string,
+                const Glib::ustring& new_text) {
+        std::cout << "VerifikatView::onEditedPengar(" << path_string << ")" << std::endl;
+        Gtk::TreePath path(path_string);
+        Gtk::TreeModel::iterator iter = m_refTreeModel->get_iter(path);
+        if (iter) {
+            Gtk::TreeModel::Row row = *iter;
+            unsigned konto = row[m_columns.m_colKonto];
+            int pengar = row[m_columns.m_colPengar];
+            if (path_string == "0" && konto != 0 && pengar != 0) {
+                addRow(0, 0, true);
             }
         }
     }
@@ -108,7 +135,7 @@ private:
             auto& cell = treeView.m_kontoCellRenderer;
             cell.property_editable() = true;
             cell.signal_edited().connect(
-                sigc::mem_fun(&treeView, &VerifikatView::onEdited));
+                sigc::mem_fun(&treeView, &VerifikatView::onEditedKonto));
             makeCellRendererUseCompletion(cell, treeView.m_completion);
             treeView.append_column("Konto", cell);
             Gtk::TreeViewColumn* column = treeView.get_column(0);
@@ -116,8 +143,13 @@ private:
 
             treeView.append_column_numeric_editable("Debet / Kredit",
                                                     m_colPengar, "%d kr");
+            Gtk::CellRendererText* pengarCell = dynamic_cast<Gtk::CellRendererText*>(treeView.get_column_cell_renderer(1));
+            if (pengarCell) {
+                pengarCell->signal_edited().connect(
+                    sigc::mem_fun(&treeView, &VerifikatView::onEditedPengar));
+            }
         }
-        void setRow(Gtk::TreeRow& row, unsigned konto, Pengar pengar) {
+        void setRow(const Gtk::TreeRow& row, unsigned konto, Pengar pengar) {
             row[m_colKonto] = konto;
             row[m_colPengar] = pengar.get() / 100;
         }
@@ -133,6 +165,7 @@ private:
 
 void setVerifikat(VerifikatView& view, const BollDoc::Verifikat& verifikat) {
     view.clear();
+    view.addRow(0, 0);
     for (auto& rad : verifikat.getRader()) {
         view.addRow(rad.getKonto(), rad.getPengar());
     }
