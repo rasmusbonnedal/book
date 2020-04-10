@@ -2,14 +2,23 @@
 
 #include <gtkmm/entry.h>
 
+#include <iostream>
+
 void makeCellRendererUseCompletion(Gtk::CellRenderer& cell, const Glib::RefPtr<Gtk::EntryCompletion>& completion) {
     cell.signal_editing_started().connect(
         [completion](Gtk::CellEditable* editable, const Glib::ustring& path) {
         Gtk::Entry* entry = dynamic_cast<Gtk::Entry*>(editable);
         if (entry) {
             Glib::ustring s = entry->property_text();
-            // Only edit the part up to the first space
-            entry->set_text(s.substr(0, s.find(" ")));
+            
+            // TODO: Hard coded handling for konto, should be generalized
+            // Only edit the part up to the first space, if numeric
+            try {
+                int value = std::stoi(s.c_str());
+                entry->set_text(Glib::ustring::format(value));
+            } catch (std::invalid_argument& e) {
+                entry->set_text("");
+            }
             entry->set_completion(completion);
         }
     });
