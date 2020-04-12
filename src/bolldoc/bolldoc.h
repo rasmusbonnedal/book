@@ -42,7 +42,9 @@ public:
     public:
         Rad(Date bokdatum, int konto, Pengar pengar,
             std::optional<Date> struken = std::nullopt);
+        Rad(const Rad&) = default;
         Rad(Rad&&) = default;
+        Rad& operator=(const Rad&) = default;
         Rad& operator=(Rad&&) = default;
 
         bool operator==(const Rad& other) const;
@@ -77,6 +79,8 @@ public:
         const Date& getTransdatum() const;
 
         void addRad(Rad&& rad);
+
+        void update(const std::vector<Rad>& rader);
 
         const Rad& getRad(int i) const;
 
@@ -116,6 +120,8 @@ public:
 
     void addVerifikat(Verifikat&& verifikat);
 
+    void updateVerifikat(int unid, const std::vector<Rad>& rader);
+
     const Verifikat& getVerifikat(int unid) const;
 
     const std::vector<Verifikat>& getVerifikationer() const;
@@ -136,3 +142,5 @@ private:
     std::map<int, Konto> _kontoplan;
     std::vector<Verifikat> _verifikat;
 };
+
+std::ostream& operator<<(std::ostream& stream, const BollDoc::Rad& rad);

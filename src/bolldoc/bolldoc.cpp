@@ -58,6 +58,16 @@ void BollDoc::addVerifikat(Verifikat&& verifikat) {
     _verifikat.push_back(std::move(verifikat));
 }
 
+void BollDoc::updateVerifikat(int unid, const std::vector<Rad>& rader) {
+    if (unid >= (int)_verifikat.size() || unid < 0) {
+        std::stringstream ss;
+        ss << "Verifikat " << unid << " requested, document only has 0-"
+           << _verifikat.size() - 1;
+        throw std::runtime_error(ss.str());
+    }
+    _verifikat[unid].update(rader);
+}
+
 const BollDoc::Verifikat& BollDoc::getVerifikat(int unid) const {
     if (unid >= (int)_verifikat.size() || unid < 0) {
         std::stringstream ss;
@@ -153,6 +163,10 @@ const Date& BollDoc::Verifikat::getTransdatum() const { return _transdatum; }
 
 void BollDoc::Verifikat::addRad(Rad&& rad) { _rader.push_back(std::move(rad)); }
 
+void BollDoc::Verifikat::update(const std::vector<Rad>& rader) {
+    _rader = rader;
+}
+
 const BollDoc::Rad& BollDoc::Verifikat::getRad(int i) const {
     if (i >= (int)_rader.size() || i < 0) {
         std::stringstream ss;
@@ -183,4 +197,13 @@ bool BollDoc::Verifikat::getOmslutning(Pengar& omslutning) const {
         return false;
     }
     return true;
+}
+
+std::ostream& operator<<(std::ostream& stream, const BollDoc::Rad& rad) {
+    stream << rad.getBokdatum() << ": " << rad.getKonto() << " " << rad.getPengar();
+    auto struken = rad.getStruken();
+    if (struken) {
+        stream << " (struken " << *struken << ")";
+    }
+    return stream;
 }

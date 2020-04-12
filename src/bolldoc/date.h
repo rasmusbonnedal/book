@@ -5,6 +5,8 @@
 
 class Date {
 public:
+    Date();
+
     Date(int year, int month, int day);
 
     int getYear() const;
