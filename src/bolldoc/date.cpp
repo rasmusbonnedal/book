@@ -35,6 +35,10 @@ int lastDayOfMonth(int year, int month) {
 }
 } // namespace
 
+Date::Date()
+    : _year(0), _month(0), _day(0)
+{}
+
 Date::Date(int year, int month, int day)
     : _year(year), _month(month), _day(day) {
     if (!checkDate()) {

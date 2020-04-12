@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 class VerifikatView : public Gtk::TreeView {
 public:
@@ -20,6 +21,60 @@ public:
         m_columns.addColumns(*this);
         // enableEditNextField({get_column(0), get_column(1)});
         clear();
+    }
+
+    void clear() { m_refTreeModel->clear(); }
+
+    void addRow(unsigned konto, const Pengar& pengar, const Date& date, bool first = false) {
+        Gtk::TreeIter treeIter = first ? m_refTreeModel->prepend() : m_refTreeModel->append();
+        m_columns.setRow(*treeIter, konto, pengar, date);
+    }
+
+    void updateKontoLista(const std::map<int, BollDoc::Konto>& kontoplan) {
+        auto listStore = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(m_completion->get_model());
+        listStore->clear();
+        m_kontoplan.clear();
+
+        for (const auto& it : kontoplan) {
+            auto row = *(listStore->append());
+            m_completionRecord.setRow(row, std::to_string(it.first), it.second.getText());
+            m_kontoplan[it.first] = it.second.getText();
+        }
+    }
+
+    sigc::signal<void, const std::vector<BollDoc::Rad>&> signalEdited() {
+        return m_signalEdited;
+    }
+
+private:
+    void sendEditedSignal() {
+        std::cout << "sendEditedSignal()" << std::endl;
+        std::vector<BollDoc::Rad> result;
+        for (const auto& row : m_refTreeModel->children()) {
+            unsigned konto;
+            Pengar pengar;
+            Date date;
+            m_columns.getRow(row, konto, pengar, date);
+            if (pengar.get() != 0 && konto != 0) {
+                result.emplace_back(date, konto, pengar);
+            }
+        }
+        m_signalEdited.emit(result);
+    }
+
+    Glib::RefPtr<Gtk::EntryCompletion> createEntryCompletion() {
+        Glib::RefPtr<Gtk::EntryCompletion> completion =
+            Gtk::EntryCompletion::create();
+        Glib::RefPtr<Gtk::ListStore> listStore =
+            Gtk::ListStore::create(m_completionRecord);
+        completion->set_model(listStore);
+        completion->set_text_column(m_completionRecord.m_colText);
+        completion->pack_start(m_completionCellRenderer);
+        completion->add_attribute(m_completionCellRenderer.property_text(),
+                                  m_completionRecord.m_colText2);
+        //        completion->set_popup_completion(true);
+        completion->set_inline_selection(true);
+        return completion;
     }
 
     // Convert the int konto to a string with kontonummer and text
@@ -44,41 +99,6 @@ public:
         crt->property_text() = std::to_string(konto) + "     " + kontoText;
     }
 
-    void clear() { m_refTreeModel->clear(); }
-
-    void addRow(unsigned konto, const Pengar& pengar, bool first = false) {
-        Gtk::TreeIter treeIter = first ? m_refTreeModel->prepend() : m_refTreeModel->append();
-        m_columns.setRow(*treeIter, konto, pengar);
-    }
-
-    void updateKontoLista(const std::map<int, BollDoc::Konto>& kontoplan) {
-        auto listStore = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(m_completion->get_model());
-        listStore->clear();
-        m_kontoplan.clear();
-
-        for (const auto& it : kontoplan) {
-            auto row = *(listStore->append());
-            m_completionRecord.setRow(row, std::to_string(it.first), it.second.getText());
-            m_kontoplan[it.first] = it.second.getText();
-        }
-    }
-
-private:
-    Glib::RefPtr<Gtk::EntryCompletion> createEntryCompletion() {
-        Glib::RefPtr<Gtk::EntryCompletion> completion =
-            Gtk::EntryCompletion::create();
-        Glib::RefPtr<Gtk::ListStore> listStore =
-            Gtk::ListStore::create(m_completionRecord);
-        completion->set_model(listStore);
-        completion->set_text_column(m_completionRecord.m_colText);
-        completion->pack_start(m_completionCellRenderer);
-        completion->add_attribute(m_completionCellRenderer.property_text(),
-                                  m_completionRecord.m_colText2);
-        //        completion->set_popup_completion(true);
-        completion->set_inline_selection(true);
-        return completion;
-    }
-
     void onEditedKonto(const Glib::ustring& path_string,
                   const Glib::ustring& new_text) {
         std::cout << "VerifikatView::onEdited(" << path_string << ")" << std::endl;
@@ -89,6 +109,7 @@ private:
             if (iter) {
                 Gtk::TreeModel::Row row = *iter;
                 row[m_columns.m_colKonto] = new_value;
+                sendEditedSignal();
             }
         }
     }
@@ -103,8 +124,9 @@ private:
             unsigned konto = row[m_columns.m_colKonto];
             int pengar = row[m_columns.m_colPengar];
             if (path_string == "0" && konto != 0 && pengar != 0) {
-                addRow(0, 0, true);
+                addRow(0, 0, Date(), true);
             }
+            sendEditedSignal();
         }
     }
 
@@ -130,6 +152,7 @@ private:
         ModelColumns() {
             add(m_colKonto);
             add(m_colPengar);
+            add(m_colDate);
         }
         void addColumns(VerifikatView& treeView) {
             auto& cell = treeView.m_kontoCellRenderer;
@@ -149,25 +172,33 @@ private:
                     sigc::mem_fun(&treeView, &VerifikatView::onEditedPengar));
             }
         }
-        void setRow(const Gtk::TreeRow& row, unsigned konto, Pengar pengar) {
+        void setRow(const Gtk::TreeRow& row, unsigned konto, Pengar pengar, const Date& date) const {
             row[m_colKonto] = konto;
             row[m_colPengar] = pengar.get() / 100;
+            row[m_colDate] = date;
+        }
+        void getRow(const Gtk::TreeRow& row, unsigned& konto, Pengar& pengar, Date& date) const {
+            konto = row[m_colKonto];
+            pengar = row[m_colPengar] * 100;
+            date = row[m_colDate];
         }
         Gtk::TreeModelColumn<unsigned> m_colKonto;
         Gtk::TreeModelColumn<int> m_colPengar;
+        Gtk::TreeModelColumn<Date> m_colDate;
     };
     ModelColumns m_columns;
     Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
     Glib::RefPtr<Gtk::EntryCompletion> m_completion;
     Gtk::CellRendererText m_kontoCellRenderer;
     std::map<unsigned int, std::string> m_kontoplan;
+    sigc::signal<void, const std::vector<BollDoc::Rad>&> m_signalEdited;
 };
 
 void setVerifikat(VerifikatView& view, const BollDoc::Verifikat& verifikat) {
     view.clear();
-    view.addRow(0, 0);
+    view.addRow(0, 0, Date());
     for (auto& rad : verifikat.getRader()) {
-        view.addRow(rad.getKonto(), rad.getPengar());
+        view.addRow(rad.getKonto(), rad.getPengar(), rad.getBokdatum());
     }
 }
 
@@ -183,20 +214,39 @@ public:
         get_selection()->signal_changed().connect(onSelectionChanged);
     }
 
+    void recalculate(const BollDoc& doc) {
+        for (auto& treeRow : m_refTreeModel->children()) {
+            unsigned id = m_columns.getId(treeRow);
+            auto& row = doc.getVerifikat(id);
+            std::stringstream date;
+            date << row.getTransdatum();
+            Pengar omslutning;
+            std::stringstream omslutningStr;
+            if (row.getOmslutning(omslutning)) {
+                omslutningStr << omslutning << " kr";
+            } else {
+                omslutningStr << " - obalanserad - ";
+            }
+            m_columns.setRow(treeRow, row.getUnid(), date.str(),
+                                row.getText(), omslutningStr.str());
+        }
+    }
+
     void updateWithDoc(const BollDoc& doc) {
         m_refTreeModel->clear();
-        for (int i = 0; i < 10; ++i) {
-            for (auto& row : doc.getVerifikationer()) {
-                auto treeRow = *(m_refTreeModel->append());
-                std::stringstream date;
-                date << row.getTransdatum();
-                Pengar omslutning;
-                row.getOmslutning(omslutning);
-                std::stringstream omslutningStr;
+        for (auto& row : doc.getVerifikationer()) {
+            auto treeRow = *(m_refTreeModel->append());
+            std::stringstream date;
+            date << row.getTransdatum();
+            Pengar omslutning;
+            std::stringstream omslutningStr;
+            if (row.getOmslutning(omslutning)) {
                 omslutningStr << omslutning << " kr";
-                m_columns.setRow(treeRow, row.getUnid(), date.str(),
-                                 row.getText(), omslutningStr.str());
+            } else {
+                omslutningStr << " - obalanserad - ";
             }
+            m_columns.setRow(treeRow, row.getUnid(), date.str(),
+                                row.getText(), omslutningStr.str());
         }
     }
 
@@ -215,12 +265,16 @@ private:
             treeView.append_column_editable("Text", m_colText);
             treeView.append_column("Omslutning", m_colOmslutning);
         }
-        void setRow(Gtk::TreeRow& row, unsigned id, const std::string& date,
+        void setRow(const Gtk::TreeRow& row, unsigned id, const std::string& date,
                     const std::string& text, const std::string& omslutning) {
             row[m_colId] = id;
             row[m_colDate] = date;
             row[m_colText] = text;
             row[m_colOmslutning] = omslutning;
+        }
+
+        unsigned getId(const Gtk::TreeRow& row) {
+            return row[m_colId];
         }
 
     private:
@@ -246,6 +300,8 @@ public:
 
         m_grundbokView.setOnSelectionChanged(sigc::mem_fun(this, &MainWindow::onGrundbokSelectionChanged));
 
+        m_verifikatView.signalEdited().connect(sigc::mem_fun(this, &MainWindow::onVerifikatViewEdited));
+
         m_header.set_title("Untitled");
         m_header.set_show_close_button(true);
         set_titlebar(m_header);
@@ -257,7 +313,20 @@ private:
     void onGrundbokSelectionChanged() {
         unsigned id;
         m_grundbokView.get_selection()->get_selected()->get_value(0, id);
+        std::cout << "Changing from " << m_verifikatEditingId << " to " << id << std::endl;
         setVerifikat(m_verifikatView, m_doc->getVerifikat(id));
+        m_verifikatEditingId = id;
+    }
+
+    void onVerifikatViewEdited(const std::vector<BollDoc::Rad>& rader) {
+        std::cout << "onVerifikatViewEdited()" << std::endl;
+        for (auto& x : rader) {
+            std::cout << x << std::endl;
+        }
+        if (m_verifikatEditingId >= 0) {
+            m_doc->updateVerifikat(m_verifikatEditingId, rader);
+            m_grundbokView.recalculate(*m_doc);
+        }
     }
 
     void loadFile(const std::string& path) {
@@ -277,6 +346,7 @@ private:
             m_grundbokView.updateWithDoc(*m_doc);
             m_verifikatView.clear();
             m_verifikatView.updateKontoLista(m_doc->getKontoPlan());
+            m_verifikatEditingId = -1;
         }
     }
     Gtk::ScrolledWindow m_scrolledWindow;
@@ -286,6 +356,7 @@ private:
     Gtk::Paned m_paned;
     Gtk::HeaderBar m_header;
     std::unique_ptr<BollDoc> m_doc;
+    int m_verifikatEditingId;
 };
 
 class BollBokApp : public Gtk::Application {
