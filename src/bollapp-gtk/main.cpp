@@ -25,9 +25,9 @@ public:
 
     void clear() { m_refTreeModel->clear(); }
 
-    void addRow(unsigned konto, const Pengar& pengar, const Date& date, bool first = false) {
+    void addRow(unsigned konto, const Pengar& pengar, const Date& date, const std::optional<Date>& struken, bool first = false) {
         Gtk::TreeIter treeIter = first ? m_refTreeModel->prepend() : m_refTreeModel->append();
-        m_columns.setRow(*treeIter, konto, pengar, date);
+        m_columns.setRow(*treeIter, konto, pengar, date, struken);
     }
 
     void updateKontoLista(const std::map<int, BollDoc::Konto>& kontoplan) {
@@ -54,9 +54,10 @@ private:
             unsigned konto;
             Pengar pengar;
             Date date;
-            m_columns.getRow(row, konto, pengar, date);
+            std::optional<Date> struken;
+            m_columns.getRow(row, konto, pengar, date, struken);
             if (pengar.get() != 0 && konto != 0) {
-                result.emplace_back(date, konto, pengar);
+                result.emplace_back(date, konto, pengar, struken);
             }
         }
         m_signalEdited.emit(result);
@@ -78,11 +79,16 @@ private:
     }
 
     // Convert the int konto to a string with kontonummer and text
+    // Set formatting of the cell
     void onCellDataKontoColumn(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
         Gtk::TreeModel::Row row = *iter;
-        unsigned int konto = row[m_columns.m_colKonto];
         Gtk::CellRendererText* crt = dynamic_cast<Gtk::CellRendererText*>(cell);
 
+        bool struken = row[m_columns.m_colStruken];
+        crt->property_strikethrough() = struken;
+        crt->property_editable() = !struken;
+
+        unsigned int konto = row[m_columns.m_colKonto];
         if (konto == 0) {
             crt->property_foreground_rgba() = Gdk::RGBA("#bbb");
             crt->property_text() = "Ny kontering";
@@ -97,6 +103,24 @@ private:
             kontoText = it->second;
         }
         crt->property_text() = std::to_string(konto) + "     " + kontoText;
+    }
+
+    void onCellDataPengarColumn(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
+        Gtk::TreeModel::Row row = *iter;
+        Gtk::CellRendererText* crt = dynamic_cast<Gtk::CellRendererText*>(cell);
+        bool struken = row[m_columns.m_colStruken];
+        crt->property_strikethrough() = struken;
+        crt->property_editable() = !struken;
+
+        unsigned int konto = row[m_columns.m_colKonto];
+        if (konto == 0) {
+            crt->property_foreground_rgba() = Gdk::RGBA("#bbb");
+        } else {
+            crt->property_foreground_rgba() = Gdk::RGBA("#000");
+        }
+
+        int pengar = row[m_columns.m_colPengar];
+        crt->property_text() = std::to_string(pengar) + " kr";
     }
 
     void onEditedKonto(const Glib::ustring& path_string,
@@ -124,7 +148,7 @@ private:
             unsigned konto = row[m_columns.m_colKonto];
             int pengar = row[m_columns.m_colPengar];
             if (path_string == "0" && konto != 0 && pengar != 0) {
-                addRow(0, 0, Date(), true);
+                addRow(0, 0, Date(), std::nullopt, true);
             }
             sendEditedSignal();
         }
@@ -147,12 +171,15 @@ private:
     CompletionRecord m_completionRecord;
     Gtk::CellRendererText m_completionCellRenderer;
 
+    // Model for a row of a Verifikat
     class ModelColumns : public Gtk::TreeModel::ColumnRecord {
     public:
         ModelColumns() {
             add(m_colKonto);
             add(m_colPengar);
             add(m_colDate);
+            add(m_colStruken);
+            add(m_colStrukenDate);
         }
         void addColumns(VerifikatView& treeView) {
             auto& cell = treeView.m_kontoCellRenderer;
@@ -170,21 +197,34 @@ private:
             if (pengarCell) {
                 pengarCell->signal_edited().connect(
                     sigc::mem_fun(&treeView, &VerifikatView::onEditedPengar));
+                column = treeView.get_column(1);
+                column->set_cell_data_func(*pengarCell, sigc::mem_fun(&treeView, &VerifikatView::onCellDataPengarColumn));
             }
         }
-        void setRow(const Gtk::TreeRow& row, unsigned konto, Pengar pengar, const Date& date) const {
+        void setRow(const Gtk::TreeRow& row, unsigned konto, Pengar pengar, const Date& date, const std::optional<Date>& struken) const {
             row[m_colKonto] = konto;
             row[m_colPengar] = pengar.get() / 100;
             row[m_colDate] = date;
+            row[m_colStruken] = struken.has_value();
+            if (struken.has_value()) {
+                row[m_colStrukenDate] = *struken;
+            }
         }
-        void getRow(const Gtk::TreeRow& row, unsigned& konto, Pengar& pengar, Date& date) const {
+        void getRow(const Gtk::TreeRow& row, unsigned& konto, Pengar& pengar, Date& date, std::optional<Date>& struken) const {
             konto = row[m_colKonto];
             pengar = row[m_colPengar] * 100;
             date = row[m_colDate];
+            if (row[m_colStruken]) {
+                struken = row[m_colStrukenDate];
+            } else {
+                struken.reset();
+            }
         }
         Gtk::TreeModelColumn<unsigned> m_colKonto;
         Gtk::TreeModelColumn<int> m_colPengar;
         Gtk::TreeModelColumn<Date> m_colDate;
+        Gtk::TreeModelColumn<bool> m_colStruken;
+        Gtk::TreeModelColumn<Date> m_colStrukenDate;
     };
     ModelColumns m_columns;
     Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
@@ -196,9 +236,9 @@ private:
 
 void setVerifikat(VerifikatView& view, const BollDoc::Verifikat& verifikat) {
     view.clear();
-    view.addRow(0, 0, Date());
+    view.addRow(0, 0, Date(), std::nullopt);
     for (auto& rad : verifikat.getRader()) {
-        view.addRow(rad.getKonto(), rad.getPengar(), rad.getBokdatum());
+        view.addRow(rad.getKonto(), rad.getPengar(), rad.getBokdatum(), rad.getStruken());
     }
 }
 
@@ -227,8 +267,8 @@ public:
             } else {
                 omslutningStr << " - obalanserad - ";
             }
-            m_columns.setRow(treeRow, row.getUnid(), date.str(),
-                                row.getText(), omslutningStr.str());
+            m_columns.setRow(treeRow, row.getUnid(), date.str(), row.getText(),
+                             omslutningStr.str());
         }
     }
 
