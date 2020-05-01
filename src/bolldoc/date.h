@@ -35,4 +35,6 @@ bool operator!=(const Date& lhs, const Date& rhs);
 
 std::ostream& operator<<(std::ostream& stream, const Date& d);
 
+std::string to_string(const Date& d);
+
 Date lastDayOfMonth(const Date& d);

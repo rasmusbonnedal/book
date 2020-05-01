@@ -97,6 +97,12 @@ std::ostream& operator<<(std::ostream& stream, const Date& d) {
     return stream;
 }
 
+std::string to_string(const Date& d) {
+    std::stringstream ss;
+    ss << d;
+    return ss.str();
+}
+
 Date lastDayOfMonth(const Date& d) {
     return Date(d.getYear(), d.getMonth(),
                 lastDayOfMonth(d.getYear(), d.getMonth()));

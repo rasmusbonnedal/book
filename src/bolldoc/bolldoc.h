@@ -122,6 +122,8 @@ public:
 
     void updateVerifikat(int unid, const std::vector<Rad>& rader);
 
+    int getNextVerifikatId() const;
+
     const Verifikat& getVerifikat(int unid) const;
 
     const std::vector<Verifikat>& getVerifikationer() const;

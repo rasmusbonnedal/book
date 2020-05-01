@@ -49,7 +49,7 @@ const std::map<int, BollDoc::Konto>& BollDoc::getKontoPlan() const {
 }
 
 void BollDoc::addVerifikat(Verifikat&& verifikat) {
-    if (verifikat.getUnid() != (int)_verifikat.size()) {
+    if (verifikat.getUnid() != getNextVerifikatId()) {
         std::stringstream ss;
         ss << "Verifikat has unid " << verifikat.getUnid() << ", should be "
            << _verifikat.size();
@@ -59,7 +59,7 @@ void BollDoc::addVerifikat(Verifikat&& verifikat) {
 }
 
 void BollDoc::updateVerifikat(int unid, const std::vector<Rad>& rader) {
-    if (unid >= (int)_verifikat.size() || unid < 0) {
+    if (unid >= getNextVerifikatId() || unid < 0) {
         std::stringstream ss;
         ss << "Verifikat " << unid << " requested, document only has 0-"
            << _verifikat.size() - 1;
@@ -68,8 +68,13 @@ void BollDoc::updateVerifikat(int unid, const std::vector<Rad>& rader) {
     _verifikat[unid].update(rader);
 }
 
+int BollDoc::getNextVerifikatId() const {
+    return static_cast<int>(_verifikat.size());
+}
+
+
 const BollDoc::Verifikat& BollDoc::getVerifikat(int unid) const {
-    if (unid >= (int)_verifikat.size() || unid < 0) {
+    if (unid >= getNextVerifikatId() || unid < 0) {
         std::stringstream ss;
         ss << "Verifikat " << unid << " requested, document only has 0-"
            << _verifikat.size() - 1;
