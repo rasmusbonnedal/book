@@ -246,7 +246,10 @@ class GrundbokView : public Gtk::TreeView {
 public:
     GrundbokView() : Gtk::TreeView() {
         m_refTreeModel = Gtk::ListStore::create(m_columns);
-        set_model(m_refTreeModel);
+        m_sortedModel = Gtk::TreeModelSort::create(m_refTreeModel);
+        m_sortedModel->set_sort_column(1, Gtk::SORT_DESCENDING);
+        m_sortedModel->set_sort_func(1, sigc::mem_fun(this, &GrundbokView::sortFunction));
+        set_model(m_sortedModel);
         m_columns.addColumns(*this);
     }
 
@@ -262,7 +265,8 @@ public:
             date << row.getTransdatum();
             Pengar omslutning;
             std::stringstream omslutningStr;
-            if (row.getOmslutning(omslutning)) {
+            if (row.getRader().size() == 0) {
+            } else if (row.getOmslutning(omslutning)) {
                 omslutningStr << omslutning << " kr";
             } else {
                 omslutningStr << " - obalanserad - ";
@@ -276,8 +280,6 @@ public:
         m_refTreeModel->clear();
         for (auto& row : doc.getVerifikationer()) {
             auto treeRow = *(m_refTreeModel->append());
-            std::stringstream date;
-            date << row.getTransdatum();
             Pengar omslutning;
             std::stringstream omslutningStr;
             if (row.getOmslutning(omslutning)) {
@@ -285,12 +287,47 @@ public:
             } else {
                 omslutningStr << " - obalanserad - ";
             }
-            m_columns.setRow(treeRow, row.getUnid(), date.str(),
+            m_columns.setRow(treeRow, row.getUnid(), to_string(row.getTransdatum()),
                                 row.getText(), omslutningStr.str());
         }
     }
 
+    void addNewVerifikatRow(BollDoc& doc) {
+        const std::string newVerifikatText("Nytt verifikat");
+        // Don't add if last row has newVerifikatText or empty omslutning
+        if (!m_refTreeModel->children().empty()) {
+            auto lastTreeRow = *(--m_refTreeModel->children().end());
+            if (m_columns.getText(lastTreeRow) == newVerifikatText || m_columns.getOmslutning(lastTreeRow).empty()) {
+                std::cout << "Text: " << m_columns.getText(lastTreeRow) << std::endl;
+                std::cout << "Omslutning: " << m_columns.getOmslutning(lastTreeRow) << std::endl;
+                return;
+            }
+        }
+
+        int nextId = doc.getNextVerifikatId();
+        Date nextDate(0, 1, 1);
+        for (const auto& row : m_refTreeModel->children()) {
+            nextDate = std::max(nextDate, parseDate(m_columns.getDate(row)));
+        }
+        
+        auto treeRow = *(m_refTreeModel->append());
+        m_columns.setRow(treeRow, nextId, to_string(nextDate), newVerifikatText, "");
+        BollDoc::Verifikat v(nextId, newVerifikatText, nextDate);
+        doc.addVerifikat(std::move(v));
+    }
+
 private:
+    void onEditedText(const Glib::ustring& path_string,
+                      const Glib::ustring& new_text) {
+        Gtk::TreePath path = m_sortedModel->convert_path_to_child_path(Gtk::TreePath(path_string));
+        Gtk::TreeModel::iterator iter = m_refTreeModel->get_iter(path);
+        if (iter) {
+            Gtk::TreeModel::Row row = *iter;
+            m_columns.setText(row, new_text);
+        }
+        // TODO: Send edited signal to update model
+    }
+
     class ModelColumns : public Gtk::TreeModel::ColumnRecord {
     public:
         ModelColumns() {
@@ -299,12 +336,21 @@ private:
             add(m_colText);
             add(m_colOmslutning);
         }
-        void addColumns(Gtk::TreeView& treeView) {
+
+        void addColumns(GrundbokView& treeView) {
             treeView.append_column("ID", m_colId);
+            treeView.get_column(0)->set_sort_column(m_colId);
             treeView.append_column("Datum", m_colDate);
+            treeView.get_column(1)->set_sort_column(m_colDate);
             treeView.append_column_editable("Text", m_colText);
+
+            Gtk::CellRendererText* textCell = dynamic_cast<Gtk::CellRendererText*>(treeView.get_column_cell_renderer(2));
+            if (textCell) {
+                textCell->signal_edited().connect(sigc::mem_fun(&treeView, &GrundbokView::onEditedText));
+            }            
             treeView.append_column("Omslutning", m_colOmslutning);
         }
+
         void setRow(const Gtk::TreeRow& row, unsigned id, const std::string& date,
                     const std::string& text, const std::string& omslutning) {
             row[m_colId] = id;
@@ -313,8 +359,24 @@ private:
             row[m_colOmslutning] = omslutning;
         }
 
-        unsigned getId(const Gtk::TreeRow& row) {
+        unsigned getId(const Gtk::TreeRow& row) const {
             return row[m_colId];
+        }
+
+        std::string getDate(const Gtk::TreeRow& row) const {
+            return Glib::ustring(row[m_colDate]);         
+        }
+
+        std::string getText(const Gtk::TreeRow& row) const {
+            return Glib::ustring(row[m_colText]);
+        }
+
+        void setText(const Gtk::TreeRow& row, const std::string& text) {
+            row[m_colText] = text;
+        }
+
+        std::string getOmslutning(const Gtk::TreeRow& row) const {
+            return Glib::ustring(row[m_colOmslutning]);
         }
 
     private:
@@ -323,8 +385,19 @@ private:
         Gtk::TreeModelColumn<Glib::ustring> m_colText;
         Gtk::TreeModelColumn<Glib::ustring> m_colOmslutning;
     };
+
+    int sortFunction(const Gtk::TreeModel::iterator& lhs, const Gtk::TreeModel::iterator& rhs) {
+        std::string lhsDate = m_columns.getDate(*lhs);
+        std::string rhsDate = m_columns.getDate(*rhs);
+        if (lhsDate == rhsDate) {
+            return m_columns.getId(*lhs) - m_columns.getId(*rhs);
+        }
+        return lhsDate.compare(rhsDate);
+    }
+
     ModelColumns m_columns;
     Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
+    Glib::RefPtr<Gtk::TreeModelSort> m_sortedModel;
 };
 
 class MainWindow : public Gtk::ApplicationWindow {
@@ -366,6 +439,7 @@ private:
         if (m_verifikatEditingId >= 0) {
             m_doc->updateVerifikat(m_verifikatEditingId, rader);
             m_grundbokView.recalculate(*m_doc);
+            m_grundbokView.addNewVerifikatRow(*m_doc);
         }
     }
 
@@ -384,6 +458,7 @@ private:
     void updateDoc() {
         if (m_doc) {
             m_grundbokView.updateWithDoc(*m_doc);
+            m_grundbokView.addNewVerifikatRow(*m_doc);
             m_verifikatView.clear();
             m_verifikatView.updateKontoLista(m_doc->getKontoPlan());
             m_verifikatEditingId = -1;
