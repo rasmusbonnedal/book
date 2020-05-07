@@ -58,14 +58,18 @@ void BollDoc::addVerifikat(Verifikat&& verifikat) {
     _verifikat.push_back(std::move(verifikat));
 }
 
-void BollDoc::updateVerifikat(int unid, const std::vector<Rad>& rader) {
+BollDoc::Verifikat& BollDoc::getVerifikat(int unid) {
     if (unid >= getNextVerifikatId() || unid < 0) {
         std::stringstream ss;
         ss << "Verifikat " << unid << " requested, document only has 0-"
            << _verifikat.size() - 1;
         throw std::runtime_error(ss.str());
     }
-    _verifikat[unid].update(rader);
+    return _verifikat[unid];
+}
+
+void BollDoc::updateVerifikat(int unid, const std::vector<Rad>& rader) {
+    getVerifikat(unid).update(rader);
 }
 
 int BollDoc::getNextVerifikatId() const {
@@ -163,6 +167,8 @@ bool BollDoc::Verifikat::operator==(const Verifikat& other) const {
 int BollDoc::Verifikat::getUnid() const { return _unid; }
 
 const std::string& BollDoc::Verifikat::getText() const { return _text; }
+
+void BollDoc::Verifikat::setText(const std::string& text) { _text = text; }
 
 const Date& BollDoc::Verifikat::getTransdatum() const { return _transdatum; }
 
