@@ -257,6 +257,10 @@ public:
         get_selection()->signal_changed().connect(onSelectionChanged);
     }
 
+    void setOnEditedText(const Glib::SignalProxy<void, unsigned int, const Glib::ustring&>::SlotType& onEditedText) {
+        m_signalTextEdited.connect(onEditedText);
+    }
+
     void recalculate(const BollDoc& doc) {
         for (auto& treeRow : m_refTreeModel->children()) {
             unsigned id = m_columns.getId(treeRow);
@@ -324,8 +328,9 @@ private:
         if (iter) {
             Gtk::TreeModel::Row row = *iter;
             m_columns.setText(row, new_text);
+            unsigned int id = m_columns.getId(row);
+            m_signalTextEdited(id, new_text);
         }
-        // TODO: Send edited signal to update model
     }
 
     class ModelColumns : public Gtk::TreeModel::ColumnRecord {
@@ -398,6 +403,7 @@ private:
     ModelColumns m_columns;
     Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
     Glib::RefPtr<Gtk::TreeModelSort> m_sortedModel;
+    sigc::signal<void, unsigned int, const Glib::ustring&> m_signalTextEdited;
 };
 
 class MainWindow : public Gtk::ApplicationWindow {
@@ -414,6 +420,8 @@ public:
         m_grundbokView.setOnSelectionChanged(sigc::mem_fun(this, &MainWindow::onGrundbokSelectionChanged));
 
         m_verifikatView.signalEdited().connect(sigc::mem_fun(this, &MainWindow::onVerifikatViewEdited));
+
+        m_grundbokView.setOnEditedText(sigc::mem_fun(this, &MainWindow::onVerifikatTextEdited));
 
         m_header.set_title("Untitled");
         m_header.set_show_close_button(true);
@@ -441,6 +449,10 @@ private:
             m_grundbokView.recalculate(*m_doc);
             m_grundbokView.addNewVerifikatRow(*m_doc);
         }
+    }
+
+    void onVerifikatTextEdited(unsigned int id, const Glib::ustring& text) {
+        m_doc->getVerifikat(id).setText(text);
     }
 
     void loadFile(const std::string& path) {

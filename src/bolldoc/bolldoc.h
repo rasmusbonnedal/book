@@ -76,6 +76,8 @@ public:
 
         const std::string& getText() const;
 
+        void setText(const std::string& text);
+
         const Date& getTransdatum() const;
 
         void addRad(Rad&& rad);
@@ -125,6 +127,8 @@ public:
     int getNextVerifikatId() const;
 
     const Verifikat& getVerifikat(int unid) const;
+
+    Verifikat& getVerifikat(int unid);
 
     const std::vector<Verifikat>& getVerifikationer() const;
 
