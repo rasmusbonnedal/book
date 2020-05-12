@@ -70,6 +70,16 @@ Date parseDate(const std::string& s) {
     return Date(std::stoi(m[1]), std::stoi(m[2]), std::stoi(m[3]));
 }
 
+std::optional<Date> parseDateNothrow(const std::string& s) {
+    std::regex re("(\\d{4})-(\\d\\d)-(\\d\\d)");
+    std::smatch m;
+    if (!std::regex_match(s, m, re) || m.size() != 4) {
+        return std::nullopt;
+    }
+
+    return Date(std::stoi(m[1]), std::stoi(m[2]), std::stoi(m[3]));
+}
+
 bool operator<(const Date& lhs, const Date& rhs) {
     if (lhs.getYear() == rhs.getYear()) {
         if (lhs.getMonth() == rhs.getMonth()) {

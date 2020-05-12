@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <optional>
 #include <string>
 
 class Date {
@@ -24,6 +25,8 @@ private:
 };
 
 Date parseDate(const std::string& s);
+
+std::optional<Date> parseDateNothrow(const std::string& s);
 
 bool operator<(const Date& lhs, const Date& rhs);
 

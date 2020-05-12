@@ -2,4 +2,4 @@
 Bollbok compatible bookkeeping software.
 
 ## Todo
-- [ ] Make verifikat date editable
+- [x] Make verifikat date editable

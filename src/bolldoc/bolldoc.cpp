@@ -172,6 +172,8 @@ void BollDoc::Verifikat::setText(const std::string& text) { _text = text; }
 
 const Date& BollDoc::Verifikat::getTransdatum() const { return _transdatum; }
 
+void BollDoc::Verifikat::setTransdatum(const Date& date) { _transdatum = date; }
+
 void BollDoc::Verifikat::addRad(Rad&& rad) { _rader.push_back(std::move(rad)); }
 
 void BollDoc::Verifikat::update(const std::vector<Rad>& rader) {
