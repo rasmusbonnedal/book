@@ -257,6 +257,10 @@ public:
         get_selection()->signal_changed().connect(onSelectionChanged);
     }
 
+    void setOnEditedDate(const Glib::SignalProxy<void, unsigned int, const Date&>::SlotType& onEditedDate) {
+        m_signalDateEdited.connect(onEditedDate);
+    }
+
     void setOnEditedText(const Glib::SignalProxy<void, unsigned int, const Glib::ustring&>::SlotType& onEditedText) {
         m_signalTextEdited.connect(onEditedText);
     }
@@ -333,6 +337,21 @@ private:
         }
     }
 
+    void onEditedDate(const Glib::ustring& path_string,
+                      const Glib::ustring& new_text) {
+        Gtk::TreePath path = m_sortedModel->convert_path_to_child_path(Gtk::TreePath(path_string));
+        Gtk::TreeModel::iterator iter = m_refTreeModel->get_iter(path);
+        if (iter) {
+            std::optional<Date> date = parseDate(new_text);
+            if (date) {
+                Gtk::TreeModel::Row row = *iter;
+                m_columns.setDate(row, new_text);
+                unsigned int id = m_columns.getId(row);
+                m_signalDateEdited(id, *date);
+            }
+        }
+    }
+
     class ModelColumns : public Gtk::TreeModel::ColumnRecord {
     public:
         ModelColumns() {
@@ -347,8 +366,13 @@ private:
             treeView.get_column(0)->set_sort_column(m_colId);
             treeView.append_column("Datum", m_colDate);
             treeView.get_column(1)->set_sort_column(m_colDate);
-            treeView.append_column_editable("Text", m_colText);
+            Gtk::CellRendererText* dateCell = dynamic_cast<Gtk::CellRendererText*>(treeView.get_column_cell_renderer(1));
+            if (dateCell) {
+                dateCell->property_editable() = true;
+                dateCell->signal_edited().connect(sigc::mem_fun(&treeView, &GrundbokView::onEditedDate));
+            }            
 
+            treeView.append_column_editable("Text", m_colText);
             Gtk::CellRendererText* textCell = dynamic_cast<Gtk::CellRendererText*>(treeView.get_column_cell_renderer(2));
             if (textCell) {
                 textCell->signal_edited().connect(sigc::mem_fun(&treeView, &GrundbokView::onEditedText));
@@ -370,6 +394,10 @@ private:
 
         std::string getDate(const Gtk::TreeRow& row) const {
             return Glib::ustring(row[m_colDate]);         
+        }
+
+        void setDate(const Gtk::TreeRow& row, const std::string& date) {
+            row[m_colDate] = date;
         }
 
         std::string getText(const Gtk::TreeRow& row) const {
@@ -404,6 +432,7 @@ private:
     Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
     Glib::RefPtr<Gtk::TreeModelSort> m_sortedModel;
     sigc::signal<void, unsigned int, const Glib::ustring&> m_signalTextEdited;
+    sigc::signal<void, unsigned int, const Date&> m_signalDateEdited;
 };
 
 class MainWindow : public Gtk::ApplicationWindow {
@@ -420,6 +449,8 @@ public:
         m_grundbokView.setOnSelectionChanged(sigc::mem_fun(this, &MainWindow::onGrundbokSelectionChanged));
 
         m_verifikatView.signalEdited().connect(sigc::mem_fun(this, &MainWindow::onVerifikatViewEdited));
+
+        m_grundbokView.setOnEditedDate(sigc::mem_fun(this, &MainWindow::onVerifikatDateEdited));
 
         m_grundbokView.setOnEditedText(sigc::mem_fun(this, &MainWindow::onVerifikatTextEdited));
 
@@ -449,6 +480,10 @@ private:
             m_grundbokView.recalculate(*m_doc);
             m_grundbokView.addNewVerifikatRow(*m_doc);
         }
+    }
+
+    void onVerifikatDateEdited(unsigned int id, const Date& date) {
+        m_doc->getVerifikat(id).setTransdatum(date);
     }
 
     void onVerifikatTextEdited(unsigned int id, const Glib::ustring& text) {

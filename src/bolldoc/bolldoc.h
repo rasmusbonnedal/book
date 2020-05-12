@@ -80,6 +80,8 @@ public:
 
         const Date& getTransdatum() const;
 
+        void setTransdatum(const Date& date);
+
         void addRad(Rad&& rad);
 
         void update(const std::vector<Rad>& rader);
