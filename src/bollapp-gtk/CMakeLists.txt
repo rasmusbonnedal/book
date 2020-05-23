@@ -17,3 +17,10 @@ else()
     target_compile_options(bollapp PRIVATE -Wall -Werror)
     target_compile_options(bollapp PRIVATE -Wno-deprecated-declarations)
 endif()
+
+add_custom_command(TARGET bollapp POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                       ${CMAKE_CURRENT_SOURCE_DIR}/icon.png
+                       $<TARGET_FILE_DIR:bollapp>)
+
+configure_file(bollapp.desktop ~/.local/share/applications/bollapp.desktop)

@@ -1,7 +1,7 @@
 Todo-list
 =========
 
-- [ ] Icon for Application
+- [x] Icon for Application
 - [ ] Load Document
 - [ ] Save Document
 - [ ] Jump to next field

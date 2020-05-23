@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Bollbok Bokföring
+Path=${CMAKE_BINARY_DIR}
+Exec=${CMAKE_CURRENT_BINARY_DIR}/bollapp
+Icon=${CMAKE_CURRENT_BINARY_DIR}/icon.png

@@ -457,6 +457,7 @@ public:
         m_header.set_title("Untitled");
         m_header.set_show_close_button(true);
         set_titlebar(m_header);
+        set_icon_from_file("src/bollapp-gtk/icon.png");
         loadFile("../docs/bok1.bollbok");
         show_all_children();
     }
