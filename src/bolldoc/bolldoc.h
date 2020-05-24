@@ -126,11 +126,13 @@ public:
 
     void updateVerifikat(int unid, const std::vector<Rad>& rader);
 
+    void setVerifikatTransdatum(int unid, const Date& date);
+
+    void setVerifikatText(int unid, const std::string& text);
+
     int getNextVerifikatId() const;
 
     const Verifikat& getVerifikat(int unid) const;
-
-    Verifikat& getVerifikat(int unid);
 
     const std::vector<Verifikat>& getVerifikationer() const;
 
@@ -141,6 +143,12 @@ public:
                                                     const int unidEnd) const;
 
 private:
+    Verifikat& getVerifikatMut(int unid);
+
+    void checkYear(const Date& date) const;
+
+    void checkVerifikatId(int unid) const;
+
     int _version;
     std::string _firma;
     std::string _orgnummer;

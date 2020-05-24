@@ -268,7 +268,7 @@ public:
     void recalculate(const BollDoc& doc) {
         for (auto& treeRow : m_refTreeModel->children()) {
             unsigned id = m_columns.getId(treeRow);
-            auto& row = doc.getVerifikat(id);
+            const auto& row = doc.getVerifikat(id);
             std::stringstream date;
             date << row.getTransdatum();
             Pengar omslutning;
@@ -286,7 +286,7 @@ public:
 
     void updateWithDoc(const BollDoc& doc) {
         m_refTreeModel->clear();
-        for (auto& row : doc.getVerifikationer()) {
+        for (const auto& row : doc.getVerifikationer()) {
             auto treeRow = *(m_refTreeModel->append());
             Pengar omslutning;
             std::stringstream omslutningStr;
@@ -298,6 +298,7 @@ public:
             m_columns.setRow(treeRow, row.getUnid(), to_string(row.getTransdatum()),
                                 row.getText(), omslutningStr.str());
         }
+        m_year = doc.getBokforingsar();
     }
 
     void addNewVerifikatRow(BollDoc& doc) {
@@ -342,8 +343,8 @@ private:
         Gtk::TreePath path = m_sortedModel->convert_path_to_child_path(Gtk::TreePath(path_string));
         Gtk::TreeModel::iterator iter = m_refTreeModel->get_iter(path);
         if (iter) {
-            std::optional<Date> date = parseDate(new_text);
-            if (date) {
+            std::optional<Date> date = parseDateNothrow(new_text);
+            if (date && date->getYear() == m_year) {
                 Gtk::TreeModel::Row row = *iter;
                 m_columns.setDate(row, new_text);
                 unsigned int id = m_columns.getId(row);
@@ -433,6 +434,7 @@ private:
     Glib::RefPtr<Gtk::TreeModelSort> m_sortedModel;
     sigc::signal<void, unsigned int, const Glib::ustring&> m_signalTextEdited;
     sigc::signal<void, unsigned int, const Date&> m_signalDateEdited;
+    int m_year;
 };
 
 class MainWindow : public Gtk::ApplicationWindow {
@@ -484,11 +486,11 @@ private:
     }
 
     void onVerifikatDateEdited(unsigned int id, const Date& date) {
-        m_doc->getVerifikat(id).setTransdatum(date);
+        m_doc->setVerifikatTransdatum(id, date);
     }
 
     void onVerifikatTextEdited(unsigned int id, const Glib::ustring& text) {
-        m_doc->getVerifikat(id).setText(text);
+        m_doc->setVerifikatText(id, text);
     }
 
     void loadFile(const std::string& path) {

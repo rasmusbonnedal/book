@@ -55,35 +55,34 @@ void BollDoc::addVerifikat(Verifikat&& verifikat) {
            << _verifikat.size();
         throw std::runtime_error(ss.str());
     }
+    checkYear(verifikat.getTransdatum());
     _verifikat.push_back(std::move(verifikat));
 }
 
-BollDoc::Verifikat& BollDoc::getVerifikat(int unid) {
-    if (unid >= getNextVerifikatId() || unid < 0) {
-        std::stringstream ss;
-        ss << "Verifikat " << unid << " requested, document only has 0-"
-           << _verifikat.size() - 1;
-        throw std::runtime_error(ss.str());
-    }
-    return _verifikat[unid];
+void BollDoc::updateVerifikat(int unid, const std::vector<Rad>& rader) {
+    getVerifikatMut(unid).update(rader);
 }
 
-void BollDoc::updateVerifikat(int unid, const std::vector<Rad>& rader) {
-    getVerifikat(unid).update(rader);
+void BollDoc::setVerifikatTransdatum(int unid, const Date& date) {
+    checkYear(date);
+    getVerifikatMut(unid).setTransdatum(date);
+}
+
+void BollDoc::setVerifikatText(int unid, const std::string& text) {
+    getVerifikatMut(unid).setText(text);
 }
 
 int BollDoc::getNextVerifikatId() const {
     return static_cast<int>(_verifikat.size());
 }
 
-
 const BollDoc::Verifikat& BollDoc::getVerifikat(int unid) const {
-    if (unid >= getNextVerifikatId() || unid < 0) {
-        std::stringstream ss;
-        ss << "Verifikat " << unid << " requested, document only has 0-"
-           << _verifikat.size() - 1;
-        throw std::runtime_error(ss.str());
-    }
+    checkVerifikatId(unid);
+    return _verifikat[unid];
+}
+
+BollDoc::Verifikat& BollDoc::getVerifikatMut(int unid) {
+    checkVerifikatId(unid);
     return _verifikat[unid];
 }
 
@@ -111,6 +110,27 @@ BollDoc::getVerifikatRange(const int unidStart, const int unidEnd) const {
         }
     }
     return retval;
+}
+
+void
+BollDoc::checkYear(const Date& date) const {
+    if (date.getYear() != 0 && date.getYear() != _bokforingsar) {
+        std::stringstream ss;
+        ss << "Wrong year in verifikat, document has year " << _bokforingsar
+           << " and verifikat has year " << date.getYear();
+        throw std::runtime_error(ss.str());
+    }
+}
+
+void
+BollDoc::checkVerifikatId(int unid) const {
+    int nextId = getNextVerifikatId();
+    if (unid >= nextId || unid < 0) {
+        std::stringstream ss;
+        ss << "Verifikat " << unid << " requested, document only has 0-"
+           << nextId - 1;
+        throw std::runtime_error(ss.str());
+    }
 }
 
 BollDoc::Konto::Konto(int unid, std::string text, int typ,

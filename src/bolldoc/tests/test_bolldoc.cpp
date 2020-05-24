@@ -91,3 +91,27 @@ TEST_CASE("Equality") {
     cmp.addVerifikat({13, "FooBar", Date(2018, 5, 1)});
     CHECK_FALSE(ref == cmp);
 }
+
+TEST_CASE("Update") {
+    BollDoc doc = createDoc();
+
+    doc.setVerifikatText(0, "Foo");
+    CHECK(doc.getVerifikat(0).getText() == "Foo");
+    CHECK_THROWS_WITH(doc.setVerifikatTransdatum(0, Date(2019, 01, 01)),
+        "Wrong year in verifikat, document has year 2018 and verifikat has year 2019");
+    doc.setVerifikatTransdatum(0, Date(2018, 03, 27));
+    CHECK(doc.getVerifikat(0).getTransdatum() == Date(2018, 03, 27));
+}
+
+TEST_CASE("Add") {
+    BollDoc doc = createDoc();
+
+    BollDoc::Verifikat v{13, "Lån", Date(2019, 6, 1)};
+    v.addRad({Date(2018, 12, 25), 1910, parsePengar("-8000")});
+    v.addRad({Date(2018, 12, 25), 5010, parsePengar("8000")});
+    CHECK_THROWS_WITH(doc.addVerifikat(std::move(v)),
+        "Wrong year in verifikat, document has year 2018 and verifikat has year 2019");
+    v.setTransdatum(Date(2018, 6, 1));
+    doc.addVerifikat(std::move(v));
+    CHECK(doc.getVerifikat(13).getTransdatum() == Date(2018, 6, 1));
+}
