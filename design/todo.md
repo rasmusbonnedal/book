@@ -2,8 +2,9 @@ Todo-list
 =========
 
 - [x] Icon for Application
-- [ ] Load Document
+- [x] Load Document
 - [ ] Save Document
 - [ ] Jump to next field
 - [x] Make verifikat date editable
 - [x] Only allow dates of the document year
+- [ ] Fix bug where a too high verifikat is selected when opening new doc

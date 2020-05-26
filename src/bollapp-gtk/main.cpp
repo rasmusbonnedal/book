@@ -440,6 +440,13 @@ private:
 class MainWindow : public Gtk::ApplicationWindow {
 public:
     MainWindow() {
+        add_action("new",
+                   sigc::mem_fun(*this, &MainWindow::on_action_new));
+        add_action("open",
+                   sigc::mem_fun(*this, &MainWindow::on_action_open));
+        add_action("quit",
+                   sigc::mem_fun(*this, &MainWindow::on_action_quit));
+
         m_paned.set_orientation(Gtk::ORIENTATION_VERTICAL);
         m_scrolledWindow.set_size_request(400, 200);
         m_scrolledWindow.add(m_grundbokView);
@@ -465,6 +472,40 @@ public:
     }
 
 private:
+    void on_action_new() {
+        int version = 2074;
+        std::string firma = "Ny firma";
+        std::string orgnummer = "556614-1234";
+        int bokforingsar = 2019;
+        std::string valuta = "SEK";
+        m_doc = std::make_unique<BollDoc>(version, firma, orgnummer, bokforingsar, valuta, false);
+        updateDoc();
+        m_header.set_title("Untitled");
+    }
+
+    void on_action_open() {
+        Gtk::FileChooserDialog dialog("Please choose a file", Gtk::FILE_CHOOSER_ACTION_OPEN);
+        dialog.set_transient_for(*this);
+
+        //Add response buttons the the dialog:
+        dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+        dialog.add_button("_Open", Gtk::RESPONSE_OK);
+
+        auto filter_bollbok = Gtk::FileFilter::create();
+        filter_bollbok->set_name("Bollbok files");
+        filter_bollbok->add_pattern("*.bollbok");
+        dialog.add_filter(filter_bollbok);
+
+        //Show the dialog and wait for a user response:
+        if (dialog.run() == Gtk::RESPONSE_OK) {
+            loadFile(dialog.get_filename());
+        }
+    }
+
+    void on_action_quit() {
+        hide();
+    }
+
     void onGrundbokSelectionChanged() {
         unsigned id;
         m_grundbokView.get_selection()->get_selected()->get_value(0, id);
@@ -496,7 +537,9 @@ private:
     void loadFile(const std::string& path) {
         std::ifstream ifs(path);
         if (ifs.good()) {
-            m_header.set_title(path);
+            size_t pos = path.find_last_of('/');
+            std::string filename = (pos == std::string::npos) ? path : path.substr(pos + 1);
+            m_header.set_title(filename);
             set_titlebar(m_header);
             m_doc = std::make_unique<BollDoc>(Serialize::loadDocument(ifs));
             updateDoc();
@@ -552,7 +595,7 @@ protected:
         Glib::RefPtr<Gio::Menu> submenu_file = Gio::Menu::create();
         submenu_file->append("_New", "win.new");
         submenu_file->append("_Open", "win.open");
-        submenu_file->append("_Close", "win.close");
+        submenu_file->append("_Quit", "win.quit");
         win_menu->append_submenu("File", submenu_file);
         set_menubar(win_menu);
     }
