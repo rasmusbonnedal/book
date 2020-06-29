@@ -119,8 +119,8 @@ private:
             crt->property_foreground_rgba() = Gdk::RGBA("#000");
         }
 
-        int pengar = row[m_columns.m_colPengar];
-        crt->property_text() = std::to_string(pengar) + " kr";
+        Pengar pengar(row[m_columns.m_colPengar]);
+        crt->property_text() = toString(pengar) + " kr";
     }
 
     void onEditedKonto(const Glib::ustring& path_string,
@@ -146,11 +146,15 @@ private:
         if (iter) {
             Gtk::TreeModel::Row row = *iter;
             unsigned konto = row[m_columns.m_colKonto];
-            int pengar = row[m_columns.m_colPengar];
-            if (path_string == "0" && konto != 0 && pengar != 0) {
-                addRow(0, 0, Date(), std::nullopt, true);
+            try {
+                Pengar p = parsePengar(new_text);
+                row[m_columns.m_colPengar] = p;
+                if (path_string == "0" && konto != 0 && p.get() != 0) {
+                    addRow(0, 0, Date(), std::nullopt, true);
+                }
+                sendEditedSignal();
+            } catch(std::exception&) {
             }
-            sendEditedSignal();
         }
     }
 
@@ -191,19 +195,16 @@ private:
             Gtk::TreeViewColumn* column = treeView.get_column(0);
             column->set_cell_data_func(cell, sigc::mem_fun(&treeView, &VerifikatView::onCellDataKontoColumn));
 
-            treeView.append_column_numeric_editable("Debet / Kredit",
-                                                    m_colPengar, "%d kr");
-            Gtk::CellRendererText* pengarCell = dynamic_cast<Gtk::CellRendererText*>(treeView.get_column_cell_renderer(1));
-            if (pengarCell) {
-                pengarCell->signal_edited().connect(
-                    sigc::mem_fun(&treeView, &VerifikatView::onEditedPengar));
-                column = treeView.get_column(1);
-                column->set_cell_data_func(*pengarCell, sigc::mem_fun(&treeView, &VerifikatView::onCellDataPengarColumn));
-            }
+            auto& pengarCell = treeView.m_pengarCellRenderer;
+            treeView.append_column("Debet / Kredit", pengarCell);
+            pengarCell.signal_edited().connect(
+                sigc::mem_fun(&treeView, &VerifikatView::onEditedPengar));
+            column = treeView.get_column(1);
+            column->set_cell_data_func(pengarCell, sigc::mem_fun(&treeView, &VerifikatView::onCellDataPengarColumn));
         }
         void setRow(const Gtk::TreeRow& row, unsigned konto, Pengar pengar, const Date& date, const std::optional<Date>& struken) const {
             row[m_colKonto] = konto;
-            row[m_colPengar] = pengar.get() / 100;
+            row[m_colPengar] = pengar;
             row[m_colDate] = date;
             row[m_colStruken] = struken.has_value();
             if (struken.has_value()) {
@@ -212,7 +213,7 @@ private:
         }
         void getRow(const Gtk::TreeRow& row, unsigned& konto, Pengar& pengar, Date& date, std::optional<Date>& struken) const {
             konto = row[m_colKonto];
-            pengar = row[m_colPengar] * 100;
+            pengar = row[m_colPengar];
             date = row[m_colDate];
             if (row[m_colStruken]) {
                 struken = row[m_colStrukenDate];
@@ -221,7 +222,7 @@ private:
             }
         }
         Gtk::TreeModelColumn<unsigned> m_colKonto;
-        Gtk::TreeModelColumn<int> m_colPengar;
+        Gtk::TreeModelColumn<Pengar> m_colPengar;
         Gtk::TreeModelColumn<Date> m_colDate;
         Gtk::TreeModelColumn<bool> m_colStruken;
         Gtk::TreeModelColumn<Date> m_colStrukenDate;
@@ -230,6 +231,7 @@ private:
     Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
     Glib::RefPtr<Gtk::EntryCompletion> m_completion;
     Gtk::CellRendererText m_kontoCellRenderer;
+    Gtk::CellRendererText m_pengarCellRenderer;
     std::map<unsigned int, std::string> m_kontoplan;
     sigc::signal<void, const std::vector<BollDoc::Rad>&> m_signalEdited;
 };
