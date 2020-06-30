@@ -36,3 +36,7 @@ uint32_t Utils::calcChecksum(const std::string& xmlText) {
         sums.begin(), sums.end(), 1,
         [](uint32_t l, uint32_t r) { return (l + r) * 0x6f4f53 + 0xb7f; });
 }
+
+bool Utils::endsWith(const std::string& str, const std::string& suffix) {
+    return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}

@@ -41,7 +41,13 @@
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Break on exception",
+                    "text": "catch throw",
+                    "ignoreFailures": true
                 }
+
             ]
         }
 

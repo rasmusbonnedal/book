@@ -4,6 +4,7 @@
 #include "bolldoc.h"
 #include "date.h"
 #include "serialize.h"
+#include "utils.h"
 
 #include <gtkmm.h>
 
@@ -446,6 +447,8 @@ public:
                    sigc::mem_fun(*this, &MainWindow::on_action_new));
         add_action("open",
                    sigc::mem_fun(*this, &MainWindow::on_action_open));
+        add_action("save",
+                   sigc::mem_fun(*this, &MainWindow::on_action_save));
         add_action("quit",
                    sigc::mem_fun(*this, &MainWindow::on_action_quit));
 
@@ -470,6 +473,7 @@ public:
         set_titlebar(m_header);
         set_icon_from_file("src/bollapp-gtk/icon.png");
         loadFile("../docs/bok1.bollbok");
+        m_filename.clear();
         show_all_children();
     }
 
@@ -502,6 +506,33 @@ private:
         if (dialog.run() == Gtk::RESPONSE_OK) {
             loadFile(dialog.get_filename());
         }
+    }
+
+    void on_action_save() {
+        if (m_filename.empty()) {
+            Gtk::FileChooserDialog dialog("Please choose file to save", Gtk::FILE_CHOOSER_ACTION_SAVE);
+            dialog.set_transient_for(*this);
+
+            //Add response buttons the the dialog:
+            dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+            dialog.add_button("_Save", Gtk::RESPONSE_OK);
+
+            auto filter_bollbok = Gtk::FileFilter::create();
+            filter_bollbok->set_name("Bollbok files");
+            filter_bollbok->add_pattern("*.bollbok");
+            dialog.add_filter(filter_bollbok);
+
+            //Show the dialog and wait for a user response:
+            if (dialog.run() == Gtk::RESPONSE_OK) {
+                m_filename = dialog.get_filename();
+                if (!Utils::endsWith(m_filename, ".bollbok")) {
+                    m_filename += ".bollbok";
+                }
+            } else {
+                return;
+            }
+        }        
+        saveFile(m_filename);
     }
 
     void on_action_quit() {
@@ -545,8 +576,18 @@ private:
             set_titlebar(m_header);
             m_doc = std::make_unique<BollDoc>(Serialize::loadDocument(ifs));
             updateDoc();
+            m_filename = path;
         } else {
             std::cout << "Error loading " << path << std::endl;
+        }
+    }
+
+    void saveFile(const std::string& path) {
+        std::ofstream ofs(path);
+        if (ofs.good()) {
+            Serialize::saveDocument(*m_doc, ofs);
+        } else {
+            std::cout << "Error saving " << path << std::endl;
         }
     }
 
@@ -567,6 +608,7 @@ private:
     Gtk::HeaderBar m_header;
     std::unique_ptr<BollDoc> m_doc;
     int m_verifikatEditingId;
+    std::string m_filename;
 };
 
 class BollBokApp : public Gtk::Application {
@@ -597,6 +639,7 @@ protected:
         Glib::RefPtr<Gio::Menu> submenu_file = Gio::Menu::create();
         submenu_file->append("_New", "win.new");
         submenu_file->append("_Open", "win.open");
+        submenu_file->append("_Save", "win.save");
         submenu_file->append("_Quit", "win.quit");
         win_menu->append_submenu("File", submenu_file);
         set_menubar(win_menu);

@@ -33,6 +33,10 @@ int getAttrInt(xml_node<>* node, const std::string& name) {
     return std::stoi(getAttrString(node, name));
 }
 
+xml_node<>* getNodeNothrow(xml_node<>* node, const std::string& name) {
+    return node->first_node(name.c_str());
+}
+
 xml_node<>* getNode(xml_node<>* node, const std::string& name) {
     xml_node<>* n = node->first_node(name.c_str());
     if (!n) {
@@ -104,7 +108,7 @@ BollDoc Serialize::loadDocument(std::istream& input) {
         auto text = getAttrString(verifikat, "text");
         auto transdatum = getAttrString(verifikat, "transdatum");
         BollDoc::Verifikat v(unid, std::move(text), parseDate(transdatum));
-        for (auto rad = getNode(verifikat, "rad"); rad;
+        for (auto rad = getNodeNothrow(verifikat, "rad"); rad;
              rad = rad->next_sibling("rad")) {
             auto bokdatum = getAttrString(rad, "bokdatum");
             auto konto = getAttrInt(rad, "konto");
@@ -166,6 +170,9 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
         doc->allocate_node(node_element, "verifikationer");
     bollbok->append_node(verifikationer);
     for (auto&& v : bolldoc.getVerifikationer()) {
+        if (v.getRader().empty()) {
+            continue;
+        }
         xml_node<>* verifikat = doc->allocate_node(node_element, "verifikat");
         verifikationer->append_node(verifikat);
         appendAttribute(doc, verifikat, "unid", v.getUnid());
