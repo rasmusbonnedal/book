@@ -6,6 +6,7 @@ set(SRCS
     main.cpp
     treeview_enable_edit_next_field.cpp
     treeview_enable_valid.cpp
+    verifikat_view.cpp
 )
 
 add_executable(bollapp ${SRCS})
