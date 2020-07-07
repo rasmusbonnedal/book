@@ -11,7 +11,7 @@ Todo-list
 - [ ] Fix bug where verifikat view gets huge when looking at verifikat 0 (Add scrollbars)
 - [ ] Suggest auto-balancing values
 - [x] Fractional support
-- [ ] Refactor gtk views
+- [x] Refactor gtk views
 
 Needed for first entry
 **********************
