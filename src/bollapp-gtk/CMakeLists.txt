@@ -5,6 +5,7 @@ set(SRCS
     cellrenderertextcompletion.cpp
     grundbok_view.cpp
     main.cpp
+    main_window.cpp
     treeview_enable_edit_next_field.cpp
     treeview_enable_valid.cpp
     verifikat_view.cpp
