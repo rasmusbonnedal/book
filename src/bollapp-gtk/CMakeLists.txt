@@ -3,6 +3,7 @@ pkg_check_modules (GTKMM REQUIRED gtkmm-3.0)
 
 set(SRCS
     cellrenderertextcompletion.cpp
+    grundbok_view.cpp
     main.cpp
     treeview_enable_edit_next_field.cpp
     treeview_enable_valid.cpp
