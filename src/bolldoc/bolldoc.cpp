@@ -226,7 +226,7 @@ bool BollDoc::Verifikat::getOmslutning(Pengar& omslutning) const {
         }
     }
     if (sum.get() != 0) {
-        omslutning = 0;
+        omslutning = sum;
         return false;
     }
     return true;

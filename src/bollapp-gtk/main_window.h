@@ -39,8 +39,9 @@ private:
 
     void updateDoc();
 
-    Gtk::ScrolledWindow m_scrolledWindow;
+    Gtk::ScrolledWindow m_grundbokScroll;
     GrundbokView m_grundbokView;
+    Gtk::ScrolledWindow m_verifikatScroll;
     VerifikatView m_verifikatView;
     Gtk::Box m_box;
     Gtk::Paned m_paned;

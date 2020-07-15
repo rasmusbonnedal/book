@@ -10,7 +10,7 @@ GrundbokView::GrundbokView() : Gtk::TreeView() {
 }
 
 void GrundbokView::setOnSelectionChanged(const Glib::SignalProxy<void>::SlotType& onSelectionChanged) {
-    get_selection()->signal_changed().connect(onSelectionChanged);
+    m_selectionChangedConnection = get_selection()->signal_changed().connect(onSelectionChanged);
 }
 
 void GrundbokView::setOnEditedDate(const Glib::SignalProxy<void, unsigned int, const Date&>::SlotType& onEditedDate) {
@@ -33,7 +33,7 @@ void GrundbokView::recalculate(const BollDoc& doc) {
         } else if (row.getOmslutning(omslutning)) {
             omslutningStr << omslutning << " kr";
         } else {
-            omslutningStr << " - obalanserad - ";
+            omslutningStr << " - obalanserad (" << omslutning << ") - ";
         }
         m_columns.setRow(treeRow, row.getUnid(), date.str(), row.getText(),
                             omslutningStr.str());
@@ -41,7 +41,10 @@ void GrundbokView::recalculate(const BollDoc& doc) {
 }
 
 void GrundbokView::updateWithDoc(const BollDoc& doc) {
+    m_selectionChangedConnection.block();
+    get_selection()->unselect_all();
     m_refTreeModel->clear();
+
     for (const auto& row : doc.getVerifikationer()) {
         auto treeRow = *(m_refTreeModel->append());
         Pengar omslutning;
@@ -49,11 +52,12 @@ void GrundbokView::updateWithDoc(const BollDoc& doc) {
         if (row.getOmslutning(omslutning)) {
             omslutningStr << omslutning << " kr";
         } else {
-            omslutningStr << " - obalanserad - ";
+            omslutningStr << " - obalanserad (" << omslutning << ") - ";
         }
         m_columns.setRow(treeRow, row.getUnid(), to_string(row.getTransdatum()),
                             row.getText(), omslutningStr.str());
     }
+    m_selectionChangedConnection.unblock();
     m_year = doc.getBokforingsar();
 }
 

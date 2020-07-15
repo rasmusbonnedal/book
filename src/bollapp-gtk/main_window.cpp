@@ -22,11 +22,12 @@ MainWindow::MainWindow() {
     add_action("quit", sigc::mem_fun(*this, &MainWindow::on_action_quit));
 
     m_paned.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    m_scrolledWindow.set_size_request(400, 200);
-    m_scrolledWindow.add(m_grundbokView);
-    m_paned.add1(m_scrolledWindow);
-    m_verifikatView.set_size_request(400, 50);
-    m_paned.pack2(m_verifikatView, Gtk::AttachOptions::FILL);
+    m_grundbokScroll.set_size_request(400, 200);
+    m_grundbokScroll.add(m_grundbokView);
+    m_paned.add1(m_grundbokScroll);
+    m_verifikatScroll.set_size_request(400, 50);
+    m_verifikatScroll.add(m_verifikatView);
+    m_paned.pack2(m_verifikatScroll, Gtk::AttachOptions::FILL);
     add(m_paned);
 
     m_grundbokView.setOnSelectionChanged(
@@ -114,7 +115,13 @@ void MainWindow::on_action_quit() { hide(); }
 
 void MainWindow::onGrundbokSelectionChanged() {
     unsigned id;
-    m_grundbokView.get_selection()->get_selected()->get_value(0, id);
+    Gtk::TreeModel::iterator selected = m_grundbokView.get_selection()->get_selected();
+    if (!selected) {
+        std::cout << "Nothing selected." << std::endl;
+        return;
+    }
+    selected->get_value(0, id);
+
     std::cout << "Changing from " << m_verifikatEditingId << " to " << id
               << std::endl;
     setVerifikat(m_verifikatView, m_doc->getVerifikat(id));

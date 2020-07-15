@@ -11,11 +11,16 @@ class GrundbokView : public Gtk::TreeView {
 public:
     GrundbokView();
 
-    void setOnSelectionChanged(const Glib::SignalProxy<void>::SlotType& onSelectionChanged);
+    void setOnSelectionChanged(
+        const Glib::SignalProxy<void>::SlotType& onSelectionChanged);
 
-    void setOnEditedDate(const Glib::SignalProxy<void, unsigned int, const Date&>::SlotType& onEditedDate);
+    void setOnEditedDate(
+        const Glib::SignalProxy<void, unsigned int, const Date&>::SlotType&
+            onEditedDate);
 
-    void setOnEditedText(const Glib::SignalProxy<void, unsigned int, const Glib::ustring&>::SlotType& onEditedText);
+    void setOnEditedText(
+        const Glib::SignalProxy<void, unsigned int,
+                                const Glib::ustring&>::SlotType& onEditedText);
 
     void recalculate(const BollDoc& doc);
 
@@ -23,7 +28,8 @@ public:
 
     void addNewVerifikatRow(BollDoc& doc);
 
-    int sortFunction(const Gtk::TreeModel::iterator& lhs, const Gtk::TreeModel::iterator& rhs);
+    int sortFunction(const Gtk::TreeModel::iterator& lhs,
+                     const Gtk::TreeModel::iterator& rhs);
 
 private:
     void onEditedText(const Glib::ustring& path_string,
@@ -38,8 +44,9 @@ private:
 
         void addColumns(GrundbokView& treeView);
 
-        void setRow(const Gtk::TreeRow& row, unsigned id, const std::string& date,
-                    const std::string& text, const std::string& omslutning);
+        void setRow(const Gtk::TreeRow& row, unsigned id,
+                    const std::string& date, const std::string& text,
+                    const std::string& omslutning);
 
         unsigned getId(const Gtk::TreeRow& row) const;
 
@@ -65,5 +72,6 @@ private:
     Glib::RefPtr<Gtk::TreeModelSort> m_sortedModel;
     sigc::signal<void, unsigned int, const Glib::ustring&> m_signalTextEdited;
     sigc::signal<void, unsigned int, const Date&> m_signalDateEdited;
+    sigc::connection m_selectionChangedConnection;
     int m_year;
 };
