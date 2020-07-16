@@ -1,6 +1,7 @@
 #include <doctest.h>
 
 #include "date.h"
+#include "timer.h"
 
 TEST_CASE("Date Parsing") {
     CHECK(parseDate("1776-07-04") == Date(1776, 7, 4));
@@ -86,4 +87,15 @@ TEST_CASE("Last day of month") {
     }
     CHECK(lastDayOfMonth(Date(1999, 2, 1)) == Date(1999, 2, 28));
     CHECK(lastDayOfMonth(Date(2000, 2, 1)) == Date(2000, 2, 29));
+}
+
+TEST_CASE("Parse Date timer") {
+    Stopwatch t;
+    t.start();
+    Date d;
+    for (int i = 0; i < 1000; ++i) {
+        d = parseDate("2020-07-14");
+    }
+    float time = t.stop();
+    CHECK(time < 0.1f);
 }

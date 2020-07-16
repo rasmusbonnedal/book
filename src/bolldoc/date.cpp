@@ -60,10 +60,13 @@ bool Date::checkDate() const {
     return _day <= lastDayOfMonth(_year, _month);
 }
 
+namespace {
+    const std::regex dateRegex("(\\d{4})-(\\d\\d)-(\\d\\d)");
+}
+
 Date parseDate(const std::string& s) {
-    std::regex re("(\\d{4})-(\\d\\d)-(\\d\\d)");
     std::smatch m;
-    if (!std::regex_match(s, m, re) || m.size() != 4) {
+    if (!std::regex_match(s, m, dateRegex) || m.size() != 4) {
         throw std::runtime_error("Could not parse " + s + " as a date");
     }
 
@@ -71,9 +74,8 @@ Date parseDate(const std::string& s) {
 }
 
 std::optional<Date> parseDateNothrow(const std::string& s) {
-    std::regex re("(\\d{4})-(\\d\\d)-(\\d\\d)");
     std::smatch m;
-    if (!std::regex_match(s, m, re) || m.size() != 4) {
+    if (!std::regex_match(s, m, dateRegex) || m.size() != 4) {
         return std::nullopt;
     }
 

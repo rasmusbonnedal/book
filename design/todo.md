@@ -12,7 +12,7 @@ Todo-list
 - [ ] Suggest auto-balancing values
 - [x] Fractional support
 - [x] Refactor gtk views
-- [ ] Why does load take a long time?
+- [x] Why does load take a long time? (Regex compilation!)
 - [ ] Why does not ingående saldon balance in 2019?
 
 Needed for first entry

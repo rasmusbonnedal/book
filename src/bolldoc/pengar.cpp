@@ -23,10 +23,13 @@ Pengar& Pengar::operator+=(const Pengar& rhs) {
 
 int64_t Pengar::get() const { return _pengar; }
 
+namespace {
+    const std::regex pengarRegex("^([-]?\\d+)([.]?)(\\d{0,2}) ?(?:kr)?$");
+}
+
 Pengar parsePengar(const std::string& s) {
-    std::regex re("^([-]?\\d+)([.]?)(\\d{0,2}) ?(?:kr)?$");
     std::smatch m;
-    if (!std::regex_match(s, m, re) || m.size() != 4) {
+    if (!std::regex_match(s, m, pengarRegex) || m.size() != 4) {
         throw std::runtime_error("Could not parse " + s + " as number");
     }
 

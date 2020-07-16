@@ -78,7 +78,7 @@ TEST_CASE("Verifikat omslutning") {
     CHECK_UNARY(doc.getVerifikat(2).getOmslutning(omslutning));
     CHECK(omslutning.get() == 45);
     CHECK_FALSE(doc.getVerifikat(3).getOmslutning(omslutning));
-    CHECK(omslutning.get() == 0);
+    CHECK(omslutning.get() == -8);
 }
 
 TEST_CASE("Equality") {
