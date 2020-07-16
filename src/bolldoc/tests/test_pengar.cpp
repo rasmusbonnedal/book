@@ -13,6 +13,7 @@ TEST_CASE("Parse Pengar") {
     CHECK(parsePengar("1000.").get() == 100000);
     CHECK(parsePengar("1000").get() == 100000);
     CHECK(parsePengar("-8000000000.01").get() == -800000000001);
+    CHECK(parsePengar("-0.92").get() == -92);
 }
 
 TEST_CASE("Parse fail") {

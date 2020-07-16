@@ -24,7 +24,7 @@ Pengar& Pengar::operator+=(const Pengar& rhs) {
 int64_t Pengar::get() const { return _pengar; }
 
 namespace {
-    const std::regex pengarRegex("^([-]?\\d+)([.]?)(\\d{0,2}) ?(?:kr)?$");
+    const std::regex pengarRegex("^([-]?)(\\d+)[.]?(\\d{0,2}) ?(?:kr)?$");
 }
 
 Pengar parsePengar(const std::string& s) {
@@ -33,13 +33,14 @@ Pengar parsePengar(const std::string& s) {
         throw std::runtime_error("Could not parse " + s + " as number");
     }
 
-    int64_t whole = parseInt(m[1]);
-    int64_t sign = whole < 0 ? -1 : 1;
+    bool sign = m[1] == "-";
+    int64_t whole = parseInt(m[2]);
     int64_t dec = parseInt(m[3]);
     if (m[3].str().size() == 1)
         dec *= 10;
 
-    return whole * 100 + sign * dec;
+    int64_t value = whole * 100 + dec;
+    return sign ? -value : value;
 }
 
 std::string toString(const Pengar& p) {

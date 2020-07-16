@@ -13,7 +13,7 @@ Todo-list
 - [x] Fractional support
 - [x] Refactor gtk views
 - [x] Why does load take a long time? (Regex compilation!)
-- [ ] Why does not ingående saldon balance in 2019?
+- [x] Why does not ingående saldon balance in 2019? (Pengar parse error for '-0.92')
 
 Needed for first entry
 **********************
