@@ -1,5 +1,7 @@
 #include "verifikat_view.h"
 
+#include "utils.h"
+
 #include "cellrenderertextcompletion.h"
 
 VerifikatView::VerifikatView()
@@ -134,6 +136,21 @@ void VerifikatView::onEditedKonto(const Glib::ustring& path_string,
     }
 }
 
+void VerifikatView::onEditingStartedPengar(Gtk::CellEditable* editable,
+                                           const Glib::ustring& path) {
+    Gtk::Entry* entry = dynamic_cast<Gtk::Entry*>(editable);
+    if (entry) {
+        // Remove spaces and "kr" from the pengar string
+        std::string s = entry->get_text();
+        size_t s_len = s.size();
+        if (s_len > 2 && s.substr(s_len - 2) == "kr") {
+            s = s.substr(0, s_len - 2);
+        }
+        s = Utils::removeSpaces(s);
+        entry->set_text(s);
+    }
+}
+
 void VerifikatView::onEditedPengar(const Glib::ustring& path_string,
                                    const Glib::ustring& new_text) {
     std::cout << "VerifikatView::onEditedPengar(" << path_string << ")"
@@ -196,6 +213,10 @@ void VerifikatView::ModelColumns::addColumns(VerifikatView& treeView) {
     treeView.append_column("Debet / Kredit", pengarCell);
     pengarCell.signal_edited().connect(
         sigc::mem_fun(&treeView, &VerifikatView::onEditedPengar));
+    // This callback removes spaces and "kr" from pengar string
+    // "1 000 kr" -> "1000"
+    pengarCell.signal_editing_started().connect(
+        sigc::mem_fun(&treeView, &VerifikatView::onEditingStartedPengar));
     column = treeView.get_column(1);
     column->set_cell_data_func(
         pengarCell,

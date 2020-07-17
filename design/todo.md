@@ -14,6 +14,14 @@ Todo-list
 - [x] Refactor gtk views
 - [x] Why does load take a long time? (Regex compilation!)
 - [x] Why does not ingående saldon balance in 2019? (Pengar parse error for '-0.92')
+- [x] Fix thousands separator
+- [x] Edit numbers without separator
+- [ ] Check bokföringsdatum on entries
+- [ ] Disallow edit old entries
+- [ ] Allow strykning of old entries
+- [ ] Edit konton
+- [ ] Reports
+- [ ] Search
 
 Needed for first entry
 **********************

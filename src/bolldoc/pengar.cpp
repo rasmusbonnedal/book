@@ -1,7 +1,8 @@
 #include "pengar.h"
 
+#include "utils.h"
+
 #include <iomanip>
-#include <iterator>
 #include <regex>
 #include <sstream>
 
@@ -11,17 +12,6 @@ int64_t parseInt(const std::string& s) {
         return 0;
     return std::stoll(s);
 }
-
-std::string removeSpaces(const std::string& s) {
-    std::string retval;
-    retval.reserve(s.size());
-    std::copy_if(s.begin(), s.end(), std::back_inserter(retval), [](char c){
-        //don't copy spaces
-        return c != ' ';
-    });
-    return retval;
-}
-
 } // namespace
 
 Pengar::Pengar() : _pengar(0) {}
@@ -40,7 +30,7 @@ namespace {
 }
 
 Pengar parsePengar(const std::string& s) {
-    std::string s2 = removeSpaces(s);
+    std::string s2 = Utils::removeSpaces(s);
 
     std::smatch m;
     if (!std::regex_match(s2, m, pengarRegex) || m.size() != 4) {

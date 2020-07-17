@@ -2,8 +2,10 @@
 
 #include <ww898/utf_converters.hpp>
 
+#include <algorithm>
 #include <codecvt>
 #include <iostream>
+#include <iterator>
 #include <locale>
 #include <numeric>
 #include <vector>
@@ -40,3 +42,14 @@ uint32_t Utils::calcChecksum(const std::string& xmlText) {
 bool Utils::endsWith(const std::string& str, const std::string& suffix) {
     return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
+
+std::string Utils::removeSpaces(const std::string& s) {
+    std::string retval;
+    retval.reserve(s.size());
+    std::copy_if(s.begin(), s.end(), std::back_inserter(retval), [](char c){
+        //don't copy spaces
+        return c != ' ';
+    });
+    return retval;
+}
+

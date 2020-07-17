@@ -31,6 +31,8 @@ private:
                                 const Gtk::TreeModel::iterator& iter);
     void onEditedKonto(const Glib::ustring& path_string,
                        const Glib::ustring& new_text);
+    void onEditingStartedPengar(Gtk::CellEditable* editable,
+                                const Glib::ustring& path);
     void onEditedPengar(const Glib::ustring& path_string,
                         const Glib::ustring& new_text);
 
