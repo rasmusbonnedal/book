@@ -13,12 +13,15 @@ void makeCellRendererUseCompletion(Gtk::CellRenderer& cell, const Glib::RefPtr<G
             
             // TODO: Hard coded handling for konto, should be generalized
             // Only edit the part up to the first space, if numeric
+            Glib::ustring text = "";
             try {
-                int value = std::stoi(s.c_str());
-                entry->set_text(Glib::ustring::format(value));
+                if (s.size() > 0 && isdigit(s[0])) {
+                    int value = std::stoi(s.c_str());
+                    text = Glib::ustring::format(value);
+                }
             } catch (std::invalid_argument& e) {
-                entry->set_text("");
             }
+            entry->set_text(text);
             entry->set_completion(completion);
         }
     });

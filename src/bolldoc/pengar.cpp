@@ -23,6 +23,10 @@ Pengar& Pengar::operator+=(const Pengar& rhs) {
     return *this;
 }
 
+Pengar Pengar::operator-() const {
+    return Pengar(-_pengar);
+}
+
 int64_t Pengar::get() const { return _pengar; }
 
 namespace {
@@ -47,7 +51,7 @@ Pengar parsePengar(const std::string& s) {
     return sign ? -value : value;
 }
 
-std::string toString(const Pengar& p) {
+std::string toString2(const Pengar& p) {
     std::stringstream ss;
     ss << p;
     return ss.str();

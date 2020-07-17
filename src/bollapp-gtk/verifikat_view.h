@@ -36,6 +36,8 @@ private:
     void onEditedPengar(const Glib::ustring& path_string,
                         const Glib::ustring& new_text);
 
+    Pengar sumVerifikat() const;
+
     class CompletionRecord : public Gtk::TreeModel::ColumnRecord {
     public:
         CompletionRecord();
@@ -56,6 +58,8 @@ private:
                     const Date& date, const std::optional<Date>& struken) const;
         void getRow(const Gtk::TreeRow& row, unsigned& konto, Pengar& pengar,
                     Date& date, std::optional<Date>& struken) const;
+        Pengar getPengar(const Gtk::TreeRow& row) const;
+
         Gtk::TreeModelColumn<unsigned> m_colKonto;
         Gtk::TreeModelColumn<Pengar> m_colPengar;
         Gtk::TreeModelColumn<Date> m_colDate;

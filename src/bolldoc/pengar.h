@@ -13,13 +13,15 @@ public:
 
     Pengar& operator+=(const Pengar& rhs);
 
+    Pengar operator-() const;
+
 private:
     int64_t _pengar;
 };
 
 Pengar parsePengar(const std::string& s);
 
-std::string toString(const Pengar& p);
+std::string toString2(const Pengar& p);
 
 std::ostream& operator<<(std::ostream& stream, const Pengar& p);
 

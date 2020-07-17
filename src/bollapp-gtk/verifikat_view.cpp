@@ -118,7 +118,7 @@ void VerifikatView::onCellDataPengarColumn(
     }
 
     Pengar pengar(row[m_columns.m_colPengar]);
-    crt->property_text() = toString(pengar) + " kr";
+    crt->property_text() = toString2(pengar) + " kr";
 }
 
 void VerifikatView::onEditedKonto(const Glib::ustring& path_string,
@@ -140,14 +140,20 @@ void VerifikatView::onEditingStartedPengar(Gtk::CellEditable* editable,
                                            const Glib::ustring& path) {
     Gtk::Entry* entry = dynamic_cast<Gtk::Entry*>(editable);
     if (entry) {
-        // Remove spaces and "kr" from the pengar string
         std::string s = entry->get_text();
+
+        auto row = m_refTreeModel->get_iter(path);
+        if (m_columns.getPengar(*row) == 0) {
+            Pengar balance = sumVerifikat();
+            s = toString2(-balance);
+        }
+
+        // Remove spaces and "kr" from the pengar string
         size_t s_len = s.size();
         if (s_len > 2 && s.substr(s_len - 2) == "kr") {
             s = s.substr(0, s_len - 2);
         }
-        s = Utils::removeSpaces(s);
-        entry->set_text(s);
+        entry->set_text(Utils::removeSpaces(s));
     }
 }
 
@@ -170,6 +176,21 @@ void VerifikatView::onEditedPengar(const Glib::ustring& path_string,
         } catch (std::exception&) {
         }
     }
+}
+
+Pengar VerifikatView::sumVerifikat() const {
+    Pengar sum(0);
+    for (auto row : m_refTreeModel->children()) {
+        unsigned int konto;
+        Pengar pengar;
+        Date date;
+        std::optional<Date> struken;
+        m_columns.getRow(row, konto, pengar, date, struken);
+        if (!struken) {
+            sum += pengar;
+        }
+    }
+    return sum;
 }
 
 //
@@ -247,4 +268,8 @@ void VerifikatView::ModelColumns::getRow(const Gtk::TreeRow& row,
     } else {
         struken.reset();
     }
+}
+
+Pengar VerifikatView::ModelColumns::getPengar(const Gtk::TreeRow& row) const {
+    return row[m_colPengar];
 }
