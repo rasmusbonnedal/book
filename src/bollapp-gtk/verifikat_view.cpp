@@ -3,13 +3,14 @@
 #include "utils.h"
 
 #include "cellrenderertextcompletion.h"
+#include "treeview_enable_edit_next_field.h"
 
 VerifikatView::VerifikatView()
     : Gtk::TreeView(), m_completion(createEntryCompletion()) {
     m_refTreeModel = Gtk::ListStore::create(m_columns);
     set_model(m_refTreeModel);
     m_columns.addColumns(*this);
-    // enableEditNextField({get_column(0), get_column(1)});
+    enableEditNextField({get_column(0), get_column(1)});
     clear();
 }
 

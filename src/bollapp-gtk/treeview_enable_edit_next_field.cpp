@@ -14,14 +14,14 @@ void setCursorNextFieldHandler(const Glib::ustring& path_string,
     Gtk::TreeView* treeView = column->get_tree_view();
     Gtk::TreePath currpath(path_string);
     Gtk::TreePath nextpath(currpath);
-    std::cout << "nextpath: " << nextpath << std::endl;
     if (nextRow) {
-        nextpath.next();
         Glib::RefPtr<Gtk::ListStore> model =
             Glib::RefPtr<Gtk::ListStore>::cast_dynamic(treeView->get_model());
-        // If path.next() is not a valid row, append new row for editing
-        if (!model->get_iter(nextpath)) {
-            model->append();
+
+        // If we're at the first row, assume that a row will be prepended
+        // and adjust currpath accordingly.
+        if (!nextpath.prev()) {
+            currpath.next();
         }
     }
     // Hack to work around problem setting cursor
@@ -34,7 +34,6 @@ void setCursorNextFieldHandler(const Glib::ustring& path_string,
             Gtk::TreeViewColumn* focusColumn;
             treeView->get_cursor(focusPath, focusColumn);
             if (focusPath == currpath && focusColumn == column) {
-                std::cout << "Setting path to " << nextpath << std::endl;
                 treeView->set_cursor(nextpath, *colNext, true);
             }
         },

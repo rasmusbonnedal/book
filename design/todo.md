@@ -4,7 +4,7 @@ Todo-list
 - [x] Icon for Application
 - [x] Load Document
 - [x] Save Document
-- [ ] Jump to next field
+- [x] Jump to next field
 - [x] Make verifikat date editable
 - [x] Only allow dates of the document year
 - [x] Fix bug where a too high verifikat is selected when opening new doc
@@ -16,6 +16,7 @@ Todo-list
 - [x] Why does not ingående saldon balance in 2019? (Pengar parse error for '-0.92')
 - [x] Fix thousands separator
 - [x] Edit numbers without separator
+- [ ] Start editing verifikat when pressing enter on text in grundbok
 - [ ] Check bokföringsdatum on entries
 - [ ] Disallow edit old entries
 - [ ] Allow strykning of old entries
