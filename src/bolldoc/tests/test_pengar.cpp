@@ -23,13 +23,21 @@ TEST_CASE("Parse fail") {
 }
 
 TEST_CASE("Pengar Stream") {
-    CHECK("-1000.29" == toString(Pengar(-100029)));
-    CHECK("-1000.20" == toString(Pengar(-100020)));
-    CHECK("-1000" == toString(Pengar(-100000)));
-    CHECK("1000.29" == toString(Pengar(100029)));
-    CHECK("1000.20" == toString(Pengar(100020)));
-    CHECK("1000" == toString(Pengar(100000)));
-    CHECK("-8000000000.01" == toString(Pengar(-800000000001)));
+    CHECK("-1 000.29" == toString(Pengar(-100029)));
+    CHECK("-1 000.20" == toString(Pengar(-100020)));
+    CHECK("-1 000" == toString(Pengar(-100000)));
+    CHECK("1 000.29" == toString(Pengar(100029)));
+    CHECK("1 000.20" == toString(Pengar(100020)));
+    CHECK("1 000" == toString(Pengar(100000)));
+    CHECK("-8 000 000 000.01" == toString(Pengar(-800000000001)));
+    CHECK("-100.20" == toString(Pengar(-10020)));
+    CHECK("-10.20" == toString(Pengar(-1020)));
+    CHECK("-1.20" == toString(Pengar(-120)));
+    CHECK("-0.20" == toString(Pengar(-20)));
+    CHECK("100.20" == toString(Pengar(10020)));
+    CHECK("10.20" == toString(Pengar(1020)));
+    CHECK("1.20" == toString(Pengar(120)));
+    CHECK("0.20" == toString(Pengar(20)));
 }
 
 TEST_CASE("Pengar equality") {
