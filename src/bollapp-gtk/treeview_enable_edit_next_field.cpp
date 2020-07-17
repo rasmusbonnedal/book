@@ -33,7 +33,7 @@ void setCursorNextFieldHandler(const Glib::ustring& path_string,
             Gtk::TreePath focusPath;
             Gtk::TreeViewColumn* focusColumn;
             treeView->get_cursor(focusPath, focusColumn);
-            if (focusPath == currpath && focusColumn == column) {
+            if (!focusPath.empty() && focusPath == currpath && focusColumn == column) {
                 treeView->set_cursor(nextpath, *colNext, true);
             }
         },

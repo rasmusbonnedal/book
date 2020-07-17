@@ -32,6 +32,14 @@ void GrundbokView::startEditText() {
         1);
 }
 
+void GrundbokView::startEditNewVerifikat() {
+    Glib::signal_timeout().connect_once(
+        [this]() {
+            this->set_cursor(Gtk::TreePath("0"), *this->get_column(1), true);
+        },
+        1);
+}
+
 void GrundbokView::recalculate(const BollDoc& doc) {
     for (auto& treeRow : m_refTreeModel->children()) {
         unsigned id = m_columns.getId(treeRow);

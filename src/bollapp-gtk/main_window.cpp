@@ -36,6 +36,10 @@ MainWindow::MainWindow() {
     m_verifikatView.signalEdited().connect(
         sigc::mem_fun(this, &MainWindow::onVerifikatViewEdited));
 
+    m_verifikatView.signalNextVerifikat().connect([this] {
+        this->m_grundbokView.startEditNewVerifikat();
+    });
+
     m_grundbokView.setOnEditedDate(
         sigc::mem_fun(this, &MainWindow::onVerifikatDateEdited));
 

@@ -31,6 +31,9 @@ public:
     // Start editing the text column of the currently selected row.
     void startEditText();
 
+    // Start editing the new verifikat
+    void startEditNewVerifikat();
+
 private:
     int sortFunction(const Gtk::TreeModel::iterator& lhs,
                      const Gtk::TreeModel::iterator& rhs);

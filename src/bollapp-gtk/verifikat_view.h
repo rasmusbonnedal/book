@@ -13,11 +13,21 @@
 class VerifikatView : public Gtk::TreeView {
 public:
     VerifikatView();
+
     void clear();
+
     void addRow(unsigned konto, const Pengar& pengar, const Date& date,
                 const std::optional<Date>& struken, bool first = false);
+
     void updateKontoLista(const std::map<int, BollDoc::Konto>& kontoplan);
+
     sigc::signal<void, const std::vector<BollDoc::Rad>&> signalEdited();
+
+    // This signal is emitted when the user has pressed enter on an unchanged
+    // new verifikat, to give the main window the opportunity to start editing
+    // next verifikat.
+    sigc::signal<void> signalNextVerifikat();
+
     void startEditing();
 
 private:
@@ -75,4 +85,5 @@ private:
     Gtk::CellRendererText m_pengarCellRenderer;
     std::map<unsigned int, std::string> m_kontoplan;
     sigc::signal<void, const std::vector<BollDoc::Rad>&> m_signalEdited;
+    sigc::signal<void> m_signalNextVerifikat;
 };

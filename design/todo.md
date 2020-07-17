@@ -17,7 +17,8 @@ Todo-list
 - [x] Fix thousands separator
 - [x] Edit numbers without separator
 - [x] Start editing verifikat when pressing enter on text in grundbok
-- [ ] Start editing date of next verifikat when pressing enter on balanced verifikat
+- [x] Start editing date of next verifikat when pressing enter on balanced verifikat
+- [ ] Don't exit with unsaved changes
 - [ ] Check bokföringsdatum on entries
 - [ ] Disallow edit old entries
 - [ ] Allow strykning of old entries

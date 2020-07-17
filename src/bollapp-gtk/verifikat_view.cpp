@@ -44,6 +44,11 @@ VerifikatView::signalEdited() {
     return m_signalEdited;
 }
 
+sigc::signal<void> 
+VerifikatView::signalNextVerifikat() {
+    return m_signalNextVerifikat;
+}
+
 void VerifikatView::startEditing() {
     Glib::signal_timeout().connect_once(
         [this]() {
@@ -180,6 +185,8 @@ void VerifikatView::onEditedPengar(const Glib::ustring& path_string,
             row[m_columns.m_colPengar] = p;
             if (path_string == "0" && konto != 0 && p.get() != 0) {
                 addRow(0, 0, Date(), std::nullopt, true);
+            } else if (konto != 0 && sumVerifikat() == 0) {
+                m_signalNextVerifikat.emit();
             }
             sendEditedSignal();
         } catch (std::exception&) {
