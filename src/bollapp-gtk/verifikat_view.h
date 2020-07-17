@@ -18,6 +18,7 @@ public:
                 const std::optional<Date>& struken, bool first = false);
     void updateKontoLista(const std::map<int, BollDoc::Konto>& kontoplan);
     sigc::signal<void, const std::vector<BollDoc::Rad>&> signalEdited();
+    void startEditing();
 
 private:
     void sendEditedSignal();

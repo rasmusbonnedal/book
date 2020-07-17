@@ -16,7 +16,8 @@ Todo-list
 - [x] Why does not ingående saldon balance in 2019? (Pengar parse error for '-0.92')
 - [x] Fix thousands separator
 - [x] Edit numbers without separator
-- [ ] Start editing verifikat when pressing enter on text in grundbok
+- [x] Start editing verifikat when pressing enter on text in grundbok
+- [ ] Start editing date of next verifikat when pressing enter on balanced verifikat
 - [ ] Check bokföringsdatum on entries
 - [ ] Disallow edit old entries
 - [ ] Allow strykning of old entries

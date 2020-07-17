@@ -44,6 +44,14 @@ VerifikatView::signalEdited() {
     return m_signalEdited;
 }
 
+void VerifikatView::startEditing() {
+    Glib::signal_timeout().connect_once(
+        [this]() {
+            this->set_cursor(Gtk::TreePath("0"), *get_column(0), true);
+        },
+        1);
+}
+
 void VerifikatView::sendEditedSignal() {
     std::cout << "sendEditedSignal()" << std::endl;
     std::vector<BollDoc::Rad> result;

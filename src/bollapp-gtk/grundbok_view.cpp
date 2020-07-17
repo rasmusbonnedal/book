@@ -21,6 +21,17 @@ void GrundbokView::setOnEditedText(const Glib::SignalProxy<void, unsigned int, c
     m_signalTextEdited.connect(onEditedText);
 }
 
+void GrundbokView::startEditText() {
+    Glib::signal_timeout().connect_once(
+        [this]() {
+            Gtk::TreePath focusPath;
+            Gtk::TreeViewColumn* focusColumn;
+            this->get_cursor(focusPath, focusColumn);
+            this->set_cursor(focusPath, *this->get_column(2), true);
+        },
+        1);
+}
+
 void GrundbokView::recalculate(const BollDoc& doc) {
     for (auto& treeRow : m_refTreeModel->children()) {
         unsigned id = m_columns.getId(treeRow);

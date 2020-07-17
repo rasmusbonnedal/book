@@ -142,10 +142,14 @@ void MainWindow::onVerifikatViewEdited(const std::vector<BollDoc::Rad>& rader) {
 
 void MainWindow::onVerifikatDateEdited(unsigned int id, const Date& date) {
     m_doc->setVerifikatTransdatum(id, date);
+    m_grundbokView.startEditText();
 }
 
 void MainWindow::onVerifikatTextEdited(unsigned int id, const Glib::ustring& text) {
     m_doc->setVerifikatText(id, text);
+    if (id == m_doc->getVerifikationer().size() - 1) {
+        m_verifikatView.startEditing();
+    }
 }
 
 void MainWindow::loadFile(const std::string& path) {

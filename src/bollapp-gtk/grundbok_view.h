@@ -28,10 +28,13 @@ public:
 
     void addNewVerifikatRow(BollDoc& doc);
 
+    // Start editing the text column of the currently selected row.
+    void startEditText();
+
+private:
     int sortFunction(const Gtk::TreeModel::iterator& lhs,
                      const Gtk::TreeModel::iterator& rhs);
 
-private:
     void onEditedText(const Glib::ustring& path_string,
                       const Glib::ustring& new_text);
 
