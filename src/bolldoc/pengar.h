@@ -23,6 +23,8 @@ Pengar parsePengar(const std::string& s);
 
 std::string toString2(const Pengar& p);
 
+std::string toXmlString(const Pengar& p);
+
 std::ostream& operator<<(std::ostream& stream, const Pengar& p);
 
 bool operator==(const Pengar& lhs, const Pengar& rhs);

@@ -122,6 +122,14 @@ public:
 
     const std::map<int, Konto>& getKontoPlan() const;
 
+    const std::string& getKontoPlanTyp() const;
+
+    void setKontoPlanTyp(const std::string& kptyp);
+
+    void addKontoGrupp(const std::pair<std::string, std::string>& kontogrupp);
+
+    const std::vector<std::pair<std::string, std::string>>& getKontoGrupper() const;
+
     void addVerifikat(Verifikat&& verifikat);
 
     void updateVerifikat(int unid, const std::vector<Rad>& rader);
@@ -157,6 +165,8 @@ private:
     bool _avslutat;
     std::map<int, Konto> _kontoplan;
     std::vector<Verifikat> _verifikat;
+    std::string _kptyp;
+    std::vector<std::pair<std::string, std::string>> _kontogrupper;
 };
 
 std::ostream& operator<<(std::ostream& stream, const BollDoc::Rad& rad);

@@ -40,7 +40,7 @@ xml_node<>* getNodeNothrow(xml_node<>* node, const std::string& name) {
 xml_node<>* getNode(xml_node<>* node, const std::string& name) {
     xml_node<>* n = node->first_node(name.c_str());
     if (!n) {
-        throw std::runtime_error("Attribute " + name + " not found.");
+        throw std::runtime_error("Node " + name + " not found.");
     }
     return n;
 }
@@ -89,6 +89,8 @@ BollDoc Serialize::loadDocument(std::istream& input) {
     BollDoc bolldoc(version, firma, orgnummer, bokforingsar, valuta, avslutat);
 
     auto kontoplan = getNode(bollbok, "kontoplan");
+    auto kptyp = getAttrStringOpt(kontoplan, "kptyp").value_or("");
+    bolldoc.setKontoPlanTyp(kptyp);
     for (auto konto = getNode(kontoplan, "konto"); konto;
          konto = konto->next_sibling("konto")) {
         int unid = getAttrInt(konto, "unid");
@@ -99,6 +101,16 @@ BollDoc Serialize::loadDocument(std::istream& input) {
         BollDoc::Konto k(unid, std::move(text), typ, std::move(normalt),
                          std::move(tagg));
         bolldoc.addKonto(std::move(k));
+    }
+
+    auto kontogrupper = getNodeNothrow(bollbok, "kontogrupper");
+    if (kontogrupper) {
+        for (auto kontogrupp = getNodeNothrow(kontogrupper, "kontogrupp"); kontogrupp;
+            kontogrupp = kontogrupp->next_sibling("kontogrupp")) {
+            auto namn = getAttrString(kontogrupp, "namn");
+            auto konton = getAttrString(kontogrupp, "konton");
+            bolldoc.addKontoGrupp(std::make_pair(namn, konton));
+        }
     }
 
     auto verifikationer = getNode(bollbok, "verifikationer");
@@ -151,6 +163,8 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
 
     xml_node<>* kontoplan = doc->allocate_node(node_element, "kontoplan");
     bollbok->append_node(kontoplan);
+    appendAttribute(doc, kontoplan, "kptyp", bolldoc.getKontoPlanTyp());
+
     for (auto&& k : bolldoc.getKontoPlan()) {
         const BollDoc::Konto& konto = k.second;
         xml_node<>* kontonode = doc->allocate_node(node_element, "konto");
@@ -165,6 +179,18 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
             appendAttribute(doc, kontonode, "normalt", *konto.getNormalt());
         }
     }
+
+    xml_node<>* kontogrupper = doc->allocate_node(node_element, "kontogrupper");
+    bollbok->append_node(kontogrupper);
+    for (auto&& kontogrupp : bolldoc.getKontoGrupper()) {
+        xml_node<>* kontogruppnode = doc->allocate_node(node_element, "kontogrupp");
+        kontogrupper->append_node(kontogruppnode);
+        appendAttribute(doc, kontogruppnode, "namn", kontogrupp.first);
+        appendAttribute(doc, kontogruppnode, "konton", kontogrupp.second);
+    }
+
+    xml_node<>* objektlista = doc->allocate_node(node_element, "objektlista");
+    bollbok->append_node(objektlista);
 
     xml_node<>* verifikationer =
         doc->allocate_node(node_element, "verifikationer");
@@ -183,7 +209,7 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
             verifikat->append_node(rad);
             appendAttribute(doc, rad, "bokdatum", r.getBokdatum());
             appendAttribute(doc, rad, "konto", r.getKonto());
-            appendAttribute(doc, rad, "pengar", r.getPengar());
+            appendAttribute(doc, rad, "pengar", toXmlString(r.getPengar()));
             if (r.getStruken()) {
                 appendAttribute(doc, rad, "struken", *r.getStruken());
             }

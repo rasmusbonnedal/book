@@ -48,6 +48,22 @@ const std::map<int, BollDoc::Konto>& BollDoc::getKontoPlan() const {
     return _kontoplan;
 }
 
+const std::string& BollDoc::getKontoPlanTyp() const {
+    return _kptyp;
+}
+
+void BollDoc::setKontoPlanTyp(const std::string& kptyp) {
+    _kptyp = kptyp;
+}
+
+void BollDoc::addKontoGrupp(const std::pair<std::string, std::string>& kontogrupp) {
+    _kontogrupper.push_back(kontogrupp);
+}
+
+const std::vector<std::pair<std::string, std::string>>& BollDoc::getKontoGrupper() const {
+    return _kontogrupper;
+}
+
 void BollDoc::addVerifikat(Verifikat&& verifikat) {
     if (verifikat.getUnid() != getNextVerifikatId()) {
         std::stringstream ss;

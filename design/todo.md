@@ -26,6 +26,14 @@ Todo-list
 - [ ] Reports
 - [ ] Search
 
+XML diffs
+*********
+ - [x] <kontoplan> add attribute kptyp=""
+ - [ ] space before '/>' (Kommer kräva custom printing)
+ - [x] <kontogrupper><kontogrupp namn="asdf" konton="1234,2345,3456">...
+ - [x] <objektlista></objektlista>
+ - [x] pengar="123.60" should be pengar="123.6"
+
 Needed for first entry
 **********************
 1. Save

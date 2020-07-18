@@ -57,6 +57,30 @@ std::string toString2(const Pengar& p) {
     return ss.str();
 }
 
+std::string toXmlString(const Pengar& p) {
+    std::stringstream ss;
+    int64_t value = p.get();
+    int64_t kronor = value / 100;
+
+    if (value < 0) {
+        ss << '-';
+    }
+    ss << std::llabs(kronor);
+
+    int oren = std::llabs(value) % 100;
+    if (oren > 0) {
+        ss << '.';
+        if (oren < 10) {
+            ss << '0' << oren;
+        } else if ((oren % 10) == 0) {
+            ss << (oren / 10);
+        } else {
+            ss << oren;
+        }
+    }
+    return ss.str();
+}
+
 std::ostream& operator<<(std::ostream& stream, const Pengar& p) {
     int64_t value = p.get();
     int64_t kronor = value / 100;
