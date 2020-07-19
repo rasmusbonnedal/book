@@ -186,7 +186,7 @@ void VerifikatView::onEditedPengar(const Glib::ustring& path_string,
             row[m_columns.m_colPengar] = p;
             if (path_string == "0" && konto != 0 && p.get() != 0) {
                 addRow(0, 0, now(), std::nullopt, true);
-            } else if (konto != 0 && sumVerifikat() == 0) {
+            } else if (konto == 0 && sumVerifikat() == 0) {
                 m_signalNextVerifikat.emit();
             }
             row[m_columns.m_colDate] = now();
