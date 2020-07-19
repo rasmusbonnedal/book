@@ -7,7 +7,7 @@
 namespace {
 void setVerifikat(VerifikatView& view, const BollDoc::Verifikat& verifikat) {
     view.clear();
-    view.addRow(0, 0, Date(), std::nullopt);
+    view.addRow(0, 0, now(), std::nullopt);
     for (auto& rad : verifikat.getRader()) {
         view.addRow(rad.getKonto(), rad.getPengar(), rad.getBokdatum(),
                     rad.getStruken());
@@ -175,7 +175,7 @@ void MainWindow::loadFile(const std::string& path) {
 void MainWindow::saveFile(const std::string& path) {
     std::ofstream ofs(path);
     if (ofs.good()) {
-        Serialize::saveDocument(*m_doc, ofs);
+        Serialize::saveDocumentCustom(*m_doc, ofs);
     } else {
         std::cout << "Error saving " << path << std::endl;
     }

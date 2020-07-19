@@ -15,6 +15,9 @@
 using namespace rapidxml;
 
 namespace {
+using StringPair = std::pair<std::string, std::string>;
+using AttrVec = std::vector<StringPair>;
+
 std::optional<std::string> getAttrStringOpt(xml_node<>* node,
                                             const std::string& name) {
     auto attr = node->first_attribute(name.c_str());
@@ -43,6 +46,40 @@ xml_node<>* getNode(xml_node<>* node, const std::string& name) {
         throw std::runtime_error("Node " + name + " not found.");
     }
     return n;
+}
+
+void replaceAll(std::string& str, const std::string& from, const std::string& to) {
+    if(from.empty())
+        return;
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+    }
+}
+
+std::string toXmlText(const std::string& text) {
+    std::string s = text;
+    replaceAll(s, "&", "&amp;");
+    replaceAll(s, "'", "&apos;");
+    return s;
+}
+
+void writeXml(std::ostream& os, const std::string& indent, const std::string& node, const AttrVec& attrs, bool close = false, bool space = false, bool endl = true) {
+    os << indent << "<" << node;
+    for (const auto& attr : attrs) {
+        os << " " << attr.first << "=\"" << attr.second << "\"";
+    }
+    if (space) {
+        os << " ";
+    }
+    if (close) {
+        os << "/";
+    }
+    os << ">";
+    if (endl) {
+        os << std::endl;
+    }
 }
 
 template <class T>
@@ -136,6 +173,88 @@ BollDoc Serialize::loadDocument(std::istream& input) {
     }
 
     return bolldoc;
+}
+
+void Serialize::saveDocumentCustom(const BollDoc& doc, std::ostream& output) {
+    std::stringstream ss;
+    ss << "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>"
+       << std::endl;
+    ss << "<bollbok version=\"" << doc.getVersion() << "\" kontrollsumma=\"";
+    size_t checksumpos = ss.tellp();
+    ss << "00000000\">" << std::endl;
+
+    std::string indent = "\t";
+    writeXml(ss, indent, "info",
+             {{"avslutat", doc.getAvslutat() ? "1" : "0"},
+              {"firma", doc.getFirma()},
+              {"orgnummer", doc.getOrgnummer()},
+              {"bokföringsår", std::to_string(doc.getBokforingsar())},
+              {"valuta", doc.getValuta()}},
+             true, true);
+    ss << std::endl;
+    writeXml(ss, indent, "kontoplan", {{"kptyp", doc.getKontoPlanTyp()}});
+    indent = "\t\t";
+    for (const auto& konto : doc.getKontoPlan()) {
+        AttrVec attrs = {{"unid", std::to_string(konto.second.getUnid())},
+                         {"text", konto.second.getText()},
+                         {"typ", std::to_string(konto.second.getTyp())}};
+        if (konto.second.getTagg()) {
+            attrs.push_back({"k1", *konto.second.getTagg()});
+        }
+        if (konto.second.getNormalt()) {
+            attrs.push_back({"normalt", *konto.second.getNormalt()});
+        }
+        writeXml(ss, indent, "konto", attrs, true, true);
+    }
+    indent = "\t";
+    ss << indent << "</kontoplan>" << std::endl;
+
+    writeXml(ss, indent, "kontogrupper", {});
+    indent = "\t\t";
+    for (const auto& kontogrupp : doc.getKontoGrupper()) {
+        writeXml(ss, indent, "kontogrupp",
+                 {{"namn", kontogrupp.first}, {"konton", kontogrupp.second}},
+                 true, false, false);
+    }
+    indent = "\t";
+    ss << std::endl << indent << "</kontogrupper>" << std::endl;
+
+    writeXml(ss, indent, "objektlista", {});
+    ss << indent << "</objektlista>" << std::endl;
+
+    writeXml(ss, indent, "verifikationer", {});
+    indent = "\t\t";
+    for (const auto& v : doc.getVerifikationer()) {
+        if (v.getRader().empty()) {
+            continue;
+        }
+        writeXml(ss, indent, "verifikat",
+                 {{"unid", std::to_string(v.getUnid())},
+                  {"text", toXmlText(v.getText())},
+                  {"transdatum", to_string(v.getTransdatum())}});
+        indent = "\t\t\t";
+        for (auto&& r : v.getRader()) {
+            AttrVec attrs = {{"bokdatum", to_string(r.getBokdatum())},
+                             {"konto", std::to_string(r.getKonto())},
+                             {"pengar", toXmlString(r.getPengar())}};
+            if (r.getStruken()) {
+                attrs.push_back({"struken", to_string(*r.getStruken())});
+            }
+            writeXml(ss, indent, "rad", attrs, true);
+        }
+        indent = "\t\t";
+        ss << indent << "</verifikat>" << std::endl;
+    }
+    indent = "\t";
+    ss << indent << "</verifikationer>" << std::endl;
+    ss << "</bollbok>";
+
+    std::string xml = ss.str();
+    std::string checksum = intToHex(Utils::calcChecksum(xml));
+    for (int i = 0; i < 8; ++i) {
+        xml[checksumpos + i] = checksum[i];
+    }
+    output << xml;
 }
 
 void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {

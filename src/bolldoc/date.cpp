@@ -119,3 +119,11 @@ Date lastDayOfMonth(const Date& d) {
     return Date(d.getYear(), d.getMonth(),
                 lastDayOfMonth(d.getYear(), d.getMonth()));
 }
+
+Date now() {
+    auto t = std::chrono::system_clock::now();
+    std::time_t tt = std::chrono::system_clock::to_time_t(t);
+    auto tm = std::tm{0};
+    gmtime_r(&tt, &tm);
+    return Date(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+}

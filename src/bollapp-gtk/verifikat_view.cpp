@@ -145,6 +145,7 @@ void VerifikatView::onEditedKonto(const Glib::ustring& path_string,
         if (iter) {
             Gtk::TreeModel::Row row = *iter;
             row[m_columns.m_colKonto] = new_value;
+            row[m_columns.m_colDate] = now();
             sendEditedSignal();
         }
     }
@@ -184,10 +185,11 @@ void VerifikatView::onEditedPengar(const Glib::ustring& path_string,
             Pengar p = parsePengar(new_text);
             row[m_columns.m_colPengar] = p;
             if (path_string == "0" && konto != 0 && p.get() != 0) {
-                addRow(0, 0, Date(), std::nullopt, true);
+                addRow(0, 0, now(), std::nullopt, true);
             } else if (konto != 0 && sumVerifikat() == 0) {
                 m_signalNextVerifikat.emit();
             }
+            row[m_columns.m_colDate] = now();
             sendEditedSignal();
         } catch (std::exception&) {
         }

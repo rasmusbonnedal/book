@@ -75,7 +75,7 @@ TEST_CASE("Serialize save") {
 
     std::ofstream output(testfile, std::ios_base::binary);
     REQUIRE(output.good());
-    Serialize::saveDocument(doc, output);
+    Serialize::saveDocumentCustom(doc, output);
     output.close();
 
     std::ifstream input(testfile, std::ios_base::binary);

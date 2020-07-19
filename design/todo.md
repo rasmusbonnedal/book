@@ -18,6 +18,7 @@ Todo-list
 - [x] Edit numbers without separator
 - [x] Start editing verifikat when pressing enter on text in grundbok
 - [x] Start editing date of next verifikat when pressing enter on balanced verifikat
+- [x] Fix bokdatum (not 0000-00-00)
 - [ ] Don't exit with unsaved changes
 - [ ] Check bokföringsdatum on entries
 - [ ] Disallow edit old entries
@@ -29,7 +30,7 @@ Todo-list
 XML diffs
 *********
  - [x] <kontoplan> add attribute kptyp=""
- - [ ] space before '/>' (Kommer kräva custom printing)
+ - [x] space before '/>' (Kommer kräva custom printing)
  - [x] <kontogrupper><kontogrupp namn="asdf" konton="1234,2345,3456">...
  - [x] <objektlista></objektlista>
  - [x] pengar="123.60" should be pengar="123.6"
