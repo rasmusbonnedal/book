@@ -51,11 +51,14 @@ MainWindow::MainWindow() {
     set_titlebar(m_header);
     set_icon_from_file("src/bollapp-gtk/icon.png");
     loadFile("../docs/bok1.bollbok");
-    m_filename.clear();
     show_all_children();
 }
 
 void MainWindow::on_action_new() {
+    if (m_dirty && !doSaveDialog()) {
+        return;
+    }
+
     int version = 2074;
     std::string firma = "Ny firma";
     std::string orgnummer = "556614-1234";
@@ -63,11 +66,16 @@ void MainWindow::on_action_new() {
     std::string valuta = "SEK";
     m_doc = std::make_unique<BollDoc>(version, firma, orgnummer, bokforingsar,
                                       valuta, false);
+    m_dirty = true;
+    m_filename.clear();
     updateDoc();
     m_header.set_title("Untitled");
 }
 
 void MainWindow::on_action_open() {
+    if (m_dirty && !doSaveDialog()) {
+        return;
+    }
     Gtk::FileChooserDialog dialog("Please choose a file",
                                   Gtk::FILE_CHOOSER_ACTION_OPEN);
     dialog.set_transient_for(*this);
@@ -115,7 +123,54 @@ void MainWindow::on_action_save() {
     saveFile(m_filename);
 }
 
-void MainWindow::on_action_quit() { hide(); }
+void MainWindow::on_action_quit() { 
+    if (m_dirty && !doSaveDialog()) {
+        return;
+    }
+    hide(); 
+}
+
+// Ask the user if he wants to save, and saves if that is the case.
+// Returns true on 'Don't Save' or 'Save', false on 'Cancel'
+bool MainWindow::doSaveDialog() {
+    std::string filename = Utils::getFilenameComponent(m_filename);
+    if (filename.empty()) {
+        filename = "Untitled document";
+    }
+    Gtk::MessageDialog msgDialog(
+        *this, "Do you want to save the changes to " + filename + "?", false,
+        Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE, true);
+    msgDialog.set_secondary_text(
+        "Your changes will be lost if you don't save them.");
+
+    enum {
+        DONT_SAVE = 0,
+        CANCEL = 1,
+        SAVE = 2
+    };
+
+    msgDialog.add_button("Don't Save", DONT_SAVE);
+    msgDialog.add_button("Cancel", CANCEL);
+    msgDialog.add_button("Save", SAVE);
+    int result = msgDialog.run();
+    msgDialog.hide();
+    if (result == DONT_SAVE) {
+        return true;
+    } else if (result == CANCEL) {
+        return false;
+    } else if (result == SAVE) {
+        on_action_save();
+        return true;
+    }
+    return false;
+}
+
+bool MainWindow::on_delete_event(GdkEventAny* any_event) {
+    if (m_dirty && !doSaveDialog()) {
+        return true;
+    }
+    return false;
+}
 
 void MainWindow::onGrundbokSelectionChanged() {
     unsigned id;
@@ -141,16 +196,20 @@ void MainWindow::onVerifikatViewEdited(const std::vector<BollDoc::Rad>& rader) {
         m_doc->updateVerifikat(m_verifikatEditingId, rader);
         m_grundbokView.recalculate(*m_doc);
         m_grundbokView.addNewVerifikatRow(*m_doc);
+        m_dirty = true;
     }
 }
 
 void MainWindow::onVerifikatDateEdited(unsigned int id, const Date& date) {
     m_doc->setVerifikatTransdatum(id, date);
+    m_dirty = true;
     m_grundbokView.startEditText();
 }
 
 void MainWindow::onVerifikatTextEdited(unsigned int id, const Glib::ustring& text) {
     m_doc->setVerifikatText(id, text);
+    m_dirty = true;
+
     if (id == m_doc->getVerifikationer().size() - 1) {
         m_verifikatView.startEditing();
     }
@@ -167,6 +226,7 @@ void MainWindow::loadFile(const std::string& path) {
         m_doc = std::make_unique<BollDoc>(Serialize::loadDocument(ifs));
         updateDoc();
         m_filename = path;
+        m_dirty = false;
     } else {
         std::cout << "Error loading " << path << std::endl;
     }
@@ -176,6 +236,7 @@ void MainWindow::saveFile(const std::string& path) {
     std::ofstream ofs(path);
     if (ofs.good()) {
         Serialize::saveDocumentCustom(*m_doc, ofs);
+        m_dirty = false;
     } else {
         std::cout << "Error saving " << path << std::endl;
     }

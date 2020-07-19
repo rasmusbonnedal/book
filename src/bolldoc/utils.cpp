@@ -53,3 +53,7 @@ std::string Utils::removeSpaces(const std::string& s) {
     return retval;
 }
 
+std::string Utils::getFilenameComponent(const std::string& path) {
+    auto pos = path.find_last_of("\\/");
+    return (pos != std::string::npos) ? path.substr(pos + 1) : path;
+}

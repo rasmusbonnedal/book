@@ -19,7 +19,7 @@ Todo-list
 - [x] Start editing verifikat when pressing enter on text in grundbok
 - [x] Start editing date of next verifikat when pressing enter on balanced verifikat
 - [x] Fix bokdatum (not 0000-00-00)
-- [ ] Don't exit with unsaved changes
+- [x] Don't exit with unsaved changes
 - [ ] Check bokföringsdatum on entries
 - [ ] Disallow edit old entries
 - [ ] Allow strykning of old entries

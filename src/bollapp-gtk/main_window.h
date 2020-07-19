@@ -25,6 +25,10 @@ private:
 
     void on_action_quit();
 
+    bool on_delete_event(GdkEventAny* any_event) override;
+
+    bool doSaveDialog();
+
     void onGrundbokSelectionChanged();
 
     void onVerifikatViewEdited(const std::vector<BollDoc::Rad>& rader);
@@ -49,4 +53,5 @@ private:
     std::unique_ptr<BollDoc> m_doc;
     int m_verifikatEditingId;
     std::string m_filename;
+    bool m_dirty;
 };
