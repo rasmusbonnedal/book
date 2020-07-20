@@ -1,5 +1,6 @@
 #include "main_window.h"
 
+#include "report.h"
 #include "utils.h"
 
 #include <fstream>
@@ -20,6 +21,7 @@ MainWindow::MainWindow() {
     add_action("open", sigc::mem_fun(*this, &MainWindow::on_action_open));
     add_action("save", sigc::mem_fun(*this, &MainWindow::on_action_save));
     add_action("quit", sigc::mem_fun(*this, &MainWindow::on_action_quit));
+    add_action("report_saldon", sigc::mem_fun(*this, &MainWindow::on_action_report_saldon));
 
     m_paned.set_orientation(Gtk::ORIENTATION_VERTICAL);
     m_grundbokScroll.set_size_request(400, 200);
@@ -128,6 +130,12 @@ void MainWindow::on_action_quit() {
         return;
     }
     hide(); 
+}
+
+void MainWindow::on_action_report_saldon() {
+    std::string report =
+        createSaldoReportHtmlFile(*m_doc, fullYear(m_doc->getBokforingsar()));
+    show_uri("file://" + report, GDK_CURRENT_TIME);
 }
 
 // Ask the user if he wants to save, and saves if that is the case.

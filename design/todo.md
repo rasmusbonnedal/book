@@ -20,11 +20,19 @@ Todo-list
 - [x] Start editing date of next verifikat when pressing enter on balanced verifikat
 - [x] Fix bokdatum (not 0000-00-00)
 - [x] Don't exit with unsaved changes
+- [ ] Right align pengar columns
+- [ ] Keyboard shortcuts
 - [ ] Check bokföringsdatum on entries
 - [ ] Disallow edit old entries
 - [ ] Allow strykning of old entries
 - [ ] Edit konton
 - [ ] Reports
+  * [x] Saldon
+  * [ ] Resultaträkning
+  * [ ] Balansräkning
+  * [ ] Taggrapport
+  * [ ] Grundbok
+  * [ ] Huvudbok
 - [ ] Search
 
 XML diffs

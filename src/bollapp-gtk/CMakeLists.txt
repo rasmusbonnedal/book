@@ -13,7 +13,7 @@ set(SRCS
 )
 
 add_executable(bollapp ${SRCS})
-target_link_libraries(bollapp bolldoc ${GTKMM_LIBRARIES})
+target_link_libraries(bollapp bolldoc reports ${GTKMM_LIBRARIES})
 target_include_directories(bollapp PUBLIC . ${GTKMM_INCLUDE_DIRS})
 if(MSVC)
     target_compile_options(bollapp PRIVATE -W4 -WX -experimental:external -external:anglebrackets -external:W0)

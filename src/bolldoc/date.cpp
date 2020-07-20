@@ -35,9 +35,7 @@ int lastDayOfMonth(int year, int month) {
 }
 } // namespace
 
-Date::Date()
-    : _year(0), _month(0), _day(0)
-{}
+Date::Date() : _year(0), _month(0), _day(0) {}
 
 Date::Date(int year, int month, int day)
     : _year(year), _month(month), _day(day) {
@@ -60,8 +58,15 @@ bool Date::checkDate() const {
     return _day <= lastDayOfMonth(_year, _month);
 }
 
+DateRange::DateRange(const Date& start, const Date& end)
+    : _start(start), _end(end) {}
+
+const Date& DateRange::getStart() const { return _start; }
+
+const Date& DateRange::getEnd() const { return _end; }
+
 namespace {
-    const std::regex dateRegex("(\\d{4})-(\\d\\d)-(\\d\\d)");
+const std::regex dateRegex("(\\d{4})-(\\d\\d)-(\\d\\d)");
 }
 
 Date parseDate(const std::string& s) {
@@ -127,3 +132,16 @@ Date now() {
     gmtime_r(&tt, &tm);
     return Date(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 }
+
+std::ostream& operator<<(std::ostream& stream, const DateRange& d) {
+    stream << d.getStart() << " - " << d.getEnd();
+    return stream;
+}
+
+std::string to_string(const DateRange& d) {
+    std::stringstream ss;
+    ss << d;
+    return ss.str();
+}
+
+DateRange fullYear(int year) { return {Date(year, 1, 1), Date(year, 12, 31)}; }

@@ -25,6 +25,8 @@ private:
 
     void on_action_quit();
 
+    void on_action_report_saldon();
+
     bool on_delete_event(GdkEventAny* any_event) override;
 
     bool doSaveDialog();

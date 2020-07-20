@@ -4,6 +4,7 @@ elseif (UNIX)
 	add_subdirectory(bollapp-gtk)
 endif ()
 add_subdirectory(bolldoc)
+add_subdirectory(reports)
 
 file(GLOB_RECURSE SOURCE_FILES *.cpp)
 file(GLOB_RECURSE HEADER_FILES *.h)

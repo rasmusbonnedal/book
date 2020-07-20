@@ -16,7 +16,7 @@ void BollBokApp::on_startup() {
     Gtk::Application::on_startup();
 
     add_action("something",
-                sigc::mem_fun(*this, &BollBokApp::on_action_something));
+               sigc::mem_fun(*this, &BollBokApp::on_action_something));
 
     Glib::RefPtr<Gio::Menu> app_menu = Gio::Menu::create();
     auto s1 = Gio::Menu::create();
@@ -32,6 +32,9 @@ void BollBokApp::on_startup() {
     submenu_file->append("_Save", "win.save");
     submenu_file->append("_Quit", "win.quit");
     win_menu->append_submenu("File", submenu_file);
+    Glib::RefPtr<Gio::Menu> submenu_reports = Gio::Menu::create();
+    submenu_reports->append("_Saldon", "win.report_saldon");
+    win_menu->append_submenu("Reports", submenu_reports);
     set_menubar(win_menu);
 }
 
@@ -42,4 +45,6 @@ void BollBokApp::create_window() {
     window->show_all();
 }
 
-void BollBokApp::on_action_something() { std::cout << "Something!" << std::endl; }
+void BollBokApp::on_action_something() {
+    std::cout << "Something!" << std::endl;
+}

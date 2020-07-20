@@ -24,6 +24,19 @@ private:
     int _day;
 };
 
+class DateRange {
+public:
+    DateRange(const Date& start, const Date& end);
+
+    const Date& getStart() const;
+
+    const Date& getEnd() const;
+
+private:
+    Date _start;
+    Date _end;
+};
+
 Date parseDate(const std::string& s);
 
 std::optional<Date> parseDateNothrow(const std::string& s);
@@ -43,3 +56,9 @@ std::string to_string(const Date& d);
 Date lastDayOfMonth(const Date& d);
 
 Date now();
+
+std::ostream& operator<<(std::ostream& stream, const DateRange& d);
+
+std::string to_string(const DateRange& d);
+
+DateRange fullYear(int year);
