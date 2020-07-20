@@ -33,10 +33,16 @@ void BollBokApp::on_startup() {
     submenu_file->append("_Quit", "win.quit");
     win_menu->append_submenu("File", submenu_file);
     Glib::RefPtr<Gio::Menu> submenu_reports = Gio::Menu::create();
-    submenu_reports->append("_Saldon", "win.report_saldon");
+    submenu_reports->append("_Saldon", "win.report.saldon");
     win_menu->append_submenu("Reports", submenu_reports);
     set_menubar(win_menu);
-}
+
+    add_accelerator("<control>N", "win.new", 0);
+    add_accelerator("<control>O", "win.open", 0);
+    add_accelerator("<control>S", "win.save", 0);
+    add_accelerator("<control>Q", "win.quit", 0);
+    add_accelerator("<control>R", "win.report.saldon", 0);
+    }
 
 void BollBokApp::create_window() {
     auto window = new MainWindow();

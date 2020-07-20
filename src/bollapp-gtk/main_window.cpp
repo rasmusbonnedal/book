@@ -21,7 +21,7 @@ MainWindow::MainWindow() {
     add_action("open", sigc::mem_fun(*this, &MainWindow::on_action_open));
     add_action("save", sigc::mem_fun(*this, &MainWindow::on_action_save));
     add_action("quit", sigc::mem_fun(*this, &MainWindow::on_action_quit));
-    add_action("report_saldon", sigc::mem_fun(*this, &MainWindow::on_action_report_saldon));
+    add_action("report.saldon", sigc::mem_fun(*this, &MainWindow::on_action_report_saldon));
 
     m_paned.set_orientation(Gtk::ORIENTATION_VERTICAL);
     m_grundbokScroll.set_size_request(400, 200);

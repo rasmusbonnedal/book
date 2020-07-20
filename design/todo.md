@@ -21,7 +21,7 @@ Todo-list
 - [x] Fix bokdatum (not 0000-00-00)
 - [x] Don't exit with unsaved changes
 - [ ] Right align pengar columns
-- [ ] Keyboard shortcuts
+- [x] Keyboard shortcuts
 - [ ] Check bokföringsdatum on entries
 - [ ] Disallow edit old entries
 - [ ] Allow strykning of old entries
