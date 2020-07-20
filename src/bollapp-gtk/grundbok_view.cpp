@@ -155,22 +155,31 @@ void GrundbokView::ModelColumns::addColumns(GrundbokView& treeView) {
     treeView.get_column(0)->set_sort_column(m_colId);
     treeView.append_column("Datum", m_colDate);
     treeView.get_column(1)->set_sort_column(m_colDate);
-    Gtk::CellRendererText* dateCell = dynamic_cast<Gtk::CellRendererText*>(treeView.get_column_cell_renderer(1));
+    Gtk::CellRendererText* dateCell = dynamic_cast<Gtk::CellRendererText*>(
+        treeView.get_column_cell_renderer(1));
     if (dateCell) {
         dateCell->property_editable() = true;
-        dateCell->signal_edited().connect(sigc::mem_fun(&treeView, &GrundbokView::onEditedDate));
-    }            
+        dateCell->signal_edited().connect(
+            sigc::mem_fun(&treeView, &GrundbokView::onEditedDate));
+    }
 
     treeView.append_column_editable("Text", m_colText);
-    Gtk::CellRendererText* textCell = dynamic_cast<Gtk::CellRendererText*>(treeView.get_column_cell_renderer(2));
+    treeView.get_column(2)->set_expand(true);
+    Gtk::CellRendererText* textCell = dynamic_cast<Gtk::CellRendererText*>(
+        treeView.get_column_cell_renderer(2));
+
     if (textCell) {
-        textCell->signal_edited().connect(sigc::mem_fun(&treeView, &GrundbokView::onEditedText));
-    }            
+        textCell->signal_edited().connect(
+            sigc::mem_fun(&treeView, &GrundbokView::onEditedText));
+    }
     treeView.append_column("Omslutning", m_colOmslutning);
+    treeView.get_column_cell_renderer(3)->property_xalign() = 1.0;
 }
 
-void GrundbokView::ModelColumns::setRow(const Gtk::TreeRow& row, unsigned id, const std::string& date,
-            const std::string& text, const std::string& omslutning) {
+void GrundbokView::ModelColumns::setRow(const Gtk::TreeRow& row, unsigned id,
+                                        const std::string& date,
+                                        const std::string& text,
+                                        const std::string& omslutning) {
     row[m_colId] = id;
     row[m_colDate] = date;
     row[m_colText] = text;

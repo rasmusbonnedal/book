@@ -249,6 +249,7 @@ void VerifikatView::ModelColumns::addColumns(VerifikatView& treeView) {
         cell, sigc::mem_fun(&treeView, &VerifikatView::onCellDataKontoColumn));
 
     auto& pengarCell = treeView.m_pengarCellRenderer;
+    column->set_expand(true);
     treeView.append_column("Debet / Kredit", pengarCell);
     pengarCell.signal_edited().connect(
         sigc::mem_fun(&treeView, &VerifikatView::onEditedPengar));
@@ -260,6 +261,7 @@ void VerifikatView::ModelColumns::addColumns(VerifikatView& treeView) {
     column->set_cell_data_func(
         pengarCell,
         sigc::mem_fun(&treeView, &VerifikatView::onCellDataPengarColumn));
+    pengarCell.property_xalign() = 1.0;
 }
 
 void VerifikatView::ModelColumns::setRow(

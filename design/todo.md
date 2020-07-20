@@ -20,7 +20,7 @@ Todo-list
 - [x] Start editing date of next verifikat when pressing enter on balanced verifikat
 - [x] Fix bokdatum (not 0000-00-00)
 - [x] Don't exit with unsaved changes
-- [ ] Right align pengar columns
+- [x] Right align pengar columns
 - [x] Keyboard shortcuts
 - [ ] Check bokföringsdatum on entries
 - [ ] Disallow edit old entries
@@ -34,6 +34,7 @@ Todo-list
   * [ ] Grundbok
   * [ ] Huvudbok
 - [ ] Search
+- [ ] Why are there two "2099 ansamlad vinst" in ingående saldon?
 
 XML diffs
 *********
