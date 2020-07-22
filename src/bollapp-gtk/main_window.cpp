@@ -22,6 +22,7 @@ MainWindow::MainWindow() {
     add_action("save", sigc::mem_fun(*this, &MainWindow::on_action_save));
     add_action("quit", sigc::mem_fun(*this, &MainWindow::on_action_quit));
     add_action("report.saldon", sigc::mem_fun(*this, &MainWindow::on_action_report_saldon));
+    add_action("report.resultat", sigc::mem_fun(*this, &MainWindow::on_action_report_resultat));
 
     m_paned.set_orientation(Gtk::ORIENTATION_VERTICAL);
     m_grundbokScroll.set_size_request(400, 200);
@@ -135,6 +136,12 @@ void MainWindow::on_action_quit() {
 void MainWindow::on_action_report_saldon() {
     std::string report =
         createSaldoReportHtmlFile(*m_doc, fullYear(m_doc->getBokforingsar()));
+    show_uri("file://" + report, GDK_CURRENT_TIME);
+}
+
+void MainWindow::on_action_report_resultat() {
+    std::string report =
+        createResultatReportHtmlFile(*m_doc, fullYear(m_doc->getBokforingsar()));
     show_uri("file://" + report, GDK_CURRENT_TIME);
 }
 

@@ -28,20 +28,22 @@ Todo-list
 - [ ] Edit konton
 - [ ] Reports
   * [x] Saldon
-  * [ ] Resultaträkning
+  * [x] Resultaträkning
   * [ ] Balansräkning
   * [ ] Taggrapport
   * [ ] Grundbok
   * [ ] Huvudbok
 - [ ] Search
 - [ ] Why are there two "2099 ansamlad vinst" in ingående saldon?
+- [ ] Check reports for year 2019 against bollbok
+- [ ] About box with version, date and git rev #
 
 XML diffs
 *********
- - [x] <kontoplan> add attribute kptyp=""
+ - [x] \<kontoplan> add attribute kptyp=""
  - [x] space before '/>' (Kommer kräva custom printing)
- - [x] <kontogrupper><kontogrupp namn="asdf" konton="1234,2345,3456">...
- - [x] <objektlista></objektlista>
+ - [x] \<kontogrupper>\<kontogrupp namn="asdf" konton="1234,2345,3456">...
+ - [x] \<objektlista>\</objektlista>
  - [x] pengar="123.60" should be pengar="123.6"
 
 Needed for first entry

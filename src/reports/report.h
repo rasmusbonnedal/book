@@ -20,3 +20,17 @@ void renderHtmlSaldoReport(const BollDoc& doc,
 
 std::string createSaldoReportHtmlFile(const BollDoc& doc,
                                       const DateRange& daterange);
+
+// Resultaträkning report
+
+using ResultatRow = std::pair<int, Pengar>;
+
+void createResultatReport(const BollDoc& doc, const DateRange& daterange,
+                          std::vector<ResultatRow>& report);
+
+void renderHtmlResultatReport(const BollDoc& doc,
+                              const std::vector<SaldoRow>& report,
+                              const DateRange& range, std::ostream& os);
+
+std::string createResultatReportHtmlFile(const BollDoc& doc,
+                                         const DateRange& daterange);

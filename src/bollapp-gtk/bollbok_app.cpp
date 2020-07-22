@@ -34,6 +34,7 @@ void BollBokApp::on_startup() {
     win_menu->append_submenu("File", submenu_file);
     Glib::RefPtr<Gio::Menu> submenu_reports = Gio::Menu::create();
     submenu_reports->append("_Saldon", "win.report.saldon");
+    submenu_reports->append("_Resultat", "win.report.resultat");
     win_menu->append_submenu("Reports", submenu_reports);
     set_menubar(win_menu);
 

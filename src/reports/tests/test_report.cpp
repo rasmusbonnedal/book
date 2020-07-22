@@ -15,8 +15,8 @@ BollDoc createDoc() {
         v.addRad({Date(2018, 12, 25), 5010, parsePengar("8000")});
         doc.addVerifikat(std::move(v));
     }
-    doc.addKonto({1910, "Bankkonto", 0});
-    doc.addKonto({5010, "Byggkostnader", 0});
+    doc.addKonto({1910, "Bankkonto", 1});
+    doc.addKonto({5010, "Byggkostnader", 3});
     return doc;
 }
 } // namespace
@@ -26,12 +26,26 @@ TEST_CASE("Report Saldo") {
     BollDoc doc = createDoc();
     DateRange range(Date(2018, 1, 1), Date(2018, 3, 1));
     createSaldoReport(doc, range, report);
+    CHECK(report.size() == 2);
     CHECK(report[0].first == 1910);
     CHECK(report[0].second == Pengar(-2400000));
     CHECK(report[1].first == 5010);
     CHECK(report[1].second == Pengar(2400000));
     std::stringstream ss;
     renderHtmlSaldoReport(doc, report, range, ss);
+    std::cout << ss.str();
+}
+
+TEST_CASE("Report Resultat") {
+    std::vector<ResultatRow> report;
+    BollDoc doc = createDoc();
+    DateRange range(Date(2018, 1, 1), Date(2018, 3, 1));
+    createResultatReport(doc, range, report);
+    CHECK(report.size() == 1);
+    CHECK(report[0].first == 5010);
+    CHECK(report[0].second == Pengar(2400000));
+    std::stringstream ss;
+    renderHtmlResultatReport(doc, report, range, ss);
     std::cout << ss.str();
 }
 

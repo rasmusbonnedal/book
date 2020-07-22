@@ -44,24 +44,38 @@ void htmlHeader(const std::string& title, std::ostream& os) {
     os << "</style>" << std::endl << "</head>" << std::endl;
 }
 
+// Filter the verifikationer in doc by VerifikatPred, and if it matches
+// filter the rows in the verifikat by RowPred. 
+// Apply Op on all rows that matches both RowPred and VerifikatPred
+template<typename VerifikatPred, typename RowPred, typename Op>
+void filterVerifikat(const BollDoc& doc, VerifikatPred vpred, RowPred rpred, Op op) {
+    for (auto& v : doc.getVerifikationer()) {
+        if (vpred(v)) {
+            for (auto& r : v.getRader()) {
+                if (rpred(r)) {
+                    op(r.getKonto(), r.getPengar());
+                }
+            }
+        }
+    }
+}
+
 } // namespace
 
 void createSaldoReport(const BollDoc& doc, const DateRange& daterange,
                        std::vector<SaldoRow>& report) {
     std::map<int, Pengar> saldoMap;
-    for (auto& v : doc.getVerifikationer()) {
-        if (daterange.getEnd() >= v.getTransdatum()) {
-            for (auto& r : v.getRader()) {
-                if (!r.getStruken()) {
-                    insertOrAdd(saldoMap, r.getKonto(), r.getPengar());
-                }
-            }
-        }
-    }
-    report.clear();
-    for (auto& it : saldoMap) {
-        report.emplace_back(it.first, it.second);
-    }
+
+    auto vpred = [&daterange](auto& v) {
+        return (daterange.getEnd() >= v.getTransdatum());
+    };
+    auto rpred = [](auto& r) { return !r.getStruken(); };
+    auto insertOp = [&saldoMap](int konto, Pengar pengar) {
+        insertOrAdd(saldoMap, konto, pengar);
+    };
+
+    filterVerifikat(doc, vpred, rpred, insertOp);
+    report = std::vector<SaldoRow>(saldoMap.begin(), saldoMap.end());
 }
 
 void renderHtmlSaldoReport(const BollDoc& doc,
@@ -102,5 +116,65 @@ std::string createSaldoReportHtmlFile(const BollDoc& doc,
     std::vector<SaldoRow> report;
     createSaldoReport(doc, daterange, report);
     renderHtmlSaldoReport(doc, report, daterange, ofs);
+    return filename;
+}
+
+void createResultatReport(const BollDoc& doc, const DateRange& daterange,
+                          std::vector<ResultatRow>& report) {
+    std::map<int, Pengar> resultatMap;
+
+    auto vpred = [&daterange](auto& v) {
+        return daterange.getEnd() >= v.getTransdatum() &&
+               v.getTransdatum() >= daterange.getStart();
+    };
+    auto rpred = [&doc](auto& r) {
+        return !r.getStruken() && doc.getKonto(r.getKonto()).getTyp() == 3;
+    };
+    auto insertOp = [&resultatMap](int konto, Pengar pengar) {
+        insertOrAdd(resultatMap, konto, pengar);
+    };
+
+    filterVerifikat(doc, vpred, rpred, insertOp);
+    report = std::vector<ResultatRow>(resultatMap.begin(), resultatMap.end());
+}
+
+void renderHtmlResultatReport(const BollDoc& doc,
+                              const std::vector<SaldoRow>& report,
+                              const DateRange& range, std::ostream& os) {
+    std::string header = "Resultatrapport " + doc.getFirma() + " (" +
+                         doc.getOrgnummer() + ") " + to_string(range);
+
+    htmlDoctype(os);
+    os << "<html>" << std::endl;
+    htmlHeader(header, os);
+    os << "<body>" << std::endl;
+
+    os << "<table>" << std::endl;
+    os << "<tr>" << std::endl;
+    os << "<th>Konto</th>" << std::endl;
+    os << "<th>Resultat</th>" << std::endl;
+    os << "</tr>" << std::endl;
+    for (auto& row : report) {
+        os << "<tr>" << std::endl;
+        os << "<td>" << row.first << " " << doc.getKonto(row.first).getText()
+           << "</td>" << std::endl;
+        os << "<td style=\"text-align:right\">" << row.second << " kr"
+           << "</td>" << std::endl;
+        os << "</tr>" << std::endl;
+    }
+    os << "</table>" << std::endl;
+    os << "</body>" << std::endl;
+    os << "</html>" << std::endl;
+}
+
+std::string createResultatReportHtmlFile(const BollDoc& doc,
+                                         const DateRange& daterange) {
+    srand(time(0));
+    std::string filename =
+        "/tmp/saldoreport." + std::to_string(rand()) + ".html";
+    std::ofstream ofs(filename);
+    std::vector<ResultatRow> report;
+    createResultatReport(doc, daterange, report);
+    renderHtmlResultatReport(doc, report, daterange, ofs);
     return filename;
 }

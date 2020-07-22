@@ -24,6 +24,8 @@ public:
 
         const std::string& getText() const;
 
+        // 1: Balanskonto
+        // 3: Resultatkonto
         int getTyp() const;
 
         const std::optional<std::string>& getNormalt() const;
