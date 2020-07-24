@@ -12,6 +12,31 @@ int64_t parseInt(const std::string& s) {
         return 0;
     return std::stoll(s);
 }
+
+void toStream(std::ostream& stream, const Pengar& p, bool alwaysDecimal, bool comma) {
+    int64_t value = p.get();
+    int64_t kronor = value / 100;
+    char buf[20];
+    snprintf(buf, 20, "%lld", std::llabs(kronor));
+    size_t len = strlen(buf);
+
+    if (value < 0) {
+        stream << '-';
+    }
+    for (size_t i = 0; i < len; ++i) {
+        if (i > 0 && (len - i) % 3 == 0) {
+            stream << ' ';
+        }
+        stream << buf[i];
+    }
+
+    int oren = std::abs(value) % 100;
+
+    if (alwaysDecimal || oren != 0) {
+        stream << (comma ? "," : ".") << std::setfill('0') << std::setw(2) << oren;
+    }
+}
+
 } // namespace
 
 Pengar::Pengar() : _pengar(0) {}
@@ -81,28 +106,14 @@ std::string toXmlString(const Pengar& p) {
     return ss.str();
 }
 
+std::string toHtmlString(const Pengar& p) {
+    std::stringstream ss;
+    toStream(ss, p, true, true);
+    return ss.str();
+}
+
 std::ostream& operator<<(std::ostream& stream, const Pengar& p) {
-    int64_t value = p.get();
-    int64_t kronor = value / 100;
-    char buf[20];
-    snprintf(buf, 20, "%lld", std::llabs(kronor));
-    size_t len = strlen(buf);
-
-    if (value < 0) {
-        stream << '-';
-    }
-    for (size_t i = 0; i < len; ++i) {
-        if (i > 0 && (len - i) % 3 == 0) {
-            stream << ' ';
-        }
-        stream << buf[i];
-    }
-
-    int oren = std::abs(value) % 100;
-
-    if (oren != 0) {
-        stream << "." << std::setfill('0') << std::setw(2) << oren;
-    }
+    toStream(stream, p, false, false);
     return stream;
 }
 

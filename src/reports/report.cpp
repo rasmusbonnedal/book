@@ -31,6 +31,24 @@ void cssFont(std::ostream& os) {
        << "margin: 8px;"
        << "padding: 2px;"
        << "}" << std::endl
+       << "body {" << std::endl
+       << "margin: 20px;"
+       << "}" << std::endl
+       << "table {" << std::endl
+       << "width:100%;"
+       << "border:1px solid #aaa;"
+       << "border-collapse:collapse;"
+       << "}" << std::endl
+       << "h2 {" << std::endl
+       << "	margin:0;"
+       << "	font-size:16px;"
+       << "	color:#009;"
+       << "}" << std::endl
+       << "h3 {" << std::endl
+       << "	margin:8px 0 1px 0;"
+       << "	font-size:13px;"
+       << "	color:#009;"
+       << "}" << std::endl
        << "tr:nth-child(even) {background: #EEE}" << std::endl
        << "tr:nth-child(odd) {background: #FFF}" << std::endl
        << "th {font-weight: bold;}";
@@ -45,10 +63,11 @@ void htmlHeader(const std::string& title, std::ostream& os) {
 }
 
 // Filter the verifikationer in doc by VerifikatPred, and if it matches
-// filter the rows in the verifikat by RowPred. 
+// filter the rows in the verifikat by RowPred.
 // Apply Op on all rows that matches both RowPred and VerifikatPred
-template<typename VerifikatPred, typename RowPred, typename Op>
-void filterVerifikat(const BollDoc& doc, VerifikatPred vpred, RowPred rpred, Op op) {
+template <typename VerifikatPred, typename RowPred, typename Op>
+void filterVerifikat(const BollDoc& doc, VerifikatPred vpred, RowPred rpred,
+                     Op op) {
     for (auto& v : doc.getVerifikationer()) {
         if (vpred(v)) {
             for (auto& r : v.getRader()) {
@@ -89,16 +108,25 @@ void renderHtmlSaldoReport(const BollDoc& doc,
     htmlHeader(header, os);
     os << "<body>" << std::endl;
 
+    os << "<div>" << std::endl
+       << "<h2>Saldon rubrikvis</h2>" << std::endl
+       << "</div>" << std::endl
+       << "<div>" << std::endl
+       << "<h3>" << doc.getFirma() << "</h3>" << std::endl
+       << "<p>Räkenskapsår: " << doc.getBokforingsar() << "</p>" << std::endl
+       << "<p>Period: " << to_string(range) << "</p>" << std::endl;
     os << "<table>" << std::endl;
     os << "<tr>" << std::endl;
+    os << "<th></th>" << std::endl;
     os << "<th>Konto</th>" << std::endl;
-    os << "<th>Saldo</th>" << std::endl;
+    os << "<th style=\"text-align:right\">Saldo</th>" << std::endl;
     os << "</tr>" << std::endl;
     for (auto& row : report) {
         os << "<tr>" << std::endl;
-        os << "<td>" << row.first << " " << doc.getKonto(row.first).getText()
-           << "</td>" << std::endl;
-        os << "<td style=\"text-align:right\">" << row.second << " kr"
+        os << "<td>" << row.first << "</td>" << std::endl;
+        os << "<td>" << doc.getKonto(row.first).getText() << "</td>"
+           << std::endl;
+        os << "<td style=\"text-align:right\">" << toHtmlString(row.second)
            << "</td>" << std::endl;
         os << "</tr>" << std::endl;
     }
@@ -148,17 +176,25 @@ void renderHtmlResultatReport(const BollDoc& doc,
     os << "<html>" << std::endl;
     htmlHeader(header, os);
     os << "<body>" << std::endl;
-
+    os << "<div>" << std::endl
+       << "<h2>Saldon rubrikvis</h2>" << std::endl
+       << "</div>" << std::endl
+       << "<div>" << std::endl
+       << "<h3>" << doc.getFirma() << "</h3>" << std::endl
+       << "<p>Räkenskapsår: " << doc.getBokforingsar() << "</p>" << std::endl
+       << "<p>Period: " << to_string(range) << "</p>" << std::endl;
     os << "<table>" << std::endl;
     os << "<tr>" << std::endl;
     os << "<th>Konto</th>" << std::endl;
-    os << "<th>Resultat</th>" << std::endl;
+    os << "<th style=\"text-align:right\">Resultat</th>" << std::endl;
     os << "</tr>" << std::endl;
     for (auto& row : report) {
         os << "<tr>" << std::endl;
-        os << "<td>" << row.first << " " << doc.getKonto(row.first).getText()
-           << "</td>" << std::endl;
-        os << "<td style=\"text-align:right\">" << row.second << " kr"
+        os << "<td>" << row.first << "</td>" << std::endl;
+        os << "<td>" << doc.getKonto(row.first).getText() << "</td>"
+           << std::endl;
+        os << "<td style=\"text-align:right\">" << toHtmlString(row.second)
+           << ""
            << "</td>" << std::endl;
         os << "</tr>" << std::endl;
     }
