@@ -76,6 +76,7 @@ void GrundbokView::updateWithDoc(const BollDoc& doc) {
         m_columns.setRow(treeRow, row.getUnid(), to_string(row.getTransdatum()),
                             row.getText(), omslutningStr.str());
     }
+    m_lastEditedDate.reset();
     m_selectionChangedConnection.unblock();
     m_year = doc.getBokforingsar();
 }
@@ -94,10 +95,14 @@ void GrundbokView::addNewVerifikatRow(BollDoc& doc) {
 
     int nextId = doc.getNextVerifikatId();
     Date nextDate(0, 1, 1);
-    for (const auto& row : m_refTreeModel->children()) {
-        nextDate = std::max(nextDate, parseDate(m_columns.getDate(row)));
+    if (m_lastEditedDate) {
+        nextDate = *m_lastEditedDate;
+    } else {
+        for (const auto& row : m_refTreeModel->children()) {
+            nextDate = std::max(nextDate, parseDate(m_columns.getDate(row)));
+        }
     }
-    
+
     auto treeRow = *(m_refTreeModel->append());
     m_columns.setRow(treeRow, nextId, to_string(nextDate), newVerifikatText, "");
     BollDoc::Verifikat v(nextId, newVerifikatText, nextDate);
@@ -108,7 +113,7 @@ void GrundbokView::onEditedText(const Glib::ustring& path_string,
                     const Glib::ustring& new_text) {
     Gtk::TreePath path = m_sortedModel->convert_path_to_child_path(Gtk::TreePath(path_string));
     Gtk::TreeModel::iterator iter = m_refTreeModel->get_iter(path);
-    if (iter) {
+        if (iter) {
         Gtk::TreeModel::Row row = *iter;
         m_columns.setText(row, new_text);
         unsigned int id = m_columns.getId(row);
@@ -126,12 +131,19 @@ void GrundbokView::onEditedDate(const Glib::ustring& path_string,
             Gtk::TreeModel::Row row = *iter;
             m_columns.setDate(row, new_text);
             unsigned int id = m_columns.getId(row);
+            m_lastEditedDate = date;
             m_signalDateEdited(id, *date);
         }
     }
 }
 
 int GrundbokView::sortFunction(const Gtk::TreeModel::iterator& lhs, const Gtk::TreeModel::iterator& rhs) {
+    if (m_columns.getText(*lhs) == "Nytt verifikat") {
+        return 1;
+    }
+    if (m_columns.getText(*rhs) == "Nytt verifikat") {
+        return -1;
+    }
     std::string lhsDate = m_columns.getDate(*lhs);
     std::string rhsDate = m_columns.getDate(*rhs);
     if (lhsDate == rhsDate) {
@@ -163,12 +175,13 @@ void GrundbokView::ModelColumns::addColumns(GrundbokView& treeView) {
             sigc::mem_fun(&treeView, &GrundbokView::onEditedDate));
     }
 
-    treeView.append_column_editable("Text", m_colText);
+    treeView.append_column("Text", m_colText);
     treeView.get_column(2)->set_expand(true);
     Gtk::CellRendererText* textCell = dynamic_cast<Gtk::CellRendererText*>(
         treeView.get_column_cell_renderer(2));
 
     if (textCell) {
+        textCell->property_editable() = true;
         textCell->signal_edited().connect(
             sigc::mem_fun(&treeView, &GrundbokView::onEditedText));
     }

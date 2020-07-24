@@ -80,4 +80,5 @@ private:
     sigc::signal<void, unsigned int, const Date&> m_signalDateEdited;
     sigc::connection m_selectionChangedConnection;
     int m_year;
+    std::optional<Date> m_lastEditedDate;
 };

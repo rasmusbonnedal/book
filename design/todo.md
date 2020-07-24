@@ -25,7 +25,7 @@ Todo-list
 - [ ] Check bokföringsdatum on entries
 - [ ] Disallow edit old entries
 - [ ] Allow strykning of old entries
-- [ ] Edit konton
+- [ ] Add/Edit konton
 - [ ] Reports
   * [x] Saldon
   * [x] Resultaträkning
@@ -33,10 +33,18 @@ Todo-list
   * [ ] Taggrapport
   * [ ] Grundbok
   * [ ] Huvudbok
+  * [ ] Filters
 - [ ] Search
 - [ ] Why are there two "2099 ansamlad vinst" in ingående saldon?
 - [ ] Check reports for year 2019 against bollbok
+  * [x] Saldon
+  * [x] Resultaträkning
+  * [ ] Balansräkning
+  * [ ] Taggrapport
+  * [ ] Grundbok
+  * [ ] Huvudbok
 - [ ] About box with version, date and git rev #
+- [x] Set date on new verifikat to last edited date
 
 XML diffs
 *********
