@@ -37,13 +37,14 @@ TEST_CASE("Report Saldo") {
 }
 
 TEST_CASE("Report Resultat") {
-    std::vector<ResultatRow> report;
+    ResultatRapport report;
     BollDoc doc = createDoc();
     DateRange range(Date(2018, 1, 1), Date(2018, 3, 1));
     createResultatReport(doc, range, report);
-    CHECK(report.size() == 1);
-    CHECK(report[0].first == 5010);
-    CHECK(report[0].second == Pengar(2400000));
+    CHECK(report.m_resultat.size() == 1);
+    CHECK(report.m_resultat[0].first == 5010);
+    CHECK(report.m_resultat[0].second == Pengar(2400000));
+    CHECK(report.m_sum == Pengar(2400000));
     std::stringstream ss;
     renderHtmlResultatReport(doc, report, range, ss);
     std::cout << ss.str();

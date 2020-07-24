@@ -49,8 +49,13 @@ void cssFont(std::ostream& os) {
        << "	font-size:13px;"
        << "	color:#009;"
        << "}" << std::endl
+       << "p {" << std::endl
+       << "padding:1px 2px;"
+       << "margin:0;"
+       << "}" << std::endl
        << "tr:nth-child(even) {background: #EEE}" << std::endl
        << "tr:nth-child(odd) {background: #FFF}" << std::endl
+       << "td:first-child { width:30px; }" << std::endl 
        << "th {font-weight: bold;}";
 }
 
@@ -148,7 +153,7 @@ std::string createSaldoReportHtmlFile(const BollDoc& doc,
 }
 
 void createResultatReport(const BollDoc& doc, const DateRange& daterange,
-                          std::vector<ResultatRow>& report) {
+                          ResultatRapport& report) {
     std::map<int, Pengar> resultatMap;
 
     auto vpred = [&daterange](auto& v) {
@@ -163,13 +168,16 @@ void createResultatReport(const BollDoc& doc, const DateRange& daterange,
     };
 
     filterVerifikat(doc, vpred, rpred, insertOp);
-    report = std::vector<ResultatRow>(resultatMap.begin(), resultatMap.end());
+    report.m_resultat = std::vector<ResultatRow>(resultatMap.begin(), resultatMap.end());
+    for (auto& x : report.m_resultat) {
+        report.m_sum += x.second;
+    }
 }
 
 void renderHtmlResultatReport(const BollDoc& doc,
-                              const std::vector<SaldoRow>& report,
+                              const ResultatRapport& report,
                               const DateRange& range, std::ostream& os) {
-    std::string header = "Resultatrapport " + doc.getFirma() + " (" +
+    std::string header = "Resultaträkning " + doc.getFirma() + " (" +
                          doc.getOrgnummer() + ") " + to_string(range);
 
     htmlDoctype(os);
@@ -177,7 +185,7 @@ void renderHtmlResultatReport(const BollDoc& doc,
     htmlHeader(header, os);
     os << "<body>" << std::endl;
     os << "<div>" << std::endl
-       << "<h2>Saldon rubrikvis</h2>" << std::endl
+       << "<h2>Resultaträkning</h2>" << std::endl
        << "</div>" << std::endl
        << "<div>" << std::endl
        << "<h3>" << doc.getFirma() << "</h3>" << std::endl
@@ -185,10 +193,11 @@ void renderHtmlResultatReport(const BollDoc& doc,
        << "<p>Period: " << to_string(range) << "</p>" << std::endl;
     os << "<table>" << std::endl;
     os << "<tr>" << std::endl;
+    os << "<th></th>" << std::endl;
     os << "<th>Konto</th>" << std::endl;
-    os << "<th style=\"text-align:right\">Resultat</th>" << std::endl;
+    os << "<th style=\"text-align:right\">Förändring</th>" << std::endl;
     os << "</tr>" << std::endl;
-    for (auto& row : report) {
+    for (auto& row : report.m_resultat) {
         os << "<tr>" << std::endl;
         os << "<td>" << row.first << "</td>" << std::endl;
         os << "<td>" << doc.getKonto(row.first).getText() << "</td>"
@@ -198,7 +207,17 @@ void renderHtmlResultatReport(const BollDoc& doc,
            << "</td>" << std::endl;
         os << "</tr>" << std::endl;
     }
+    os << "<tr>" << std::endl;
+    os << "<td></td>" << std::endl;
+    os << "<td>Summa</td>" << std::endl;
+    os << "<td style=\"text-align:right\">" << toHtmlString(report.m_sum)
+       << "</td>" << std::endl;
     os << "</table>" << std::endl;
+    os << "<h3>Resultat</h3>"
+       << "<table>" << std::endl
+       << "<tr><td></td><td>Resultat</td><td style=\"text-align:right\">"
+       << toHtmlString(-report.m_sum) << "</td></tr>" << std::endl
+       << "</table>" << std::endl;
     os << "</body>" << std::endl;
     os << "</html>" << std::endl;
 }
@@ -209,7 +228,7 @@ std::string createResultatReportHtmlFile(const BollDoc& doc,
     std::string filename =
         "/tmp/saldoreport." + std::to_string(rand()) + ".html";
     std::ofstream ofs(filename);
-    std::vector<ResultatRow> report;
+    ResultatRapport report;
     createResultatReport(doc, daterange, report);
     renderHtmlResultatReport(doc, report, daterange, ofs);
     return filename;

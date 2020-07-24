@@ -25,11 +25,16 @@ std::string createSaldoReportHtmlFile(const BollDoc& doc,
 
 using ResultatRow = std::pair<int, Pengar>;
 
+struct ResultatRapport {
+    std::vector<ResultatRow> m_resultat;
+    Pengar m_sum;
+};
+
 void createResultatReport(const BollDoc& doc, const DateRange& daterange,
-                          std::vector<ResultatRow>& report);
+                          ResultatRapport& report);
 
 void renderHtmlResultatReport(const BollDoc& doc,
-                              const std::vector<SaldoRow>& report,
+                              const ResultatRapport& report,
                               const DateRange& range, std::ostream& os);
 
 std::string createResultatReportHtmlFile(const BollDoc& doc,
