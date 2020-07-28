@@ -23,6 +23,7 @@ MainWindow::MainWindow() {
     add_action("quit", sigc::mem_fun(*this, &MainWindow::on_action_quit));
     add_action("report.saldon", sigc::mem_fun(*this, &MainWindow::on_action_report_saldon));
     add_action("report.resultat", sigc::mem_fun(*this, &MainWindow::on_action_report_resultat));
+    add_action("about", sigc::mem_fun(*this, &MainWindow::on_action_about));
 
     m_paned.set_orientation(Gtk::ORIENTATION_VERTICAL);
     m_grundbokScroll.set_size_request(400, 200);
@@ -133,10 +134,29 @@ void MainWindow::on_action_quit() {
     hide(); 
 }
 
+void MainWindow::on_action_about() {
+    Gtk::MessageDialog msgDialog(
+        *this, "B*llb*k", false,
+        Gtk::MESSAGE_INFO, Gtk::BUTTONS_OK, true);
+
+    std::string gtk_version = std::to_string(gtk_get_major_version()) + "." +
+                              std::to_string(gtk_get_minor_version()) + "." +
+                              std::to_string(gtk_get_micro_version());
+
+    msgDialog.set_secondary_text(
+        "Build date: " __DATE__ "\n"
+        "Git version: " GIT_VERSION "\n"
+        "Gtk version: " + gtk_version);
+
+
+    msgDialog.run();
+    msgDialog.hide();    
+}
+
 void MainWindow::on_action_report_saldon() {
     std::string report =
         createSaldoReportHtmlFile(*m_doc, fullYear(m_doc->getBokforingsar()));
-    show_uri("file://" + report, GDK_CURRENT_TIME);
+    show_uri("file://" + report, 0/*GDK_CURRENT_TIME*/);
 }
 
 void MainWindow::on_action_report_resultat() {

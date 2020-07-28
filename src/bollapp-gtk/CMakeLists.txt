@@ -12,9 +12,23 @@ set(SRCS
     verifikat_view.cpp
 )
 
+execute_process(
+    COMMAND git describe --always HEAD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    RESULT_VARIABLE res
+    OUTPUT_VARIABLE MYAPP_VERSION
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+set_property(GLOBAL APPEND
+    PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/.git/index")
+
 add_executable(bollapp ${SRCS})
 target_link_libraries(bollapp bolldoc reports ${GTKMM_LIBRARIES})
 target_include_directories(bollapp PUBLIC . ${GTKMM_INCLUDE_DIRS})
+add_definitions(-DGIT_VERSION=\"${MYAPP_VERSION}\")
+
 if(MSVC)
     target_compile_options(bollapp PRIVATE -W4 -WX -experimental:external -external:anglebrackets -external:W0)
 else()

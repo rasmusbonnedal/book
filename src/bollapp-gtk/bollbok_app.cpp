@@ -36,6 +36,9 @@ void BollBokApp::on_startup() {
     submenu_reports->append("_Saldon", "win.report.saldon");
     submenu_reports->append("_Resultat", "win.report.resultat");
     win_menu->append_submenu("Reports", submenu_reports);
+    Glib::RefPtr<Gio::Menu> submenu_help = Gio::Menu::create();
+    submenu_help->append("_About", "win.about");
+    win_menu->append_submenu("Help", submenu_help);
     set_menubar(win_menu);
 
     add_accelerator("<control>N", "win.new", 0);

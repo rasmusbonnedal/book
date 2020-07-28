@@ -25,6 +25,8 @@ private:
 
     void on_action_quit();
 
+    void on_action_about();
+
     void on_action_report_saldon();
 
     void on_action_report_resultat();

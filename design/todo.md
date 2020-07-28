@@ -45,6 +45,10 @@ Todo-list
   * [ ] Huvudbok
 - [ ] About box with version, date and git rev #
 - [x] Set date on new verifikat to last edited date
+- [ ] Use comma as decimal separator, accept both . and ,
+- [ ] Accept verifikat only if balanced, and directly on enter on empty konto
+- [ ] Show non-"normal" konto entries in red
+- [ ] Live saldo transaction view in sidebar
 
 XML diffs
 *********
@@ -56,4 +60,9 @@ XML diffs
 
 Needed for first entry
 **********************
-1. Save
+- [x] Save
+
+For first month
+***************
+- [ ] "Konto" report
+- [ ] "Tagg" report
