@@ -52,6 +52,27 @@ int Date::getMonth() const { return _month; }
 
 int Date::getDay() const { return _day; }
 
+Date Date::addDays(int days) const {
+    if (days <= 0) {
+        throw std::runtime_error("Could not add negative or zero days");
+    }
+    Date d(*this);
+    d._day += days;
+    while (true) {
+        int ldom = lastDayOfMonth(d._year, d._month);
+        if (d._day <= ldom) {
+            break;
+        }
+        d._day -= ldom;
+        d._month++;
+        if (d._month > 12) {
+            d._month = 1;
+            d._year++;
+        }
+    }
+    return d;
+}
+
 bool Date::checkDate() const {
     if (_year < 0 || _month < 1 || _month > 12 || _day < 1)
         return false;

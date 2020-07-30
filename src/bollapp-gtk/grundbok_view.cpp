@@ -73,8 +73,12 @@ void GrundbokView::updateWithDoc(const BollDoc& doc) {
         } else {
             omslutningStr << " - obalanserad (" << omslutning << ") - ";
         }
-        m_columns.setRow(treeRow, row.getUnid(), to_string(row.getTransdatum()),
-                            row.getText(), omslutningStr.str());
+        std::string datum;
+        if (row.getTransdatum().getYear() != 0) {
+            datum = to_string(row.getTransdatum());
+        }
+        m_columns.setRow(treeRow, row.getUnid(), datum, row.getText(),
+                         omslutningStr.str());
     }
     m_lastEditedDate.reset();
     m_selectionChangedConnection.unblock();
@@ -99,7 +103,10 @@ void GrundbokView::addNewVerifikatRow(BollDoc& doc) {
         nextDate = *m_lastEditedDate;
     } else {
         for (const auto& row : m_refTreeModel->children()) {
-            nextDate = std::max(nextDate, parseDate(m_columns.getDate(row)));
+            auto datum = parseDateNothrow(m_columns.getDate(row));
+            if (datum) {
+                nextDate = std::max(nextDate, *datum);
+            }
         }
     }
 

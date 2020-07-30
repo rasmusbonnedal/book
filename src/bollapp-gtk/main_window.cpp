@@ -25,14 +25,20 @@ MainWindow::MainWindow() {
     add_action("report.resultat", sigc::mem_fun(*this, &MainWindow::on_action_report_resultat));
     add_action("about", sigc::mem_fun(*this, &MainWindow::on_action_about));
 
-    m_paned.set_orientation(Gtk::ORIENTATION_VERTICAL);
+    m_paned1.set_orientation(Gtk::ORIENTATION_VERTICAL);
+    m_paned2.set_orientation(Gtk::ORIENTATION_VERTICAL);
     m_grundbokScroll.set_size_request(400, 200);
     m_grundbokScroll.add(m_grundbokView);
-    m_paned.add1(m_grundbokScroll);
     m_verifikatScroll.set_size_request(400, 50);
     m_verifikatScroll.add(m_verifikatView);
-    m_paned.pack2(m_verifikatScroll, Gtk::AttachOptions::FILL);
-    add(m_paned);
+    m_saldoScroll.set_size_request(400, 50);
+    m_saldoScroll.add(m_saldoView.getWidget());
+
+    m_paned1.add1(m_grundbokScroll);
+    m_paned2.pack1(m_verifikatScroll, Gtk::AttachOptions::FILL);
+    m_paned2.pack2(m_saldoScroll, Gtk::AttachOptions::FILL);
+    m_paned1.pack2(m_paned2, Gtk::AttachOptions::FILL);
+    add(m_paned1);
 
     m_grundbokView.setOnSelectionChanged(
         sigc::mem_fun(this, &MainWindow::onGrundbokSelectionChanged));
@@ -43,6 +49,9 @@ MainWindow::MainWindow() {
     m_verifikatView.signalNextVerifikat().connect([this] {
         this->m_grundbokView.startEditNewVerifikat();
     });
+
+    m_verifikatView.get_selection()->signal_changed().connect(
+        sigc::mem_fun(this, &MainWindow::onVerifikatSelected));
 
     m_grundbokView.setOnEditedDate(
         sigc::mem_fun(this, &MainWindow::onVerifikatDateEdited));
@@ -211,19 +220,15 @@ void MainWindow::onGrundbokSelectionChanged() {
     unsigned id;
     Gtk::TreeModel::iterator selected = m_grundbokView.get_selection()->get_selected();
     if (!selected) {
-        std::cout << "Nothing selected." << std::endl;
         return;
     }
     selected->get_value(0, id);
 
-    std::cout << "Changing from " << m_verifikatEditingId << " to " << id
-              << std::endl;
     setVerifikat(m_verifikatView, m_doc->getVerifikat(id));
     m_verifikatEditingId = id;
 }
 
 void MainWindow::onVerifikatViewEdited(const std::vector<BollDoc::Rad>& rader) {
-    std::cout << "onVerifikatViewEdited()" << std::endl;
     for (auto& x : rader) {
         std::cout << x << std::endl;
     }
@@ -232,6 +237,7 @@ void MainWindow::onVerifikatViewEdited(const std::vector<BollDoc::Rad>& rader) {
         m_grundbokView.recalculate(*m_doc);
         m_grundbokView.addNewVerifikatRow(*m_doc);
         m_dirty = true;
+        onVerifikatSelected();
     }
 }
 
@@ -248,6 +254,24 @@ void MainWindow::onVerifikatTextEdited(unsigned int id, const Glib::ustring& tex
     if (id == m_doc->getVerifikationer().size() - 1) {
         m_verifikatView.startEditing();
     }
+}
+
+void MainWindow::onVerifikatSelected() {
+    auto selected = this->m_verifikatView.get_selection()->get_selected();
+    if (!selected) {
+        m_saldoView.clear();
+    } else if (m_verifikatEditingId >= 0) {
+        unsigned konto;
+        selected->get_value(0, konto);
+        Date date = m_doc->getVerifikat(m_verifikatEditingId).getTransdatum();
+        m_saldoView.showKonto(*m_doc, konto, date, m_verifikatEditingId);
+    }
+    Glib::signal_timeout().connect_once(
+        [this]() {
+            auto adj = this->m_saldoScroll.get_vadjustment();
+            adj->set_value(adj->get_upper());
+        },
+        40);
 }
 
 void MainWindow::loadFile(const std::string& path) {

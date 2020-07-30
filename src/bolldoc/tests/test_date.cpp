@@ -73,6 +73,11 @@ TEST_CASE("Invalid Date") {
     CHECK_THROWS_WITH(Date(1900, 2, 29), "Invalid date 1900-02-29");
 }
 
+TEST_CASE("Date addDays()") {
+    CHECK(Date(2019, 12, 31).addDays(2) == Date(2020, 1, 2));
+    CHECK(Date(2020, 1, 1).addDays(30) == Date(2020, 1, 31));
+}
+
 TEST_CASE("Date parse fail") {
     CHECK_THROWS_WITH(parseDate("230-10-10"),
                       "Could not parse 230-10-10 as a date");

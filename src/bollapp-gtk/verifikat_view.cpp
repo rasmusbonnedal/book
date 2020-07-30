@@ -44,7 +44,7 @@ VerifikatView::signalEdited() {
     return m_signalEdited;
 }
 
-sigc::signal<void> 
+sigc::signal<void>
 VerifikatView::signalNextVerifikat() {
     return m_signalNextVerifikat;
 }

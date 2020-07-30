@@ -1,6 +1,7 @@
 #pragma once
 
 #include "grundbok_view.h"
+#include "saldo_view.h"
 #include "verifikat_view.h"
 
 #include "bolldoc.h"
@@ -43,6 +44,8 @@ private:
 
     void onVerifikatTextEdited(unsigned int id, const Glib::ustring& text);
 
+    void onVerifikatSelected();
+
     void loadFile(const std::string& path);
 
     void saveFile(const std::string& path);
@@ -53,8 +56,12 @@ private:
     GrundbokView m_grundbokView;
     Gtk::ScrolledWindow m_verifikatScroll;
     VerifikatView m_verifikatView;
+    Gtk::ScrolledWindow m_saldoScroll;
+    SaldoView m_saldoView;
+
     Gtk::Box m_box;
-    Gtk::Paned m_paned;
+    Gtk::Paned m_paned1;
+    Gtk::Paned m_paned2;
     Gtk::HeaderBar m_header;
     std::unique_ptr<BollDoc> m_doc;
     int m_verifikatEditingId;

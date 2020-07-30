@@ -16,6 +16,8 @@ public:
 
     int getDay() const;
 
+    Date addDays(int days) const;
+
 private:
     bool checkDate() const;
 
