@@ -55,7 +55,7 @@ Pengar Pengar::operator-() const {
 int64_t Pengar::get() const { return _pengar; }
 
 namespace {
-    const std::regex pengarRegex("^([-]?)(\\d+)[.]?(\\d{0,2}) ?(?:kr)?$");
+    const std::regex pengarRegex("^([-]?)(\\d+)[.,]?(\\d{0,2}) ?(?:kr)?$");
 }
 
 Pengar parsePengar(const std::string& s) {
@@ -113,7 +113,7 @@ std::string toHtmlString(const Pengar& p) {
 }
 
 std::ostream& operator<<(std::ostream& stream, const Pengar& p) {
-    toStream(stream, p, false, false);
+    toStream(stream, p, false, true);
     return stream;
 }
 

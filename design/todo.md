@@ -43,12 +43,12 @@ Todo-list
   * [ ] Taggrapport
   * [ ] Grundbok
   * [ ] Huvudbok
-- [ ] About box with version, date and git rev #
+- [x] About box with version, date and git rev #
 - [x] Set date on new verifikat to last edited date
-- [ ] Use comma as decimal separator, accept both . and ,
+- [x] Use comma as decimal separator, accept both . and ,
 - [ ] Accept verifikat only if balanced, and directly on enter on empty konto
 - [ ] Show non-"normal" konto entries in red
-- [ ] Live saldo transaction view in sidebar
+- [x] Live saldo transaction view in sidebar
 
 XML diffs
 *********
