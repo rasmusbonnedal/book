@@ -3,20 +3,11 @@
 #include "bolldoc.h"
 #include "date.h"
 
+#include <cassert>
 #include <fstream>
 #include <map>
 
 namespace {
-template <class Key, class Value>
-void insertOrAdd(std::map<Key, Value>& m, const Key& k, const Value& v) {
-    auto it = m.find(k);
-    if (it == m.end()) {
-        m[k] = v;
-    } else {
-        it->second += v;
-    }
-}
-
 void htmlDoctype(std::ostream& os) {
     os << "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" "
           "\"http://www.w3.org/TR/html4/strict.dtd\">"
@@ -55,7 +46,11 @@ void cssFont(std::ostream& os) {
        << "}" << std::endl
        << "tr:nth-child(even) {background: #EEE}" << std::endl
        << "tr:nth-child(odd) {background: #FFF}" << std::endl
-       << "td:first-child { width:30px; }" << std::endl 
+       << "td:first-child { width:30px; }" << std::endl
+       << ".pengar {" << std::endl
+       << " white-space: nowrap;"
+       << " text-align:right;"
+       << "}" << std::endl
        << "th {font-weight: bold;}";
 }
 
@@ -95,7 +90,7 @@ void createSaldoReport(const BollDoc& doc, const DateRange& daterange,
     };
     auto rpred = [](auto& r) { return !r.getStruken(); };
     auto insertOp = [&saldoMap](int konto, Pengar pengar) {
-        insertOrAdd(saldoMap, konto, pengar);
+        saldoMap[konto] += pengar;
     };
 
     filterVerifikat(doc, vpred, rpred, insertOp);
@@ -164,7 +159,7 @@ void createResultatReport(const BollDoc& doc, const DateRange& daterange,
         return !r.getStruken() && doc.getKonto(r.getKonto()).getTyp() == 3;
     };
     auto insertOp = [&resultatMap](int konto, Pengar pengar) {
-        insertOrAdd(resultatMap, konto, pengar);
+        resultatMap[konto] += pengar;
     };
 
     filterVerifikat(doc, vpred, rpred, insertOp);
@@ -203,7 +198,6 @@ void renderHtmlResultatReport(const BollDoc& doc,
         os << "<td>" << doc.getKonto(row.first).getText() << "</td>"
            << std::endl;
         os << "<td style=\"text-align:right\">" << toHtmlString(row.second)
-           << ""
            << "</td>" << std::endl;
         os << "</tr>" << std::endl;
     }
@@ -231,5 +225,119 @@ std::string createResultatReportHtmlFile(const BollDoc& doc,
     ResultatRapport report;
     createResultatReport(doc, daterange, report);
     renderHtmlResultatReport(doc, report, daterange, ofs);
+    return filename;
+}
+
+void createTaggReport(const BollDoc& doc, const DateRange& daterange,
+                      std::vector<TaggRow>& report) {
+    std::map<std::string, std::vector<int>> taggMap;
+    for (auto& konto : doc.getKontoPlan()) {
+        const auto& tagg = konto.second.getTagg();
+        if (tagg) {
+            taggMap[*tagg].push_back(konto.second.getUnid());
+        }
+    }
+
+    std::map<std::string, Pengar> taggIb;
+    auto vpredIb = [&daterange](auto& v) {
+        return v.getTransdatum() < daterange.getStart();
+    };
+    auto rpred = [&doc](auto& r) {
+        return !r.getStruken() && doc.getKonto(r.getKonto()).getTagg();
+    };
+    auto insertOpIb = [&doc, &taggIb](int konto, Pengar pengar) {
+        taggIb[*doc.getKonto(konto).getTagg()] += pengar;
+    };
+    filterVerifikat(doc, vpredIb, rpred, insertOpIb);
+
+    std::map<std::string, Pengar> taggUb;
+    auto vpredUb = [&daterange](auto& v) {
+        return daterange.getEnd() >= v.getTransdatum();
+    };
+    auto insertOpUb = [&doc, &taggUb](int konto, Pengar pengar) {
+        taggUb[*doc.getKonto(konto).getTagg()] += pengar;
+    };
+    filterVerifikat(doc, vpredUb, rpred, insertOpUb);
+
+    std::map<std::string, Pengar> taggResultat;
+    auto vpredRes = [&daterange](auto& v) {
+        return v.getTransdatum() >= daterange.getStart() &&
+        daterange.getEnd() >= v.getTransdatum();
+    };
+    auto insertOpRes = [&doc, &taggResultat](int konto, Pengar pengar) {
+        taggResultat[*doc.getKonto(konto).getTagg()] += pengar;
+    };
+    filterVerifikat(doc, vpredRes, rpred, insertOpRes);
+
+    report.clear();
+    report.reserve(taggMap.size());
+    for (auto& tagg : taggMap) {
+        TaggRow r = { tagg.first, std::move(tagg.second), taggIb[tagg.first], taggUb[tagg.first]};
+        report.push_back(std::move(r));
+        assert(taggUb[tagg.first] + (-taggIb[tagg.first]) == taggResultat[tagg.first]);
+    }
+}
+
+void renderHtmlTaggReport(const BollDoc& doc,
+                          const std::vector<TaggRow>& report,
+                          const DateRange& range, std::ostream& os) {
+    std::string header = "Taggrapport " + doc.getFirma() + " (" +
+                         doc.getOrgnummer() + ") " + to_string(range);
+
+    htmlDoctype(os);
+    os << "<html>" << std::endl;
+    htmlHeader(header, os);
+    os << "<body>" << std::endl;
+    os << "<div>" << std::endl
+       << "<h2>Taggrapport</h2>" << std::endl
+       << "</div>" << std::endl
+       << "<div>" << std::endl
+       << "<h3>" << doc.getFirma() << "</h3>" << std::endl
+       << "<p>Räkenskapsår: " << doc.getBokforingsar() << "</p>" << std::endl
+       << "<p>Period: " << to_string(range) << "</p>" << std::endl;
+    os << "<table>" << std::endl;
+    os << "<tr>" << std::endl;
+    os << "<th>Kod</th>" << std::endl;
+    os << "<th>Konton</th>" << std::endl;
+    os << "<th class=\"pengar\">" << to_string(range.getStart()) << "</th>" << std::endl;
+    os << "<th class=\"pengar\">Förändring</th>" << std::endl;
+    os << "<th class=\"pengar\">" << to_string(range.getEnd()) << "</th>" << std::endl;
+    os << "</tr>" << std::endl;
+    for (auto& row : report) {
+        os << "<tr>" << std::endl;
+        os << "<td>" << row.m_tagg << "</td>" << std::endl;
+        os << "<td>";
+        bool first = true;
+        for (int konto : row.m_konton) {
+            if (first) {
+                first = false;
+            } else {
+                os << ", ";
+            }
+            os << konto;
+        }
+        os << "</td>" << std::endl;
+        os << "<td class=\"pengar\">" << toHtmlString(row.m_ib) << "</td>"
+           << std::endl;
+        os << "<td class=\"pengar\">" << toHtmlString(row.m_ub - row.m_ib)
+           << "</td>" << std::endl;
+        os << "<td class=\"pengar\">" << toHtmlString(row.m_ub) << "</td>"
+           << std::endl;
+        os << "</tr>" << std::endl;
+    }
+    os << "</table>" << std::endl;
+    os << "</body>" << std::endl;
+    os << "</html>" << std::endl;
+}
+
+std::string createTaggReportHtmlFile(const BollDoc& doc,
+                                     const DateRange& daterange) {
+    srand(time(0));
+    std::string filename =
+        "/tmp/taggreport." + std::to_string(rand()) + ".html";
+    std::ofstream ofs(filename);
+    std::vector<TaggRow> report;
+    createTaggReport(doc, daterange, report);
+    renderHtmlTaggReport(doc, report, daterange, ofs);
     return filename;
 }

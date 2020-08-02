@@ -15,6 +15,10 @@ public:
 
     Pengar operator-() const;
 
+    Pengar operator+(const Pengar& rhs) const;
+
+    Pengar operator-(const Pengar& rhs) const;
+
 private:
     int64_t _pengar;
 };

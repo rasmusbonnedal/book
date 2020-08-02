@@ -39,3 +39,22 @@ void renderHtmlResultatReport(const BollDoc& doc,
 
 std::string createResultatReportHtmlFile(const BollDoc& doc,
                                          const DateRange& daterange);
+
+// Taggrapport
+
+struct TaggRow {
+    std::string m_tagg;
+    std::vector<int> m_konton;
+    Pengar m_ib;
+    Pengar m_ub;
+};
+
+void createTaggReport(const BollDoc& doc, const DateRange& daterange,
+                      std::vector<TaggRow>& report);
+
+void renderHtmlTaggReport(const BollDoc& doc,
+                          const std::vector<TaggRow>& report,
+                          const DateRange& range, std::ostream& os);
+
+std::string createTaggReportHtmlFile(const BollDoc& doc,
+                                     const DateRange& daterange);

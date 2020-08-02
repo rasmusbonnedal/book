@@ -30,7 +30,7 @@ Todo-list
   * [x] Saldon
   * [x] Resultaträkning
   * [ ] Balansräkning
-  * [ ] Taggrapport
+  * [x] Taggrapport
   * [ ] Grundbok
   * [ ] Huvudbok
   * [ ] Filters

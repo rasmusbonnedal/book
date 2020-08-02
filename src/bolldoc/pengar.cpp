@@ -52,6 +52,14 @@ Pengar Pengar::operator-() const {
     return Pengar(-_pengar);
 }
 
+Pengar Pengar::operator+(const Pengar& rhs) const {
+    return Pengar(_pengar + rhs._pengar);
+}
+
+Pengar Pengar::operator-(const Pengar& rhs) const {
+    return Pengar(_pengar - rhs._pengar);
+}
+
 int64_t Pengar::get() const { return _pengar; }
 
 namespace {

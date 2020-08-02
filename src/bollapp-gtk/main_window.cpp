@@ -23,6 +23,7 @@ MainWindow::MainWindow() {
     add_action("quit", sigc::mem_fun(*this, &MainWindow::on_action_quit));
     add_action("report.saldon", sigc::mem_fun(*this, &MainWindow::on_action_report_saldon));
     add_action("report.resultat", sigc::mem_fun(*this, &MainWindow::on_action_report_resultat));
+    add_action("report.tagg", sigc::mem_fun(*this, &MainWindow::on_action_report_tagg));
     add_action("about", sigc::mem_fun(*this, &MainWindow::on_action_about));
 
     m_paned1.set_orientation(Gtk::ORIENTATION_VERTICAL);
@@ -171,6 +172,13 @@ void MainWindow::on_action_report_saldon() {
 void MainWindow::on_action_report_resultat() {
     std::string report =
         createResultatReportHtmlFile(*m_doc, fullYear(m_doc->getBokforingsar()));
+    show_uri("file://" + report, GDK_CURRENT_TIME);
+}
+
+void MainWindow::on_action_report_tagg() {
+    int year = m_doc->getBokforingsar();
+    std::string report =
+        createTaggReportHtmlFile(*m_doc, DateRange(Date(year, 03, 01), Date(year, 03, 31)));
     show_uri("file://" + report, GDK_CURRENT_TIME);
 }
 
