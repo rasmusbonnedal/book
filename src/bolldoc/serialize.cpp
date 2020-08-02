@@ -100,7 +100,7 @@ std::string intToHex(const uint32_t x) {
 }
 } // namespace
 
-BollDoc Serialize::loadDocument(std::istream& input) {
+BollDoc Serialize::loadDocument(std::istream& input, bool ignoreChecksum) {
     auto doc = std::make_unique<xml_document<>>();
     uint32_t checksum;
 
@@ -111,7 +111,7 @@ BollDoc Serialize::loadDocument(std::istream& input) {
     auto bollbok = getNode(doc.get(), "bollbok");
     auto version = getAttrInt(bollbok, "version");
     auto kontrollsumma = getAttrString(bollbok, "kontrollsumma");
-    if (kontrollsumma != intToHex(checksum)) {
+    if (!ignoreChecksum && kontrollsumma != intToHex(checksum)) {
         std::stringstream error;
         error << "Checksum error while loading document (" << intToHex(checksum)
               << " != " << kontrollsumma << ")";

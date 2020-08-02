@@ -23,3 +23,6 @@ if(MSVC)
 else()
 	target_compile_options(bolldoc PRIVATE -Wall -Werror)
 endif()
+
+add_executable(bless bless.cpp)
+target_link_libraries(bless bolldoc)
