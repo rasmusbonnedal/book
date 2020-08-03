@@ -49,6 +49,7 @@ Todo-list
 - [ ] Accept verifikat only if balanced, and directly on enter on empty konto
 - [ ] Show non-"normal" konto entries in red
 - [x] Live saldo transaction view in sidebar
+- [x] Right just pengar in Saldo view
 
 XML diffs
 *********

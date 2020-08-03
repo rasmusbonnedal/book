@@ -178,7 +178,7 @@ void MainWindow::on_action_report_resultat() {
 void MainWindow::on_action_report_tagg() {
     int year = m_doc->getBokforingsar();
     std::string report =
-        createTaggReportHtmlFile(*m_doc, DateRange(Date(year, 03, 01), Date(year, 03, 31)));
+        createTaggReportHtmlFile(*m_doc, DateRange(Date(year, 04, 01), Date(year, 04, 30)));
     show_uri("file://" + report, GDK_CURRENT_TIME);
 }
 

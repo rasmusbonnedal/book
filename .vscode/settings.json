@@ -2,6 +2,7 @@
     "files.associations": {
         "*.tcc": "cpp",
         "string": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "iosfwd": "cpp"
     }
 }

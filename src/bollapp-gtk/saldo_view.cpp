@@ -9,7 +9,9 @@ SaldoView::SaldoView() {
     m_treeView.append_column("Text", m_columns.m_colText);
     m_treeView.get_column(1)->set_expand(true);
     m_treeView.append_column("Debet / Kredit", m_columns.m_colPengar);
+    m_treeView.get_column_cell_renderer(2)->property_xalign() = 1.0;
     m_treeView.append_column("Saldo", m_columns.m_colSaldo);
+    m_treeView.get_column_cell_renderer(3)->property_xalign() = 1.0;
 }
 
 Gtk::TreeView& SaldoView::getWidget() { return m_treeView; }
