@@ -62,6 +62,10 @@ std::string toXmlText(const std::string& text) {
     std::string s = text;
     replaceAll(s, "&", "&amp;");
     replaceAll(s, "'", "&apos;");
+    replaceAll(s, "\"", "&quot;");
+    replaceAll(s, "<", "&lt;");
+    replaceAll(s, ">", "&gt;");
+    
     return s;
 }
 
