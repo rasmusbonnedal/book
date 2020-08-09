@@ -7,6 +7,8 @@ set(SRCS
     grundbok_view.cpp
     main.cpp
     main_window.cpp
+    report_dialog.cpp
+    report_dialog.h
     saldo_view.cpp
     saldo_view.h
     treeview_enable_edit_next_field.cpp

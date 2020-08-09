@@ -81,6 +81,19 @@ void filterVerifikat(const BollDoc& doc, VerifikatPred vpred, RowPred rpred,
 
 } // namespace
 
+std::string reportTypeString(ReportType t) {
+    switch (t) {
+    case REPORT_RESULTAT:
+        return "Resultaträkning";
+    case REPORT_TAGG:
+        return "Taggrapport";
+    case REPORT_SALDON:
+        return "Saldon";
+    case REPORT_TYPE_COUNT:;
+    }
+    throw std::runtime_error("Invalid ReportType " + std::to_string(t));
+}
+
 void createSaldoReport(const BollDoc& doc, const DateRange& daterange,
                        std::vector<SaldoRow>& report) {
     std::map<int, Pengar> saldoMap;

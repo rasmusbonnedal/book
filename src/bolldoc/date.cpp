@@ -166,3 +166,77 @@ std::string to_string(const DateRange& d) {
 }
 
 DateRange fullYear(int year) { return {Date(year, 1, 1), Date(year, 12, 31)}; }
+
+std::string dateTypeToString(const DateType t) {
+    switch (t) {
+    case DATETYPE_FULL:
+        return "Hela året";
+    case DATETYPE_Q1:
+        return "Q1";
+    case DATETYPE_Q2:
+        return "Q2";
+    case DATETYPE_Q3:
+        return "Q3";
+    case DATETYPE_Q4:
+        return "Q4";
+    case DATETYPE_JANUARY:
+        return "Januari";
+    case DATETYPE_FEBRUARY:
+        return "Februari";
+    case DATETYPE_MARCH:
+        return "Mars";
+    case DATETYPE_APRIL:
+        return "April";
+    case DATETYPE_MAY:
+        return "Maj";
+    case DATETYPE_JUNE:
+        return "Juni";
+    case DATETYPE_JULY:
+        return "Juli";
+    case DATETYPE_AUGUST:
+        return "Augusti";
+    case DATETYPE_SEPTEMBER:
+        return "September";
+    case DATETYPE_OCTOBER:
+        return "Oktober";
+    case DATETYPE_NOVEMBER:
+        return "November";
+    case DATETYPE_DECEMBER:
+        return "December";
+    case DATETYPE_COUNT:;
+    }
+    throw std::runtime_error("Invalid DateType " + std::to_string(t));
+}
+
+DateRange dateTypeToRange(const DateType t, int year) {
+    switch (t) {
+    case DATETYPE_FULL:
+        return fullYear(year);
+    case DATETYPE_Q1:
+    case DATETYPE_Q2:
+    case DATETYPE_Q3:
+    case DATETYPE_Q4:
+    {
+        int month = ((int)t - (int)DATETYPE_Q1) * 3 + 1;
+        return DateRange({year, month, 1}, {year, month + 2, lastDayOfMonth(year, month + 2)});
+    }
+    case DATETYPE_JANUARY:
+    case DATETYPE_FEBRUARY:
+    case DATETYPE_MARCH:
+    case DATETYPE_APRIL:
+    case DATETYPE_MAY:
+    case DATETYPE_JUNE:
+    case DATETYPE_JULY:
+    case DATETYPE_AUGUST:
+    case DATETYPE_SEPTEMBER:
+    case DATETYPE_OCTOBER:
+    case DATETYPE_NOVEMBER:
+    case DATETYPE_DECEMBER:
+    {
+        int month = (int)t - (int)DATETYPE_JANUARY + 1;
+        return DateRange({year, month, 1}, {year, month, lastDayOfMonth(year, month)});
+    }
+    case DATETYPE_COUNT:;
+    }
+    throw std::runtime_error("Invalid DateType " + std::to_string(t));
+}

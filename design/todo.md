@@ -50,6 +50,7 @@ Todo-list
 - [ ] Show non-"normal" konto entries in red
 - [x] Live saldo transaction view in sidebar
 - [x] Right just pengar in Saldo view
+- [ ] Right click "go to verifikat" in saldo view
 
 XML diffs
 *********
@@ -65,5 +66,5 @@ Needed for first entry
 
 For first month
 ***************
-- [ ] "Konto" report
-- [ ] "Tagg" report
+- [x] "Konto" report
+- [x] "Tagg" report

@@ -1,6 +1,7 @@
 #include "main_window.h"
 
 #include "report.h"
+#include "report_dialog.h"
 #include "utils.h"
 
 #include <fstream>
@@ -21,9 +22,7 @@ MainWindow::MainWindow() {
     add_action("open", sigc::mem_fun(*this, &MainWindow::on_action_open));
     add_action("save", sigc::mem_fun(*this, &MainWindow::on_action_save));
     add_action("quit", sigc::mem_fun(*this, &MainWindow::on_action_quit));
-    add_action("report.saldon", sigc::mem_fun(*this, &MainWindow::on_action_report_saldon));
-    add_action("report.resultat", sigc::mem_fun(*this, &MainWindow::on_action_report_resultat));
-    add_action("report.tagg", sigc::mem_fun(*this, &MainWindow::on_action_report_tagg));
+    add_action("report.report", sigc::mem_fun(*this, &MainWindow::on_action_report));
     add_action("about", sigc::mem_fun(*this, &MainWindow::on_action_about));
 
     m_paned1.set_orientation(Gtk::ORIENTATION_VERTICAL);
@@ -145,41 +144,42 @@ void MainWindow::on_action_quit() {
 }
 
 void MainWindow::on_action_about() {
-    Gtk::MessageDialog msgDialog(
-        *this, "B*llb*k", false,
-        Gtk::MESSAGE_INFO, Gtk::BUTTONS_OK, true);
+    Gtk::MessageDialog msgDialog(*this, "B*llb*k", false, Gtk::MESSAGE_INFO,
+                                 Gtk::BUTTONS_OK, true);
 
     std::string gtk_version = std::to_string(gtk_get_major_version()) + "." +
                               std::to_string(gtk_get_minor_version()) + "." +
                               std::to_string(gtk_get_micro_version());
 
-    msgDialog.set_secondary_text(
-        "Build date: " __DATE__ "\n"
-        "Git version: " GIT_VERSION "\n"
-        "Gtk version: " + gtk_version);
-
+    msgDialog.set_secondary_text("Build date: " __DATE__ "\n"
+                                 "Git verMessageDialogsion: " GIT_VERSION "\n"
+                                 "Gtk version: " +
+                                 gtk_version);
 
     msgDialog.run();
-    msgDialog.hide();    
+    msgDialog.hide();
 }
 
-void MainWindow::on_action_report_saldon() {
-    std::string report =
-        createSaldoReportHtmlFile(*m_doc, fullYear(m_doc->getBokforingsar()));
-    show_uri("file://" + report, 0/*GDK_CURRENT_TIME*/);
-}
-
-void MainWindow::on_action_report_resultat() {
-    std::string report =
-        createResultatReportHtmlFile(*m_doc, fullYear(m_doc->getBokforingsar()));
-    show_uri("file://" + report, GDK_CURRENT_TIME);
-}
-
-void MainWindow::on_action_report_tagg() {
+void MainWindow::on_action_report() {
     int year = m_doc->getBokforingsar();
-    std::string report =
-        createTaggReportHtmlFile(*m_doc, DateRange(Date(year, 04, 01), Date(year, 04, 30)));
-    show_uri("file://" + report, GDK_CURRENT_TIME);
+    if (!ReportDialog::doReportDialog(*this, year, m_reportDetails)) {
+        return;
+    }
+    std::string report;
+    DateRange range = dateTypeToRange(m_reportDetails.dateRange, year);
+    switch (m_reportDetails.reportType) {
+    case REPORT_RESULTAT:
+        report = createResultatReportHtmlFile(*m_doc, range);
+        break;
+    case REPORT_TAGG:
+        report = createTaggReportHtmlFile(*m_doc, range);
+        break;
+    case REPORT_SALDON:
+        report = createSaldoReportHtmlFile(*m_doc, range);
+        break;
+    case REPORT_TYPE_COUNT:;
+    }
+    show_uri("file://" + report, 0/*GDK_CURRENT_TIME*/);
 }
 
 // Ask the user if he wants to save, and saves if that is the case.
@@ -311,6 +311,7 @@ void MainWindow::saveFile(const std::string& path) {
 
 void MainWindow::updateDoc() {
     if (m_doc) {
+        m_reportDetails = { DATETYPE_FULL, REPORT_RESULTAT };
         m_grundbokView.updateWithDoc(*m_doc);
         m_grundbokView.addNewVerifikatRow(*m_doc);
         m_verifikatView.clear();

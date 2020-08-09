@@ -8,6 +8,15 @@
 class BollDoc;
 class DateRange;
 
+enum ReportType {
+    REPORT_RESULTAT = 0,
+    REPORT_TAGG,
+    REPORT_SALDON,
+    REPORT_TYPE_COUNT
+};
+
+std::string reportTypeString(ReportType t);
+
 // Saldo report
 using SaldoRow = std::pair<int, Pengar>;
 

@@ -6,6 +6,7 @@
 
 #include "bolldoc.h"
 #include "date.h"
+#include "report_dialog.h"
 #include "serialize.h"
 
 #include <gtkmm.h>
@@ -28,11 +29,7 @@ private:
 
     void on_action_about();
 
-    void on_action_report_saldon();
-
-    void on_action_report_resultat();
-
-    void on_action_report_tagg();
+    void on_action_report();
 
     bool on_delete_event(GdkEventAny* any_event) override;
 
@@ -68,5 +65,6 @@ private:
     std::unique_ptr<BollDoc> m_doc;
     int m_verifikatEditingId;
     std::string m_filename;
+    ReportDetails m_reportDetails;
     bool m_dirty;
 };
