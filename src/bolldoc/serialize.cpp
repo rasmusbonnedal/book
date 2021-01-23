@@ -132,7 +132,7 @@ BollDoc Serialize::loadDocument(std::istream& input, bool ignoreChecksum) {
     auto kontoplan = getNode(bollbok, "kontoplan");
     auto kptyp = getAttrStringOpt(kontoplan, "kptyp").value_or("");
     bolldoc.setKontoPlanTyp(kptyp);
-    for (auto konto = getNode(kontoplan, "konto"); konto;
+    for (auto konto = getNodeNothrow(kontoplan, "konto"); konto;
          konto = konto->next_sibling("konto")) {
         int unid = getAttrInt(konto, "unid");
         auto text = getAttrString(konto, "text");
@@ -154,8 +154,8 @@ BollDoc Serialize::loadDocument(std::istream& input, bool ignoreChecksum) {
         }
     }
 
-    auto verifikationer = getNode(bollbok, "verifikationer");
-    for (auto verifikat = getNode(verifikationer, "verifikat"); verifikat;
+    auto verifikationer = getNodeNothrow(bollbok, "verifikationer");
+    for (auto verifikat = getNodeNothrow(verifikationer, "verifikat"); verifikat;
          verifikat = verifikat->next_sibling("verifikat")) {
         auto unid = getAttrInt(verifikat, "unid");
         auto text = getAttrString(verifikat, "text");
