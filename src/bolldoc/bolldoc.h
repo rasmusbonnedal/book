@@ -2,6 +2,7 @@
 
 #include <istream>
 #include <map>
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -15,7 +16,9 @@ public:
         Konto(int unid, std::string text, int typ,
               std::optional<std::string> normalt = std::nullopt,
               std::optional<std::string> tagg = std::nullopt);
+        Konto(const Konto&) = default;
         Konto(Konto&&) = default;
+        Konto& operator=(const Konto&) = default;
         Konto& operator=(Konto&&) = default;
 
         bool operator==(const Konto& other) const;
@@ -69,7 +72,9 @@ public:
     class Verifikat {
     public:
         Verifikat(int unid, std::string text, Date transdatum);
+        Verifikat(const Verifikat&) = default;
         Verifikat(Verifikat&&) = default;
+        Verifikat& operator=(const Verifikat&) = default;
         Verifikat& operator=(Verifikat&&) = default;
 
         bool operator==(const Verifikat& other) const;
@@ -151,6 +156,8 @@ public:
 
     std::vector<const Verifikat*> getVerifikatRange(const int unidStart,
                                                     const int unidEnd) const;
+
+    BollDoc newYear() const;
 
 private:
     Verifikat& getVerifikatMut(int unid);

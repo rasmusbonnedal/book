@@ -28,6 +28,7 @@ void BollBokApp::on_startup() {
     Glib::RefPtr<Gio::Menu> win_menu = Gio::Menu::create();
     Glib::RefPtr<Gio::Menu> submenu_file = Gio::Menu::create();
     submenu_file->append("_New", "win.new");
+    submenu_file->append("New _year same firm", "win.new_year");
     submenu_file->append("_Open", "win.open");
     submenu_file->append("_Save", "win.save");
     submenu_file->append("_Quit", "win.quit");

@@ -21,6 +21,8 @@ public:
 private:
     void on_action_new();
 
+    void on_action_new_year();
+
     void on_action_open();
 
     void on_action_save();

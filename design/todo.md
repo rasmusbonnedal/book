@@ -26,7 +26,7 @@ Todo-list
 - [ ] Disallow edit old entries
 - [ ] Allow strykning of old entries
 - [ ] Add/Edit konton
-- [ ] New year same firm
+- [x] New year same firm
 - [ ] Reports
   * [x] Saldon
   * [x] Resultaträkning

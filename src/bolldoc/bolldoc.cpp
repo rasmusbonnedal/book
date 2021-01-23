@@ -248,6 +248,26 @@ bool BollDoc::Verifikat::getOmslutning(Pengar& omslutning) const {
     return true;
 }
 
+BollDoc BollDoc::newYear() const {
+    BollDoc doc(*this);
+    doc._bokforingsar++;
+    doc._verifikat.clear();
+    Verifikat v(0, "Ingående saldon", Date(0, 1, 1));
+    std::map<int, Pengar> balans;
+    for (auto& ver: getVerifikationer()) {
+        for (auto& rad: ver.getRader()) {
+            if (!rad.getStruken() && getKontoPlan().at(rad.getKonto()).getTyp() == 1) {
+                balans[rad.getKonto()] += rad.getPengar();
+            }
+        }
+    }
+    for (auto& konto: balans) {
+        v.addRad(Rad(now(), konto.first, konto.second));
+    }
+    doc.addVerifikat(std::move(v));
+    return doc;
+}
+
 std::ostream& operator<<(std::ostream& stream, const BollDoc::Rad& rad) {
     stream << rad.getBokdatum() << ": " << rad.getKonto() << " " << rad.getPengar();
     auto struken = rad.getStruken();

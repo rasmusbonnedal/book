@@ -19,6 +19,7 @@ void setVerifikat(VerifikatView& view, const BollDoc::Verifikat& verifikat) {
 
 MainWindow::MainWindow() {
     add_action("new", sigc::mem_fun(*this, &MainWindow::on_action_new));
+    add_action("new_year", sigc::mem_fun(*this, &MainWindow::on_action_new_year));
     add_action("open", sigc::mem_fun(*this, &MainWindow::on_action_open));
     add_action("save", sigc::mem_fun(*this, &MainWindow::on_action_save));
     add_action("quit", sigc::mem_fun(*this, &MainWindow::on_action_quit));
@@ -79,6 +80,18 @@ void MainWindow::on_action_new() {
     std::string valuta = "SEK";
     m_doc = std::make_unique<BollDoc>(version, firma, orgnummer, bokforingsar,
                                       valuta, false);
+    m_dirty = true;
+    m_filename.clear();
+    updateDoc();
+    m_header.set_title("Untitled");
+}
+
+void MainWindow::on_action_new_year() {
+    if (m_dirty && !doSaveDialog()) {
+        return;
+    }
+
+    m_doc = std::make_unique<BollDoc>(m_doc->newYear());
     m_dirty = true;
     m_filename.clear();
     updateDoc();
@@ -304,6 +317,7 @@ void MainWindow::saveFile(const std::string& path) {
     if (ofs.good()) {
         Serialize::saveDocumentCustom(*m_doc, ofs);
         m_dirty = false;
+        m_header.set_title(m_filename);
     } else {
         std::cout << "Error saving " << path << std::endl;
     }

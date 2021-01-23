@@ -7,6 +7,9 @@ namespace {
 BollDoc createDoc() {
     BollDoc doc(2074, "Ruffel & Båg", "551122-1234", 2018, "SEK", false);
 
+    doc.addKonto(BollDoc::Konto(1910, "Kassa", 1));
+    doc.addKonto(BollDoc::Konto(5010, "Hyra", 3));
+
     doc.addVerifikat({0, "Ingående saldon", Date(0, 1, 1)});
     for (int i = 1; i <= 12; ++i) {
         BollDoc::Verifikat v{i, "Hyra", Date(2018, i, 1)};
@@ -114,4 +117,17 @@ TEST_CASE("Add") {
     v.setTransdatum(Date(2018, 6, 1));
     doc.addVerifikat(std::move(v));
     CHECK(doc.getVerifikat(13).getTransdatum() == Date(2018, 6, 1));
+}
+
+TEST_CASE("New Year") {
+    BollDoc doc = createDoc();
+    BollDoc newYear = doc.newYear();
+    CHECK(newYear.getBokforingsar() == 2019);
+    CHECK(newYear.getVerifikationer().size() == 1);
+    const BollDoc::Verifikat& v = newYear.getVerifikat(0);
+    CHECK(v.getText() == "Ingående saldon");
+    CHECK(v.getRader().size() == 1);
+    const BollDoc::Rad& rad = v.getRad(0);
+    CHECK(rad.getKonto() == 1910);
+    CHECK(rad.getPengar() == parsePengar("-96000"));
 }
