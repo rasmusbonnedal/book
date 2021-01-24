@@ -30,7 +30,7 @@ Todo-list
 - [ ] Reports
   * [x] Saldon
   * [x] Resultaträkning
-  * [ ] Balansräkning
+  * [x] Balansräkning
   * [x] Taggrapport
   * [ ] Grundbok
   * [ ] Huvudbok
@@ -40,7 +40,7 @@ Todo-list
 - [ ] Check reports for year 2019 against bollbok
   * [x] Saldon
   * [x] Resultaträkning
-  * [ ] Balansräkning
+  * [x] Balansräkning
   * [ ] Taggrapport
   * [ ] Grundbok
   * [ ] Huvudbok

@@ -184,6 +184,9 @@ void MainWindow::on_action_report() {
     case REPORT_RESULTAT:
         report = createResultatReportHtmlFile(*m_doc, range);
         break;
+    case REPORT_BALANS:
+        report = createBalansReportHtmlFile(*m_doc, range);
+        break;
     case REPORT_TAGG:
         report = createTaggReportHtmlFile(*m_doc, range);
         break;

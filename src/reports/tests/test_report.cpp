@@ -58,6 +58,17 @@ TEST_CASE("Report Resultat") {
     std::cout << ss.str();
 }
 
+TEST_CASE("Report Balans") {
+    BalansRapport report;
+    BollDoc doc = createDoc();
+    DateRange range(Date(2018, 1, 1), Date(2018, 3, 1));
+    createBalansReport(doc, range, report);
+    CHECK(report.m_balans.size() == 1);
+    CHECK(report.m_balans[0].m_konto == 1910);
+    CHECK(report.m_balans[0].m_start == Pengar(0));
+    CHECK(report.m_balans[0].m_end == Pengar(-2400000));
+}
+
 TEST_CASE("Taggrapport") {
     std::vector<TaggRow> report;
     BollDoc doc = createDoc();

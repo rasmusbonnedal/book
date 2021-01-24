@@ -10,6 +10,7 @@ class DateRange;
 
 enum ReportType {
     REPORT_RESULTAT = 0,
+    REPORT_BALANS,
     REPORT_TAGG,
     REPORT_SALDON,
     REPORT_TYPE_COUNT
@@ -48,6 +49,24 @@ void renderHtmlResultatReport(const BollDoc& doc,
 
 std::string createResultatReportHtmlFile(const BollDoc& doc,
                                          const DateRange& daterange);
+
+// Balansräkning
+
+struct BalansRow {
+    int m_konto;
+    Pengar m_start, m_end;
+};
+
+struct BalansRapport {
+    std::vector<BalansRow> m_balans;
+};
+
+void createBalansReport(const BollDoc& doc, const DateRange& daterange,
+                        BalansRapport& report);
+
+void renderHtmlBalansReport(const BollDoc& doc, const BalansRapport& report, const DateRange& range, std::ostream& os);
+
+std::string createBalansReportHtmlFile(const BollDoc& doc, const DateRange& daterange);
 
 // Taggrapport
 

@@ -72,7 +72,7 @@ void filterVerifikat(const BollDoc& doc, VerifikatPred vpred, RowPred rpred,
         if (vpred(v)) {
             for (auto& r : v.getRader()) {
                 if (rpred(r)) {
-                    op(r.getKonto(), r.getPengar());
+                    op(r.getKonto(), r.getPengar(), v.getTransdatum());
                 }
             }
         }
@@ -85,6 +85,8 @@ std::string reportTypeString(ReportType t) {
     switch (t) {
     case REPORT_RESULTAT:
         return "Resultaträkning";
+    case REPORT_BALANS:
+        return "Balansräkning";
     case REPORT_TAGG:
         return "Taggrapport";
     case REPORT_SALDON:
@@ -102,7 +104,7 @@ void createSaldoReport(const BollDoc& doc, const DateRange& daterange,
         return (daterange.getEnd() >= v.getTransdatum());
     };
     auto rpred = [](auto& r) { return !r.getStruken(); };
-    auto insertOp = [&saldoMap](int konto, Pengar pengar) {
+    auto insertOp = [&saldoMap](int konto, Pengar pengar, Date) {
         saldoMap[konto] += pengar;
     };
 
@@ -171,7 +173,7 @@ void createResultatReport(const BollDoc& doc, const DateRange& daterange,
     auto rpred = [&doc](auto& r) {
         return !r.getStruken() && doc.getKonto(r.getKonto()).getTyp() == 3;
     };
-    auto insertOp = [&resultatMap](int konto, Pengar pengar) {
+    auto insertOp = [&resultatMap](int konto, Pengar pengar, Date) {
         resultatMap[konto] += pengar;
     };
 
@@ -233,11 +235,100 @@ std::string createResultatReportHtmlFile(const BollDoc& doc,
                                          const DateRange& daterange) {
     srand(time(0));
     std::string filename =
-        "/tmp/saldoreport." + std::to_string(rand()) + ".html";
+        "/tmp/resultatreport." + std::to_string(rand()) + ".html";
     std::ofstream ofs(filename);
     ResultatRapport report;
     createResultatReport(doc, daterange, report);
     renderHtmlResultatReport(doc, report, daterange, ofs);
+    return filename;
+}
+
+void createBalansReport(const BollDoc& doc, const DateRange& daterange,
+                        BalansRapport& report) {
+    std::map<int, std::pair<Pengar, Pengar>> balansMap;
+
+    auto vpred = [&daterange](auto& v) {
+        return daterange.getEnd() >= v.getTransdatum();
+    };
+    auto rpred = [&doc](auto& r) {
+        return !r.getStruken() && doc.getKonto(r.getKonto()).getTyp() == 1;
+    };
+    auto insertOp = [&balansMap, &daterange](int konto, Pengar pengar, Date date) {
+        if (date < daterange.getStart()) {
+            balansMap[konto].first += pengar;
+        }
+        balansMap[konto].second += pengar;
+    };
+
+    filterVerifikat(doc, vpred, rpred, insertOp);
+    for (auto& it: balansMap) {
+        report.m_balans.push_back({ it.first, it.second.first, it.second.second });
+    }
+}
+
+void renderHtmlBalansReport(const BollDoc& doc, const BalansRapport& report,
+                            const DateRange& range, std::ostream& os) {
+    std::string header = "Balansräkning " + doc.getFirma() + " (" +
+                         doc.getOrgnummer() + ") " + to_string(range);
+
+    htmlDoctype(os);
+    os << "<html>" << std::endl;
+    htmlHeader(header, os);
+    os << "<body>" << std::endl;
+    os << "<div>" << std::endl
+       << "<h2>Balansräkning</h2>" << std::endl
+       << "</div>" << std::endl
+       << "<div>" << std::endl
+       << "<h3>" << doc.getFirma() << "</h3>" << std::endl
+       << "<p>Räkenskapsår: " << doc.getBokforingsar() << "</p>" << std::endl
+       << "<p>Period: " << to_string(range) << "</p>" << std::endl;
+    os << "<table>" << std::endl;
+    os << "<tr>" << std::endl;
+    os << "<th></th>" << std::endl;
+    os << "<th>Konto</th>" << std::endl;
+    os << "<th style=\"text-align:right\">Ingående</th>" << std::endl;
+    os << "<th style=\"text-align:right\">Förändring</th>" << std::endl;
+    os << "<th style=\"text-align:right\">Utgående</th>" << std::endl;
+    os << "</tr>" << std::endl;
+    Pengar startSum(0), endSum(0);
+    for (auto& row : report.m_balans) {
+        os << "<tr>" << std::endl;
+        os << "<td>" << row.m_konto << "</td>" << std::endl;
+        os << "<td>" << doc.getKonto(row.m_konto).getText() << "</td>"
+           << std::endl;
+        os << "<td style=\"text-align:right\">" << toHtmlString(row.m_start)
+           << "</td>" << std::endl;
+        os << "<td style=\"text-align:right\">" << toHtmlString(row.m_end - row.m_start)
+           << "</td>" << std::endl;
+        os << "<td style=\"text-align:right\">" << toHtmlString(row.m_end)
+           << "</td>" << std::endl;
+        os << "</tr>" << std::endl;
+        startSum += row.m_start;
+        endSum += row.m_end;
+    }
+    os << "<tr>" << std::endl;
+    os << "<td></td>" << std::endl;
+    os << "<td>Summa</td>" << std::endl;
+    os << "<td style=\"text-align:right\">" << toHtmlString(startSum)
+       << "</td>" << std::endl;
+    os << "<td style=\"text-align:right\">" << toHtmlString(endSum - startSum)
+       << "</td>" << std::endl;
+    os << "<td style=\"text-align:right\">" << toHtmlString(endSum)
+       << "</td>" << std::endl;
+    os << "</table>" << std::endl;
+    os << "</body>" << std::endl;
+    os << "</html>" << std::endl;
+}
+
+std::string createBalansReportHtmlFile(const BollDoc& doc,
+                                       const DateRange& daterange) {
+    srand(time(0));
+    std::string filename =
+        "/tmp/balansreport." + std::to_string(rand()) + ".html";
+    std::ofstream ofs(filename);
+    BalansRapport report;
+    createBalansReport(doc, daterange, report);
+    renderHtmlBalansReport(doc, report, daterange, ofs);
     return filename;
 }
 
@@ -258,7 +349,7 @@ void createTaggReport(const BollDoc& doc, const DateRange& daterange,
     auto rpred = [&doc](auto& r) {
         return !r.getStruken() && doc.getKonto(r.getKonto()).getTagg();
     };
-    auto insertOpIb = [&doc, &taggIb](int konto, Pengar pengar) {
+    auto insertOpIb = [&doc, &taggIb](int konto, Pengar pengar, Date) {
         taggIb[*doc.getKonto(konto).getTagg()] += pengar;
     };
     filterVerifikat(doc, vpredIb, rpred, insertOpIb);
@@ -267,7 +358,7 @@ void createTaggReport(const BollDoc& doc, const DateRange& daterange,
     auto vpredUb = [&daterange](auto& v) {
         return daterange.getEnd() >= v.getTransdatum();
     };
-    auto insertOpUb = [&doc, &taggUb](int konto, Pengar pengar) {
+    auto insertOpUb = [&doc, &taggUb](int konto, Pengar pengar, Date) {
         taggUb[*doc.getKonto(konto).getTagg()] += pengar;
     };
     filterVerifikat(doc, vpredUb, rpred, insertOpUb);
@@ -277,7 +368,7 @@ void createTaggReport(const BollDoc& doc, const DateRange& daterange,
         return v.getTransdatum() >= daterange.getStart() &&
         daterange.getEnd() >= v.getTransdatum();
     };
-    auto insertOpRes = [&doc, &taggResultat](int konto, Pengar pengar) {
+    auto insertOpRes = [&doc, &taggResultat](int konto, Pengar pengar, Date) {
         taggResultat[*doc.getKonto(konto).getTagg()] += pengar;
     };
     filterVerifikat(doc, vpredRes, rpred, insertOpRes);
