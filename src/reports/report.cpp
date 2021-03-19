@@ -96,7 +96,7 @@ std::string getTempFile(const std::string& name) {
         tempdir = "/tmp";
 #endif
     }
-    return tempdir + name;
+    return tempdir + "/" + name;
 }
 
 } // namespace
@@ -174,8 +174,7 @@ std::string createSaldoReportHtmlFile(const BollDoc& doc,
                                       const DateRange& daterange) {
     srand(time(0));
     std::string filename =
-        getTempFile("/saldoreport." + std::to_string(rand()) + ".html");
-    std::cout << filename << std::endl;
+        getTempFile("saldoreport." + std::to_string(rand()) + ".html");
     std::ofstream ofs(filename);
     std::vector<SaldoRow> report;
     createSaldoReport(doc, daterange, report);
@@ -256,7 +255,7 @@ std::string createResultatReportHtmlFile(const BollDoc& doc,
                                          const DateRange& daterange) {
     srand(time(0));
     std::string filename =
-        getTempFile("/resultreport." + std::to_string(rand()) + ".html");
+        getTempFile("resultreport." + std::to_string(rand()) + ".html");
     std::ofstream ofs(filename);
     ResultatRapport report;
     createResultatReport(doc, daterange, report);
@@ -459,7 +458,7 @@ std::string createTaggReportHtmlFile(const BollDoc& doc,
                                      const DateRange& daterange) {
     srand(time(0));
     std::string filename =
-        getTempFile("/taggreport." + std::to_string(rand()) + ".html");
+        getTempFile("taggreport." + std::to_string(rand()) + ".html");
     std::ofstream ofs(filename);
     std::vector<TaggRow> report;
     createTaggReport(doc, daterange, report);

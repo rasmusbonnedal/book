@@ -10,6 +10,6 @@ void openUri(const std::string& uri) {
 #if defined(_WIN32)
     ShellExecute(NULL, "open", uri.c_str(), NULL, NULL, SW_SHOWNORMAL);
 #else
-    show_uri(uri, 0/*GDK_CURRENT_TIME*/);
+    gtk_show_uri_on_window(0, uri.c_str(), 0, 0);
 #endif
 }

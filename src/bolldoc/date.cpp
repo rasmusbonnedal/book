@@ -151,7 +151,11 @@ Date now() {
     auto t = std::chrono::system_clock::now();
     std::time_t tt = std::chrono::system_clock::to_time_t(t);
     auto tm = std::tm{0};
+#if defined(_WIN32)
     gmtime_s(&tm, &tt);
+#else
+    gmtime_r(&tt, &tm);
+#endif
     return Date(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 }
 
