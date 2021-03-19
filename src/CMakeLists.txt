@@ -1,8 +1,4 @@
-if (WIN32)
-	add_subdirectory(bollapp-mfc)
-elseif (UNIX)
-	add_subdirectory(bollapp-gtk)
-endif ()
+add_subdirectory(bollapp-gtk)
 add_subdirectory(bolldoc)
 add_subdirectory(reports)
 

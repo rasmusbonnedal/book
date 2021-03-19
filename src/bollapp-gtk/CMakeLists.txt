@@ -7,6 +7,8 @@ set(SRCS
     grundbok_view.cpp
     main.cpp
     main_window.cpp
+    platform.cpp
+    platform.h
     report_dialog.cpp
     report_dialog.h
     saldo_view.cpp

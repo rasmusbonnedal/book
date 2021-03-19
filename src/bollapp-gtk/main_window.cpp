@@ -1,9 +1,11 @@
 #include "main_window.h"
 
+#include "platform.h"
 #include "report.h"
 #include "report_dialog.h"
 #include "utils.h"
 
+#include <filesystem>
 #include <fstream>
 
 namespace {
@@ -35,6 +37,8 @@ MainWindow::MainWindow() {
     m_saldoScroll.set_size_request(400, 50);
     m_saldoScroll.add(m_saldoView.getWidget());
 
+//    m_paned1.set_wide_handle(true);
+//    m_paned2.set_wide_handle(true);
     m_paned1.add1(m_grundbokScroll);
     m_paned2.pack1(m_verifikatScroll, Gtk::AttachOptions::FILL);
     m_paned2.pack2(m_saldoScroll, Gtk::AttachOptions::FILL);
@@ -60,6 +64,7 @@ MainWindow::MainWindow() {
     m_grundbokView.setOnEditedText(
         sigc::mem_fun(this, &MainWindow::onVerifikatTextEdited));
 
+    set_title("Untitled");
     m_header.set_title("Untitled");
     m_header.set_show_close_button(true);
     set_titlebar(m_header);
@@ -83,6 +88,7 @@ void MainWindow::on_action_new() {
     m_dirty = true;
     m_filename.clear();
     updateDoc();
+    set_title("Untitled");
     m_header.set_title("Untitled");
 }
 
@@ -165,7 +171,7 @@ void MainWindow::on_action_about() {
                               std::to_string(gtk_get_micro_version());
 
     msgDialog.set_secondary_text("Build date: " __DATE__ "\n"
-                                 "Git verMessageDialogsion: " GIT_VERSION "\n"
+                                 "Git version: " GIT_VERSION "\n"
                                  "Gtk version: " +
                                  gtk_version);
 
@@ -195,7 +201,7 @@ void MainWindow::on_action_report() {
         break;
     case REPORT_TYPE_COUNT:;
     }
-    show_uri("file://" + report, 0/*GDK_CURRENT_TIME*/);
+    openUri("file://" + report);
 }
 
 // Ask the user if he wants to save, and saves if that is the case.
@@ -299,11 +305,12 @@ void MainWindow::onVerifikatSelected() {
 }
 
 void MainWindow::loadFile(const std::string& path) {
-    std::ifstream ifs(path);
+    std::ifstream ifs(std::filesystem::u8path(path));
     if (ifs.good()) {
         size_t pos = path.find_last_of('/');
         std::string filename =
             (pos == std::string::npos) ? path : path.substr(pos + 1);
+        set_title(filename);
         m_header.set_title(filename);
         set_titlebar(m_header);
         m_doc = std::make_unique<BollDoc>(Serialize::loadDocument(ifs));
@@ -311,12 +318,13 @@ void MainWindow::loadFile(const std::string& path) {
         m_filename = path;
         m_dirty = false;
     } else {
+        std::cout << strerror(errno) << std::endl;
         std::cout << "Error loading " << path << std::endl;
     }
 }
 
 void MainWindow::saveFile(const std::string& path) {
-    std::ofstream ofs(path);
+    std::ofstream ofs(std::filesystem::u8path(path));
     if (ofs.good()) {
         Serialize::saveDocumentCustom(*m_doc, ofs);
         m_dirty = false;

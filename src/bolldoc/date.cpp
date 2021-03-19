@@ -1,5 +1,6 @@
 #include "date.h"
 
+#include <time.h>
 #include <iomanip>
 #include <regex>
 #include <sstream>
@@ -150,7 +151,7 @@ Date now() {
     auto t = std::chrono::system_clock::now();
     std::time_t tt = std::chrono::system_clock::to_time_t(t);
     auto tm = std::tm{0};
-    gmtime_r(&tt, &tm);
+    gmtime_s(&tm, &tt);
     return Date(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 }
 

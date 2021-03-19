@@ -4,6 +4,7 @@
 #include "date.h"
 
 #include <cassert>
+#include <ctime>
 #include <fstream>
 #include <map>
 
@@ -77,6 +78,25 @@ void filterVerifikat(const BollDoc& doc, VerifikatPred vpred, RowPred rpred,
             }
         }
     }
+}
+
+std::string getTempFile(const std::string& name) {
+    char* tmp;
+    std::string tempdir;
+    if ((tmp = getenv("TMPDIR"))) {
+        tempdir = tmp;
+    } else if ((tmp = getenv("TMP"))) {
+        tempdir = tmp;
+    } else if ((tmp = getenv("TEMP"))) {
+        tempdir = tmp;
+    } else {
+#if defined(_WIN32)
+        tempdir = "C:\\";
+#else
+        tempdir = "/tmp";
+#endif
+    }
+    return tempdir + name;
 }
 
 } // namespace
@@ -154,7 +174,8 @@ std::string createSaldoReportHtmlFile(const BollDoc& doc,
                                       const DateRange& daterange) {
     srand(time(0));
     std::string filename =
-        "/tmp/saldoreport." + std::to_string(rand()) + ".html";
+        getTempFile("/saldoreport." + std::to_string(rand()) + ".html");
+    std::cout << filename << std::endl;
     std::ofstream ofs(filename);
     std::vector<SaldoRow> report;
     createSaldoReport(doc, daterange, report);
@@ -235,7 +256,7 @@ std::string createResultatReportHtmlFile(const BollDoc& doc,
                                          const DateRange& daterange) {
     srand(time(0));
     std::string filename =
-        "/tmp/resultatreport." + std::to_string(rand()) + ".html";
+        getTempFile("/resultreport." + std::to_string(rand()) + ".html");
     std::ofstream ofs(filename);
     ResultatRapport report;
     createResultatReport(doc, daterange, report);
@@ -324,7 +345,7 @@ std::string createBalansReportHtmlFile(const BollDoc& doc,
                                        const DateRange& daterange) {
     srand(time(0));
     std::string filename =
-        "/tmp/balansreport." + std::to_string(rand()) + ".html";
+        getTempFile("balansreport." + std::to_string(rand()) + ".html");
     std::ofstream ofs(filename);
     BalansRapport report;
     createBalansReport(doc, daterange, report);
@@ -438,7 +459,7 @@ std::string createTaggReportHtmlFile(const BollDoc& doc,
                                      const DateRange& daterange) {
     srand(time(0));
     std::string filename =
-        "/tmp/taggreport." + std::to_string(rand()) + ".html";
+        getTempFile("/taggreport." + std::to_string(rand()) + ".html");
     std::ofstream ofs(filename);
     std::vector<TaggRow> report;
     createTaggReport(doc, daterange, report);
