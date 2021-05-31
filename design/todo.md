@@ -25,6 +25,7 @@ Todo-list
 - [ ] Check bokföringsdatum on entries
 - [ ] Disallow edit old entries
 - [ ] Allow strykning of old entries
+- [x] Don't remove empty verifikat
 - [ ] Add/Edit konton
 - [x] New year same firm
 - [ ] Reports
@@ -52,6 +53,7 @@ Todo-list
 - [x] Live saldo transaction view in sidebar
 - [x] Right just pengar in Saldo view
 - [ ] Right click "go to verifikat" in saldo view
+- [ ] Show exceptions in dialog box
 
 XML diffs
 *********

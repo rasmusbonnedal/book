@@ -228,8 +228,11 @@ void Serialize::saveDocumentCustom(const BollDoc& doc, std::ostream& output) {
 
     writeXml(ss, indent, "verifikationer", {});
     indent = "\t\t";
+    int last_unid = doc.getVerifikationer().back().getUnid();
     for (const auto& v : doc.getVerifikationer()) {
-        if (v.getRader().empty()) {
+        // This is a hack to make sure the last "Nytt verifikat" empty
+        // verifikat is not saved.
+        if (v.getRader().empty() && v.getUnid() == last_unid) {
             continue;
         }
         writeXml(ss, indent, "verifikat",
@@ -318,8 +321,11 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
     xml_node<>* verifikationer =
         doc->allocate_node(node_element, "verifikationer");
     bollbok->append_node(verifikationer);
+    int last_unid = bolldoc.getVerifikationer().back().getUnid();
     for (auto&& v : bolldoc.getVerifikationer()) {
-        if (v.getRader().empty()) {
+        // This is a hack to make sure the last "Nytt verifikat" empty
+        // verifikat is not saved.
+        if (v.getRader().empty() && v.getUnid() == last_unid) {
             continue;
         }
         xml_node<>* verifikat = doc->allocate_node(node_element, "verifikat");
