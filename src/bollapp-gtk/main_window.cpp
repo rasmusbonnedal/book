@@ -69,7 +69,7 @@ MainWindow::MainWindow() {
     m_header.set_show_close_button(true);
     set_titlebar(m_header);
     set_icon_from_file("src/bollapp-gtk/icon.png");
-    loadFile("../docs/bok1.bollbok");
+    loadFile("c:\\git\\bokforing\\Privat Bokföring 2021.bollbok");
     show_all_children();
 }
 
@@ -170,10 +170,16 @@ void MainWindow::on_action_about() {
                               std::to_string(gtk_get_minor_version()) + "." +
                               std::to_string(gtk_get_micro_version());
 
+#ifdef NDEBUG
+    const std::string build_type = "Release";
+#else
+    const std::string build_type = "Debug";
+#endif
     msgDialog.set_secondary_text("Build date: " __DATE__ "\n"
                                  "Git version: " GIT_VERSION "\n"
                                  "Gtk version: " +
-                                 gtk_version);
+                                 gtk_version + "\n"
+                                 "Build type: " + build_type);
 
     msgDialog.run();
     msgDialog.hide();

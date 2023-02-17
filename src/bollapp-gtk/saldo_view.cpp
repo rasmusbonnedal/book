@@ -1,5 +1,7 @@
 #include "saldo_view.h"
 
+#include "timer.h"
+
 // SaldoView
 
 SaldoView::SaldoView() {
@@ -17,6 +19,9 @@ SaldoView::SaldoView() {
 Gtk::TreeView& SaldoView::getWidget() { return m_treeView; }
 
 void SaldoView::showKonto(const BollDoc& doc, int konto, const Date& lastDate, int verifikatId) {
+    Stopwatch t1;
+    t1.start();
+    m_treeView.unset_model();
     m_model->freeze_notify();
     clear();
     auto verifikat = doc.getVerifikatRange(Date(0, 1, 1), lastDate.addDays(1));
@@ -28,6 +33,8 @@ void SaldoView::showKonto(const BollDoc& doc, int konto, const Date& lastDate, i
                   return lhs->getTransdatum() < rhs->getTransdatum();
               });
     Pengar sum = {0};
+    float lap = t1.lap();
+    //auto row = *(m_model->append());
     for (const auto& v : verifikat) {
         // Skip later verifikats with same date
         if (v->getTransdatum() == lastDate && v->getUnid() > verifikatId) {
@@ -46,7 +53,11 @@ void SaldoView::showKonto(const BollDoc& doc, int konto, const Date& lastDate, i
             }
         }
     }
+    //row[m_columns.m_colText] = "asdf";
     m_model->thaw_notify();
+    m_treeView.set_model(m_model);
+    float t = t1.stop();
+    std::cout << "showKonto(" << konto << ") " << (t * 1000) << " ms, first: " << (lap * 1000) << " ms" << std::endl;
 }
 
 void SaldoView::clear() { m_model->clear(); }

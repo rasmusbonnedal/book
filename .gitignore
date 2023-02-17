@@ -1,5 +1,6 @@
 build
 build_debug
+build_ninja
 .DS_Store
 docs/bok1_rewrite.bollbok
 docs/output.bollbok
