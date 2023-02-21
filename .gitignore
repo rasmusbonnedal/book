@@ -5,3 +5,5 @@ build_ninja
 docs/bok1_rewrite.bollbok
 docs/output.bollbok
 *.aps
+.vscode
+build2

@@ -6,11 +6,7 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c11",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64",
-            "compileCommands": "${workspaceFolder}/build_debug/compile_commands.json"
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
     "version": 4

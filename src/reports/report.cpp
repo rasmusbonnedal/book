@@ -83,11 +83,11 @@ void filterVerifikat(const BollDoc& doc, VerifikatPred vpred, RowPred rpred,
 std::string getTempFile(const std::string& name) {
     char* tmp;
     std::string tempdir;
-    if ((tmp = getenv("TMPDIR"))) {
+    if ((tmp = getenv("TMPDIR")) != 0) {
         tempdir = tmp;
-    } else if ((tmp = getenv("TMP"))) {
+    } else if ((tmp = getenv("TMP")) != 0) {
         tempdir = tmp;
-    } else if ((tmp = getenv("TEMP"))) {
+    } else if ((tmp = getenv("TEMP")) != 0) {
         tempdir = tmp;
     } else {
 #if defined(_WIN32)
@@ -172,7 +172,7 @@ void renderHtmlSaldoReport(const BollDoc& doc,
 
 std::string createSaldoReportHtmlFile(const BollDoc& doc,
                                       const DateRange& daterange) {
-    srand(time(0));
+    srand((unsigned int)time(0));
     std::string filename =
         getTempFile("saldoreport." + std::to_string(rand()) + ".html");
     std::ofstream ofs(filename);
@@ -253,7 +253,7 @@ void renderHtmlResultatReport(const BollDoc& doc,
 
 std::string createResultatReportHtmlFile(const BollDoc& doc,
                                          const DateRange& daterange) {
-    srand(time(0));
+    srand((unsigned int)time(0));
     std::string filename =
         getTempFile("resultreport." + std::to_string(rand()) + ".html");
     std::ofstream ofs(filename);
@@ -342,7 +342,7 @@ void renderHtmlBalansReport(const BollDoc& doc, const BalansRapport& report,
 
 std::string createBalansReportHtmlFile(const BollDoc& doc,
                                        const DateRange& daterange) {
-    srand(time(0));
+    srand((unsigned int)time(0));
     std::string filename =
         getTempFile("balansreport." + std::to_string(rand()) + ".html");
     std::ofstream ofs(filename);
@@ -456,7 +456,7 @@ void renderHtmlTaggReport(const BollDoc& doc,
 
 std::string createTaggReportHtmlFile(const BollDoc& doc,
                                      const DateRange& daterange) {
-    srand(time(0));
+    srand((unsigned int)time(0));
     std::string filename =
         getTempFile("taggreport." + std::to_string(rand()) + ".html");
     std::ofstream ofs(filename);

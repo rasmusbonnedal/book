@@ -1,4 +1,5 @@
-add_subdirectory(bollapp-gtk)
+# add_subdirectory(bollapp-gtk)
+add_subdirectory(bollapp-imgui)
 add_subdirectory(bolldoc)
 add_subdirectory(reports)
 
