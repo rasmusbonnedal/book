@@ -1,7 +1,7 @@
 #include <doctest.h>
 
-#include "timer.h"
 #include "pengar.h"
+#include "timer.h"
 
 TEST_CASE("Parse Pengar") {
     CHECK(parsePengar("-1000,29").get() == -100029);
@@ -64,5 +64,9 @@ TEST_CASE("Parse Pengar timer") {
     float time = t.stop();
     Pengar ref = parsePengar("-1000000010");
     CHECK((sum == ref));
+#if _DEBUG
+    CHECK(time < 1.0f);
+#else
     CHECK(time < 0.1f);
+#endif
 }

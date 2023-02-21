@@ -42,3 +42,14 @@ target_compile_definitions(imgui_glfw PRIVATE IMGUI_ENABLE_FREETYPE)
 target_compile_definitions(imgui_glfw PUBLIC IMGUI_DEFINE_MATH_OPERATORS)
 target_link_libraries(imgui_glfw glfw ${OPENGL_LIBRARY} freetype)
 set_target_properties(imgui_glfw PROPERTIES FOLDER "ext")
+
+# https://github.com/mlabbe/nativefiledialog
+add_library(nativefiledialog
+    nativefiledialog/src/nfd_common.c
+    nativefiledialog/src/nfd_win.cpp
+)
+target_compile_definitions(nativefiledialog PRIVATE UNICODE=1 _UNICODE=1)
+target_include_directories(nativefiledialog PUBLIC nativefiledialog/src/include)
+target_compile_definitions(nativefiledialog PRIVATE -D_CRT_SECURE_NO_WARNINGS)
+#target_compile_definitions(nativefiledialog PUBLIC -DFTG_IGNORE_UNICODE)
+set_target_properties(nativefiledialog PROPERTIES FOLDER "ext")

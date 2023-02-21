@@ -5,12 +5,14 @@
 #include <string>
 #include <vector>
 
+#include "imgui-menu.h"
+
 class ImGuiWindowBase;
 class ImGuiDialog;
 struct GLFWwindow;
 
 class ImGuiApp {
-   public:
+public:
     ImGuiApp(const std::string& name);
     ~ImGuiApp();
     void addWindow(std::shared_ptr<ImGuiWindowBase> window);
@@ -19,11 +21,13 @@ class ImGuiApp {
     void run();
 
     void setStyle(bool dark);
+    ImGuiMenu& getMenu();
 
-   private:
+private:
     std::string _name;
     std::vector<std::shared_ptr<ImGuiWindowBase>> _windows;
     std::vector<std::shared_ptr<ImGuiDialog>> _dialogs;
     std::vector<std::function<void()>> _events;
+    ImGuiMenu _menu;
     GLFWwindow* _glfw_window;
 };

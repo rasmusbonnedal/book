@@ -16,3 +16,6 @@
 [submodule "ext/freetype"]
 	path = ext/freetype
 	url = https://github.com/freetype/freetype
+[submodule "ext/nativefiledialog"]
+	path = ext/nativefiledialog
+	url = https://github.com/mlabbe/nativefiledialog

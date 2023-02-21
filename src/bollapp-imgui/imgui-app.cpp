@@ -111,6 +111,30 @@ void ImGuiApp::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+#if 0
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Edit")) {
+                if (ImGui::MenuItem("Undo", "CTRL+Z")) {
+                }
+                if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {
+                } // Disabled item
+                ImGui::Separator();
+                if (ImGui::MenuItem("Cut", "CTRL+X")) {
+                }
+                if (ImGui::MenuItem("Copy", "CTRL+C")) {
+                }
+                if (ImGui::MenuItem("Paste", "CTRL+V")) {
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+#endif
+        _menu.doit();
+
         for (auto& window: _windows) {
             if (ImGui::Begin(window->name().c_str())) {
                 window->doit();
@@ -157,11 +181,14 @@ void ImGuiApp::addEvent(std::function<void()> event) {
     _events.push_back(event);
 }
 
-
 void ImGuiApp::setStyle(bool dark) {
     if (dark) {
         ImGui::StyleColorsDark();
     } else {
         ImGui::StyleColorsLight();
     }
+}
+
+ImGuiMenu& ImGuiApp::getMenu() {
+    return _menu;
 }
