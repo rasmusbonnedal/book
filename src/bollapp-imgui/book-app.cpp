@@ -8,7 +8,7 @@
 #include "imgui-menu.h"
 
 BookApp::BookApp() : _app("Bokföring") {
-    _verifikat_window = std::make_shared<VerifikatWindow>();
+    _verifikat_window = std::make_shared<VerifikatWindow>(_file_handler);
     _app.addWindow(_verifikat_window);
     _new_verifikat_dialog = std::make_shared<NewVerifikatDialog>();
     _app.addDialog(_new_verifikat_dialog);
