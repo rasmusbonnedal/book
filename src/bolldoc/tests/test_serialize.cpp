@@ -17,10 +17,10 @@ TEST_CASE("Serialize load") {
 
     CHECK(doc.getKonto(1910).getText() == "Kassa");
     CHECK(doc.getKonto(2010).getTyp() == 1);
-    CHECK(!doc.getKonto(2350).getNormalt());
-    CHECK(*doc.getKonto(5010).getNormalt() == "+");
-    CHECK(!doc.getKonto(2350).getTagg());
-    CHECK(*doc.getKonto(3000).getTagg() == "F");
+    CHECK(doc.getKonto(2350).getNormalt().empty());
+    CHECK(doc.getKonto(5010).getNormalt() == "+");
+    CHECK(doc.getKonto(2350).getTagg().empty());
+    CHECK(doc.getKonto(3000).getTagg() == "F");
     CHECK_THROWS_WITH(doc.getKonto(9999), "Could not find konto 9999");
 
     CHECK(doc.getVerifikat(1).getText() == "Hyra");
@@ -49,8 +49,8 @@ TEST_CASE("Serialize load") {
 
 TEST_CASE("Serialize save") {
     BollDoc doc(2074, "Ruffel & Båg", "551122-1234", 2018, "SEK", true);
-    doc.addKonto(BollDoc::Konto(1110, "Byggnader", 1));
-    doc.addKonto(BollDoc::Konto(3000, "Försäljning inom Sverige", 3, "-", "F"));
+    doc.addOrUpdateKonto(BollDoc::Konto(1110, "Byggnader", 1));
+    doc.addOrUpdateKonto(BollDoc::Konto(3000, "Försäljning inom Sverige", 3, "-", "F"));
 
     BollDoc::Verifikat v1{0, "Ingående saldon", parseDate("0000-01-01")};
     v1.addRad({parseDate("2018-12-25"), 1110, parsePengar("1000000")});

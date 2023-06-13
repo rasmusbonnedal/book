@@ -12,18 +12,23 @@ class ImGuiDialog;
 struct GLFWwindow;
 
 class ImGuiApp {
-public:
+   public:
     ImGuiApp(const std::string& name);
     ~ImGuiApp();
     void addWindow(std::shared_ptr<ImGuiWindowBase> window);
     void addDialog(std::shared_ptr<ImGuiDialog> dialog);
     void addEvent(std::function<void()> event);
     void run();
+    bool wantsToQuit();
 
     void setStyle(bool dark);
     ImGuiMenu& getMenu();
+    void setTitle(const std::string& title);
+    void quit();
 
-private:
+   private:
+    bool _wantsToQuit;
+    bool _quit;
     std::string _name;
     std::vector<std::shared_ptr<ImGuiWindowBase>> _windows;
     std::vector<std::shared_ptr<ImGuiDialog>> _dialogs;

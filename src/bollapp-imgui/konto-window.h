@@ -3,12 +3,15 @@
 #include "file-handler.h"
 #include "imgui-window.h"
 
-class VerifikatWindow : public ImGuiWindowBase {
+class BookApp;
+
+class KontoWindow : public ImGuiWindowBase {
    public:
-    VerifikatWindow(FileHandler& file_handler);
+    KontoWindow(FileHandler& file_handler, BookApp& book_app);
     void doit() final;
 
    private:
     FileHandler& _file_handler;
+    BookApp& _book_app;
     int _selected_row;
 };

@@ -7,8 +7,8 @@ namespace {
 BollDoc createDoc() {
     BollDoc doc(2074, "Ruffel & Båg", "551122-1234", 2018, "SEK", false);
 
-    doc.addKonto(BollDoc::Konto(1910, "Kassa", 1));
-    doc.addKonto(BollDoc::Konto(5010, "Hyra", 3));
+    doc.addOrUpdateKonto(BollDoc::Konto(1910, "Kassa", 1));
+    doc.addOrUpdateKonto(BollDoc::Konto(5010, "Hyra", 3));
 
     doc.addVerifikat({0, "Ingående saldon", Date(0, 1, 1)});
     for (int i = 1; i <= 12; ++i) {
@@ -17,7 +17,7 @@ BollDoc createDoc() {
         v.addRad({Date(2018, 12, 25), 5010, parsePengar("8000")});
         doc.addVerifikat(std::move(v));
     }
-    doc.addKonto({0, "Foo", 0});
+    doc.addOrUpdateKonto({0, "Foo", 0});
     return doc;
 }
 } // namespace
@@ -88,7 +88,7 @@ TEST_CASE("Equality") {
     BollDoc ref = createDoc();
     BollDoc cmp = createDoc();
     CHECK(ref == cmp);
-    cmp.addKonto({1, "Bar", 0});
+    cmp.addOrUpdateKonto({1, "Bar", 0});
     CHECK_FALSE(ref == cmp);
     cmp = createDoc();
     cmp.addVerifikat({13, "FooBar", Date(2018, 5, 1)});

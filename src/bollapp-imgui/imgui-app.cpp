@@ -1,5 +1,7 @@
 #include "imgui-app.h"
 
+#include <chrono>
+
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -23,9 +25,45 @@ static void glfw_error_callback(int error, const char* description) {
 }
 
 const bool use_srgb_framebuffer = true;
+
+class Timer {
+    using clock = std::chrono::steady_clock;
+
+   public:
+    Timer() {
+        m_start = clock::now();
+    }
+    unsigned long stop() {
+        auto end = clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(end - m_start);
+        return (unsigned long)diff.count();
+    }
+
+   private:
+    std::chrono::time_point<clock> m_start;
+};
+
+class RollingAverageIsh {
+   public:
+    RollingAverageIsh() : m_average(0) {}
+
+    void sample(double value) {
+        m_average = m_average + (value - m_average) / double(N);
+    }
+
+    double get() const {
+        return m_average;
+    }
+
+   private:
+    double m_average;
+    static const int N = 30;
+};
+
+
 }  // namespace
 
-ImGuiApp::ImGuiApp(const std::string& name) : _name(name) {
+ImGuiApp::ImGuiApp(const std::string& name) : _name(name), _wantsToQuit(false), _quit(false) {
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit()) return;
@@ -67,7 +105,6 @@ ImGuiApp::ImGuiApp(const std::string& name) : _name(name) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     ImFontConfig ifc;
@@ -75,12 +112,13 @@ ImGuiApp::ImGuiApp(const std::string& name) : _name(name) {
     ifc.OversampleV = 1;
     ifc.SizePixels = 15.0f;
     ifc.PixelSnapH = false;
-    
+
     io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/arial.ttf", ifc.SizePixels, &ifc);
 
     // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    ImGui::GetStyle().WindowRounding = 8.0f;
+    // ImGui::StyleColorsDark();
+    ImGui::StyleColorsClassic();
+    ImGui::GetStyle().WindowRounding = 4.0f;
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(_glfw_window, true);
@@ -103,7 +141,11 @@ void ImGuiApp::run() {
         clear_color = srgbToLinear(clear_color);
     }
 
-    while (!glfwWindowShouldClose(_glfw_window)) {
+    std::vector<RollingAverageIsh> window_timings(_windows.size());
+    while (!_quit) {
+        if (_wantsToQuit = glfwWindowShouldClose(_glfw_window)) {
+            glfwSetWindowShouldClose(_glfw_window, 0);
+        }
         glfwPollEvents();
 
         // Start the Dear ImGui frame
@@ -111,46 +153,42 @@ void ImGuiApp::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-#if 0
-        if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu("File")) {
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Edit")) {
-                if (ImGui::MenuItem("Undo", "CTRL+Z")) {
-                }
-                if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {
-                } // Disabled item
-                ImGui::Separator();
-                if (ImGui::MenuItem("Cut", "CTRL+X")) {
-                }
-                if (ImGui::MenuItem("Copy", "CTRL+C")) {
-                }
-                if (ImGui::MenuItem("Paste", "CTRL+V")) {
-                }
-                ImGui::EndMenu();
-            }
-            ImGui::EndMainMenuBar();
-        }
-#endif
         _menu.doit();
 
-        for (auto& window: _windows) {
+        int index = 0;
+        for (auto& window : _windows) {
+            Timer t;
             if (ImGui::Begin(window->name().c_str())) {
                 window->doit();
             }
             ImGui::End();
+            window_timings[index].sample(t.stop() / 1000.0);
+            index++;
         }
+        if (ImGui::Begin("Timings")) {
+            for (int i = 0; i < _windows.size(); ++i) {
+                ImGui::Text("%s: %.2f ms", _windows[i]->name().c_str(), window_timings[i].get());
+            }
+        }
+        ImGui::End();
 
-        for (auto& dialog: _dialogs) {
+
+
+        for (auto& dialog : _dialogs) {
+            dialog->actualLaunch();
             if (ImGui::BeginPopupModal(dialog->name().c_str(), 0, ImGuiWindowFlags_AlwaysAutoResize)) {
                 dialog->doit();
                 ImGui::EndPopup();
             }
         }
 
-        for (auto& event: _events) {
+        for (auto& event : _events) {
             event();
+        }
+        // Application can intercept quit by calling wantsToQuit()
+        // in event(). If this is not done app will quit here.
+        if (_wantsToQuit) {
+            _quit = true;
         }
 
         // Rendering
@@ -185,10 +223,26 @@ void ImGuiApp::setStyle(bool dark) {
     if (dark) {
         ImGui::StyleColorsDark();
     } else {
-        ImGui::StyleColorsLight();
+        ImGui::StyleColorsClassic();
     }
 }
 
 ImGuiMenu& ImGuiApp::getMenu() {
     return _menu;
+}
+
+void ImGuiApp::setTitle(const std::string& title) {
+    glfwSetWindowTitle(_glfw_window, title.c_str());
+}
+
+bool ImGuiApp::wantsToQuit() {
+    if (_wantsToQuit) {
+        _wantsToQuit = false;
+        return true;
+    }
+    return false;
+}
+
+void ImGuiApp::quit() {
+    _quit = true;
 }

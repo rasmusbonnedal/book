@@ -2,9 +2,7 @@
 
 #include <imgui.h>
 
-ImGuiMenuItem::ImGuiMenuItem(const std::string& label,
-                             const std::string& shortcut, std::function<void()> event)
-    : _label(label), _shortcut(shortcut), _event(event) {}
+ImGuiMenuItem::ImGuiMenuItem(Operation operation) : _operation(operation) {}
 
 ImGuiMenuItem::ImGuiMenuItem(Options o) {
     if (o == SEPARATOR) {
@@ -16,9 +14,15 @@ void ImGuiMenuItem::doit() {
     if (_is_separator) {
         ImGui::Separator();
     } else {
-        if (ImGui::MenuItem(_label.c_str(), _shortcut.c_str())) {
-            _event();
+        if (ImGui::MenuItem(_operation.label().c_str(), _operation.shortcut().c_str())) {
+            _operation.trigger();
         }
+    }
+}
+
+void ImGuiMenuItem::checkShortcut() {
+    if (!_is_separator && _operation.isPressed()) {
+        _operation.trigger();
     }
 }
 
@@ -41,15 +45,27 @@ void ImGuiMenuHeader::doit() {
     }
 }
 
+void ImGuiMenuHeader::checkShortcut() {
+    for (auto& item : _items) {
+        item.checkShortcut();
+    }
+}
+
 void ImGuiMenu::addHeader(ImGuiMenuHeader&& header) {
     _headers.push_back(std::move(header));
 }
 
 void ImGuiMenu::doit() {
+    if (_headers.empty()) {
+        return;
+    }
     if (ImGui::BeginMainMenuBar()) {
-        for (auto& header: _headers) {
+        for (auto& header : _headers) {
             header.doit();
         }
         ImGui::EndMainMenuBar();
+    }
+    for (auto& header : _headers) {
+        header.checkShortcut();
     }
 }

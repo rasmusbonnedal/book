@@ -76,9 +76,12 @@ Date Date::addDays(int days) const {
 }
 
 bool Date::checkDate() const {
-    if (_year < 0 || _month < 1 || _month > 12 || _day < 1)
-        return false;
-    return _day <= lastDayOfMonth(_year, _month);
+    return checkDate(_year, _month, _day);
+}
+
+bool Date::checkDate(int y, int m, int d) {
+    if (y < 0 || m < 1 || m > 12 || d < 1) return false;
+    return d <= lastDayOfMonth(y, m);
 }
 
 DateRange::DateRange(const Date& start, const Date& end)
@@ -93,21 +96,24 @@ const std::regex dateRegex("(\\d{4})-(\\d\\d)-(\\d\\d)");
 }
 
 Date parseDate(const std::string& s) {
-    std::smatch m;
-    if (!std::regex_match(s, m, dateRegex) || m.size() != 4) {
-        throw std::runtime_error("Could not parse " + s + " as a date");
+    auto date = parseDateNothrow(s);
+    if (date) {
+        return *date;
     }
-
-    return Date(std::stoi(m[1]), std::stoi(m[2]), std::stoi(m[3]));
+    throw std::runtime_error("Could not parse " + s + " as a date");
 }
 
 std::optional<Date> parseDateNothrow(const std::string& s) {
     std::smatch m;
-    if (!std::regex_match(s, m, dateRegex) || m.size() != 4) {
-        return std::nullopt;
+    if (std::regex_match(s, m, dateRegex) && m.size() == 4) {
+        int year = std::stoi(m[1]);
+        int month = std::stoi(m[2]);
+        int day = std::stoi(m[3]);
+        if (Date::checkDate(year, month, day)) {
+            return Date(year, month, day);
+        }
     }
-
-    return Date(std::stoi(m[1]), std::stoi(m[2]), std::stoi(m[3]));
+    return std::nullopt;
 }
 
 bool operator<(const Date& lhs, const Date& rhs) {
@@ -141,6 +147,10 @@ std::string to_string(const Date& d) {
     std::stringstream ss;
     ss << d;
     return ss.str();
+}
+
+void to_string(const Date& d, char* buf) {
+    snprintf(buf, 11, "%04d-%02d-%02d", d.getYear(), d.getMonth(), d.getDay());
 }
 
 Date lastDayOfMonth(const Date& d) {

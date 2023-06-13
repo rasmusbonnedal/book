@@ -1,9 +1,7 @@
 build
-build_debug
-build_ninja
+build*
 .DS_Store
 docs/bok1_rewrite.bollbok
 docs/output.bollbok
 *.aps
 .vscode
-build2

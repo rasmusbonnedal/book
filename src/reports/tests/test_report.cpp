@@ -21,10 +21,10 @@ BollDoc createDoc() {
         }
         doc.addVerifikat(std::move(v));
     }
-    doc.addKonto({1910, "Bankkonto", 1, std::nullopt, "T1"});
-    doc.addKonto({5010, "Byggkostnader", 3, std::nullopt, "T2"});
-    doc.addKonto({5011, "Andra kostnader", 3, std::nullopt, "T2"});
-    doc.addKonto({5012, "Boo", 3, std::nullopt, "T3"});
+    doc.addOrUpdateKonto({1910, "Bankkonto", 1, "", "T1"});
+    doc.addOrUpdateKonto({5010, "Byggkostnader", 3, "", "T2"});
+    doc.addOrUpdateKonto({5011, "Andra kostnader", 3, "", "T2"});
+    doc.addOrUpdateKonto({5012, "Boo", 3, "", "T3"});
     return doc;
 }
 } // namespace

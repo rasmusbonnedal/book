@@ -1,37 +1,51 @@
 #include "bolldoc.h"
-#include "utils.h"
 
 #include <optional>
 #include <sstream>
 
-BollDoc::BollDoc(int version, std::string firma, std::string orgnummer,
-                 int bokforingsar, std::string valuta, bool avslutat)
-    : _version(version), _firma(std::move(firma)),
-      _orgnummer(std::move(orgnummer)), _bokforingsar(bokforingsar),
-      _valuta(std::move(valuta)), _avslutat(avslutat) {}
+#include "utils.h"
+
+BollDoc::BollDoc(int version, std::string firma, std::string orgnummer, int bokforingsar, std::string valuta, bool avslutat)
+    : _version(version),
+      _firma(std::move(firma)),
+      _orgnummer(std::move(orgnummer)),
+      _bokforingsar(bokforingsar),
+      _valuta(std::move(valuta)),
+      _avslutat(avslutat),
+      _dirty(false) {}
 
 bool BollDoc::operator==(const BollDoc& other) const {
-    return _version == other._version && _firma == other._firma &&
-           _orgnummer == other._orgnummer &&
-           _bokforingsar == other._bokforingsar && _valuta == other._valuta &&
-           _avslutat == other._avslutat && _kontoplan == other._kontoplan &&
-           _verifikat == other._verifikat;
+    return _version == other._version && _firma == other._firma && _orgnummer == other._orgnummer && _bokforingsar == other._bokforingsar &&
+           _valuta == other._valuta && _avslutat == other._avslutat && _kontoplan == other._kontoplan && _verifikat == other._verifikat;
 }
 
-int BollDoc::getVersion() const { return _version; }
+int BollDoc::getVersion() const {
+    return _version;
+}
 
-const std::string& BollDoc::getFirma() const { return _firma; }
+const std::string& BollDoc::getFirma() const {
+    return _firma;
+}
 
-const std::string& BollDoc::getOrgnummer() const { return _orgnummer; }
+const std::string& BollDoc::getOrgnummer() const {
+    return _orgnummer;
+}
 
-int BollDoc::getBokforingsar() const { return _bokforingsar; }
+int BollDoc::getBokforingsar() const {
+    return _bokforingsar;
+}
 
-const std::string& BollDoc::getValuta() const { return _valuta; }
+const std::string& BollDoc::getValuta() const {
+    return _valuta;
+}
 
-bool BollDoc::getAvslutat() const { return _avslutat; }
+bool BollDoc::getAvslutat() const {
+    return _avslutat;
+}
 
-void BollDoc::addKonto(BollDoc::Konto&& konto) {
-    _kontoplan.insert(std::make_pair(konto.getUnid(), std::move(konto)));
+void BollDoc::addOrUpdateKonto(BollDoc::Konto&& konto) {
+    _kontoplan.insert_or_assign(konto.getUnid(), std::move(konto));
+    setMutated();
 }
 
 const BollDoc::Konto& BollDoc::getKonto(int unid) const {
@@ -54,10 +68,12 @@ const std::string& BollDoc::getKontoPlanTyp() const {
 
 void BollDoc::setKontoPlanTyp(const std::string& kptyp) {
     _kptyp = kptyp;
+    setMutated();
 }
 
 void BollDoc::addKontoGrupp(const std::pair<std::string, std::string>& kontogrupp) {
     _kontogrupper.push_back(kontogrupp);
+    setMutated();
 }
 
 const std::vector<std::pair<std::string, std::string>>& BollDoc::getKontoGrupper() const {
@@ -67,25 +83,28 @@ const std::vector<std::pair<std::string, std::string>>& BollDoc::getKontoGrupper
 void BollDoc::addVerifikat(Verifikat&& verifikat) {
     if (verifikat.getUnid() != getNextVerifikatId()) {
         std::stringstream ss;
-        ss << "Verifikat has unid " << verifikat.getUnid() << ", should be "
-           << _verifikat.size();
+        ss << "Verifikat has unid " << verifikat.getUnid() << ", should be " << _verifikat.size();
         throw std::runtime_error(ss.str());
     }
     checkYear(verifikat.getTransdatum());
     _verifikat.push_back(std::move(verifikat));
+    setMutated();
 }
 
 void BollDoc::updateVerifikat(int unid, const std::vector<Rad>& rader) {
     getVerifikatMut(unid).update(rader);
+    setMutated();
 }
 
 void BollDoc::setVerifikatTransdatum(int unid, const Date& date) {
     checkYear(date);
     getVerifikatMut(unid).setTransdatum(date);
+    setMutated();
 }
 
 void BollDoc::setVerifikatText(int unid, const std::string& text) {
     getVerifikatMut(unid).setText(text);
+    setMutated();
 }
 
 int BollDoc::getNextVerifikatId() const {
@@ -106,8 +125,7 @@ const std::vector<BollDoc::Verifikat>& BollDoc::getVerifikationer() const {
     return _verifikat;
 }
 
-std::vector<const BollDoc::Verifikat*>
-BollDoc::getVerifikatRange(const Date& start, const Date& end) const {
+std::vector<const BollDoc::Verifikat*> BollDoc::getVerifikatRange(const Date& start, const Date& end) const {
     std::vector<const Verifikat*> retval;
     for (auto& v : _verifikat) {
         if (v.getTransdatum() >= start && v.getTransdatum() < end) {
@@ -117,8 +135,7 @@ BollDoc::getVerifikatRange(const Date& start, const Date& end) const {
     return retval;
 }
 
-std::vector<const BollDoc::Verifikat*>
-BollDoc::getVerifikatRange(const int unidStart, const int unidEnd) const {
+std::vector<const BollDoc::Verifikat*> BollDoc::getVerifikatRange(const int unidStart, const int unidEnd) const {
     std::vector<const Verifikat*> retval;
     for (auto& v : _verifikat) {
         if (v.getUnid() >= unidStart && v.getUnid() < unidEnd) {
@@ -128,89 +145,123 @@ BollDoc::getVerifikatRange(const int unidStart, const int unidEnd) const {
     return retval;
 }
 
-void
-BollDoc::checkYear(const Date& date) const {
+void BollDoc::checkYear(const Date& date) const {
     if (date.getYear() != 0 && date.getYear() != _bokforingsar) {
         std::stringstream ss;
-        ss << "Wrong year in verifikat, document has year " << _bokforingsar
-           << " and verifikat has year " << date.getYear();
+        ss << "Wrong year in verifikat, document has year " << _bokforingsar << " and verifikat has year " << date.getYear();
         throw std::runtime_error(ss.str());
     }
 }
 
-void
-BollDoc::checkVerifikatId(int unid) const {
+void BollDoc::checkVerifikatId(int unid) const {
     int nextId = getNextVerifikatId();
     if (unid >= nextId || unid < 0) {
         std::stringstream ss;
-        ss << "Verifikat " << unid << " requested, document only has 0-"
-           << nextId - 1;
+        ss << "Verifikat " << unid << " requested, document only has 0-" << nextId - 1;
         throw std::runtime_error(ss.str());
     }
 }
 
-BollDoc::Konto::Konto(int unid, std::string text, int typ,
-                      std::optional<std::string> normalt,
-                      std::optional<std::string> tagg)
-    : _unid(unid), _text(std::move(text)), _typ(typ),
-      _normalt(std::move(normalt)), _tagg(std::move(tagg)) {}
+BollDoc::Konto::Konto(int unid, std::string text, int typ, std::string normalt, std::string tagg)
+    : _unid(unid), _text(std::move(text)), _typ(typ), _normalt(std::move(normalt)), _tagg(std::move(tagg)) {}
 
 bool BollDoc::Konto::operator==(const Konto& other) const {
-    return _unid == other._unid && _text == other._text && _typ == other._typ &&
-           _normalt == other._normalt && _tagg == other._tagg;
+    return _unid == other._unid && _text == other._text && _typ == other._typ && _normalt == other._normalt && _tagg == other._tagg;
 }
 
-int BollDoc::Konto::getUnid() const { return _unid; }
+int BollDoc::Konto::getUnid() const {
+    return _unid;
+}
 
-const std::string& BollDoc::Konto::getText() const { return _text; }
+const std::string& BollDoc::Konto::getText() const {
+    return _text;
+}
 
-int BollDoc::Konto::getTyp() const { return _typ; }
+std::string& BollDoc::Konto::getText() {
+    return _text;
+}
 
-const std::optional<std::string>& BollDoc::Konto::getNormalt() const {
+int BollDoc::Konto::getTyp() const {
+    return _typ;
+}
+
+int& BollDoc::Konto::getTyp() {
+    return _typ;
+}
+
+const std::string& BollDoc::Konto::getNormalt() const {
     return _normalt;
 }
 
-const std::optional<std::string>& BollDoc::Konto::getTagg() const {
+std::string& BollDoc::Konto::getNormalt() {
+    return _normalt;
+}
+
+const std::string& BollDoc::Konto::getTagg() const {
     return _tagg;
 }
 
-BollDoc::Rad::Rad(Date bokdatum, int konto, Pengar pengar,
-                  std::optional<Date> struken)
-    : _bokdatum(std::move(bokdatum)), _konto(konto), _pengar(pengar),
-      _struken(struken) {}
-
-bool BollDoc::Rad::operator==(const Rad& other) const {
-    return _bokdatum == other._bokdatum && _konto == other._konto &&
-           _pengar == other._pengar && _struken == other._struken;
+std::string& BollDoc::Konto::getTagg() {
+    return _tagg;
 }
 
-const Date& BollDoc::Rad::getBokdatum() const { return _bokdatum; }
+BollDoc::Rad::Rad(Date bokdatum, int konto, Pengar pengar, std::optional<Date> struken)
+    : _bokdatum(std::move(bokdatum)), _konto(konto), _pengar(pengar), _struken(struken) {}
 
-int BollDoc::Rad::getKonto() const { return _konto; }
+bool BollDoc::Rad::operator==(const Rad& other) const {
+    return _bokdatum == other._bokdatum && _konto == other._konto && _pengar == other._pengar && _struken == other._struken;
+}
 
-Pengar BollDoc::Rad::getPengar() const { return _pengar; }
+const Date& BollDoc::Rad::getBokdatum() const {
+    return _bokdatum;
+}
 
-const std::optional<Date>& BollDoc::Rad::getStruken() const { return _struken; }
+int BollDoc::Rad::getKonto() const {
+    return _konto;
+}
+
+Pengar BollDoc::Rad::getPengar() const {
+    return _pengar;
+}
+
+const std::optional<Date>& BollDoc::Rad::getStruken() const {
+    return _struken;
+}
 
 BollDoc::Verifikat::Verifikat(int unid, std::string text, Date transdatum)
     : _unid(unid), _text(std::move(text)), _transdatum(std::move(transdatum)) {}
 
 bool BollDoc::Verifikat::operator==(const Verifikat& other) const {
-    return _unid == other._unid && _text == other._text &&
-           _transdatum == other._transdatum && _rader == other._rader;
+    return _unid == other._unid && _text == other._text && _transdatum == other._transdatum && _rader == other._rader;
 }
 
-int BollDoc::Verifikat::getUnid() const { return _unid; }
+int BollDoc::Verifikat::getUnid() const {
+    return _unid;
+}
 
-const std::string& BollDoc::Verifikat::getText() const { return _text; }
+const std::string& BollDoc::Verifikat::getText() const {
+    return _text;
+}
 
-void BollDoc::Verifikat::setText(const std::string& text) { _text = text; }
+std::string& BollDoc::Verifikat::getText() {
+    return _text;
+}
 
-const Date& BollDoc::Verifikat::getTransdatum() const { return _transdatum; }
+void BollDoc::Verifikat::setText(const std::string& text) {
+    _text = text;
+}
 
-void BollDoc::Verifikat::setTransdatum(const Date& date) { _transdatum = date; }
+const Date& BollDoc::Verifikat::getTransdatum() const {
+    return _transdatum;
+}
 
-void BollDoc::Verifikat::addRad(Rad&& rad) { _rader.push_back(std::move(rad)); }
+void BollDoc::Verifikat::setTransdatum(const Date& date) {
+    _transdatum = date;
+}
+
+void BollDoc::Verifikat::addRad(Rad&& rad) {
+    _rader.push_back(std::move(rad));
+}
 
 void BollDoc::Verifikat::update(const std::vector<Rad>& rader) {
     _rader = rader;
@@ -219,8 +270,7 @@ void BollDoc::Verifikat::update(const std::vector<Rad>& rader) {
 const BollDoc::Rad& BollDoc::Verifikat::getRad(int i) const {
     if (i >= (int)_rader.size() || i < 0) {
         std::stringstream ss;
-        ss << "Rad " << i << " requested, verifikat only has 0-"
-           << _rader.size() - 1;
+        ss << "Rad " << i << " requested, verifikat only has 0-" << _rader.size() - 1;
         throw std::runtime_error(ss.str());
     }
     return _rader[i];
@@ -254,17 +304,18 @@ BollDoc BollDoc::newYear() const {
     doc._verifikat.clear();
     Verifikat v(0, "Ingående saldon", Date(0, 1, 1));
     std::map<int, Pengar> balans;
-    for (auto& ver: getVerifikationer()) {
-        for (auto& rad: ver.getRader()) {
+    for (auto& ver : getVerifikationer()) {
+        for (auto& rad : ver.getRader()) {
             if (!rad.getStruken() && getKontoPlan().at(rad.getKonto()).getTyp() == 1) {
                 balans[rad.getKonto()] += rad.getPengar();
             }
         }
     }
-    for (auto& konto: balans) {
+    for (auto& konto : balans) {
         v.addRad(Rad(now(), konto.first, konto.second));
     }
     doc.addVerifikat(std::move(v));
+    doc.setMutated();
     return doc;
 }
 
@@ -275,4 +326,16 @@ std::ostream& operator<<(std::ostream& stream, const BollDoc::Rad& rad) {
         stream << " (struken " << *struken << ")";
     }
     return stream;
+}
+
+void BollDoc::setMutated() {
+    _dirty = true;
+}
+
+bool BollDoc::isDirty() const {
+    return _dirty;
+}
+
+void BollDoc::clearDirty() {
+    _dirty = false;
 }

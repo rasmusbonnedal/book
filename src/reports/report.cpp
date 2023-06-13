@@ -357,8 +357,8 @@ void createTaggReport(const BollDoc& doc, const DateRange& daterange,
     std::map<std::string, std::vector<int>> taggMap;
     for (auto& konto : doc.getKontoPlan()) {
         const auto& tagg = konto.second.getTagg();
-        if (tagg) {
-            taggMap[*tagg].push_back(konto.second.getUnid());
+        if (!tagg.empty()) {
+            taggMap[tagg].push_back(konto.second.getUnid());
         }
     }
 
@@ -367,10 +367,10 @@ void createTaggReport(const BollDoc& doc, const DateRange& daterange,
         return v.getTransdatum() < daterange.getStart();
     };
     auto rpred = [&doc](auto& r) {
-        return !r.getStruken() && doc.getKonto(r.getKonto()).getTagg();
+        return !r.getStruken() && !doc.getKonto(r.getKonto()).getTagg().empty();
     };
     auto insertOpIb = [&doc, &taggIb](int konto, Pengar pengar, Date) {
-        taggIb[*doc.getKonto(konto).getTagg()] += pengar;
+        taggIb[doc.getKonto(konto).getTagg()] += pengar;
     };
     filterVerifikat(doc, vpredIb, rpred, insertOpIb);
 
@@ -379,7 +379,7 @@ void createTaggReport(const BollDoc& doc, const DateRange& daterange,
         return daterange.getEnd() >= v.getTransdatum();
     };
     auto insertOpUb = [&doc, &taggUb](int konto, Pengar pengar, Date) {
-        taggUb[*doc.getKonto(konto).getTagg()] += pengar;
+        taggUb[doc.getKonto(konto).getTagg()] += pengar;
     };
     filterVerifikat(doc, vpredUb, rpred, insertOpUb);
 
@@ -389,7 +389,7 @@ void createTaggReport(const BollDoc& doc, const DateRange& daterange,
         daterange.getEnd() >= v.getTransdatum();
     };
     auto insertOpRes = [&doc, &taggResultat](int konto, Pengar pengar, Date) {
-        taggResultat[*doc.getKonto(konto).getTagg()] += pengar;
+        taggResultat[doc.getKonto(konto).getTagg()] += pengar;
     };
     filterVerifikat(doc, vpredRes, rpred, insertOpRes);
 

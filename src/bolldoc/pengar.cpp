@@ -90,6 +90,37 @@ std::string toString2(const Pengar& p) {
     return ss.str();
 }
 
+void to_string(const Pengar& p, char* buf) {
+    int64_t value = p.get();
+    int64_t kronor = llabs(value / 100);
+    int64_t r = 1000000000;
+
+    if (value < 0) {
+        *buf++ = '-';
+    }
+    bool first = true;
+    while (r > 0) {
+        int64_t x = kronor / r;
+        if (x > 0) {
+            kronor -= x * r;
+            int y = snprintf(buf, 5, first ? "%d" : " %03d", (int)x);
+            buf += y;
+            first = false;
+        }
+        r /= 1000;
+    }
+    int oren = llabs(value) % 100;
+    if (oren != 0) {
+        *buf++ = ',';
+        snprintf(buf, 3, "%02d", oren);
+        buf += 2;
+    }
+    *buf++ = ' ';
+    *buf++ = 'k';
+    *buf++ = 'r';
+    *buf++ = '\0';
+}
+
 std::string toXmlString(const Pengar& p) {
     std::stringstream ss;
     int64_t value = p.get();

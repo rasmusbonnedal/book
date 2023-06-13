@@ -1,16 +1,15 @@
 #include "serialize.h"
 
-#include "utils.h"
-
-#include <rapidxml.hpp>
-#include <rapidxml_print.hpp>
-
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <rapidxml.hpp>
+#include <rapidxml_print.hpp>
 #include <sstream>
 #include <string>
+
+#include "utils.h"
 
 using namespace rapidxml;
 
@@ -18,8 +17,7 @@ namespace {
 using StringPair = std::pair<std::string, std::string>;
 using AttrVec = std::vector<StringPair>;
 
-std::optional<std::string> getAttrStringOpt(xml_node<>* node,
-                                            const std::string& name) {
+std::optional<std::string> getAttrStringOpt(xml_node<>* node, const std::string& name) {
     auto attr = node->first_attribute(name.c_str());
     return attr ? std::make_optional(attr->value()) : std::nullopt;
 }
@@ -49,12 +47,11 @@ xml_node<>* getNode(xml_node<>* node, const std::string& name) {
 }
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to) {
-    if(from.empty())
-        return;
+    if (from.empty()) return;
     size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
         str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+        start_pos += to.length();  // In case 'to' contains 'from', like replacing 'x' with 'yx'
     }
 }
 
@@ -65,11 +62,12 @@ std::string toXmlText(const std::string& text) {
     replaceAll(s, "\"", "&quot;");
     replaceAll(s, "<", "&lt;");
     replaceAll(s, ">", "&gt;");
-    
+
     return s;
 }
 
-void writeXml(std::ostream& os, const std::string& indent, const std::string& node, const AttrVec& attrs, bool close = false, bool space = false, bool endl = true) {
+void writeXml(std::ostream& os, const std::string& indent, const std::string& node, const AttrVec& attrs, bool close = false,
+              bool space = false, bool endl = true) {
     os << indent << "<" << node;
     for (const auto& attr : attrs) {
         os << " " << attr.first << "=\"" << attr.second << "\"";
@@ -87,13 +85,10 @@ void writeXml(std::ostream& os, const std::string& indent, const std::string& no
 }
 
 template <class T>
-void appendAttribute(std::unique_ptr<xml_document<>>& doc, xml_node<>* node,
-                     const std::string& name, const T& value) {
+void appendAttribute(std::unique_ptr<xml_document<>>& doc, xml_node<>* node, const std::string& name, const T& value) {
     std::stringstream ss;
     ss << value;
-    xml_attribute<>* attr =
-        doc->allocate_attribute(doc->allocate_string(name.c_str()),
-                                doc->allocate_string(ss.str().c_str()));
+    xml_attribute<>* attr = doc->allocate_attribute(doc->allocate_string(name.c_str()), doc->allocate_string(ss.str().c_str()));
     node->append_attribute(attr);
 }
 
@@ -102,7 +97,7 @@ std::string intToHex(const uint32_t x) {
     ss << std::hex << std::setfill('0') << std::setw(8) << std::uppercase << x;
     return ss.str();
 }
-} // namespace
+}  // namespace
 
 BollDoc Serialize::loadDocument(std::istream& input, bool ignoreChecksum) {
     auto doc = std::make_unique<xml_document<>>();
@@ -117,8 +112,7 @@ BollDoc Serialize::loadDocument(std::istream& input, bool ignoreChecksum) {
     auto kontrollsumma = getAttrString(bollbok, "kontrollsumma");
     if (!ignoreChecksum && kontrollsumma != intToHex(checksum)) {
         std::stringstream error;
-        error << "Checksum error while loading document (" << intToHex(checksum)
-              << " != " << kontrollsumma << ")";
+        error << "Checksum error while loading document (" << intToHex(checksum) << " != " << kontrollsumma << ")";
         throw std::runtime_error(error.str());
     }
     auto info = getNode(bollbok, "info");
@@ -132,22 +126,20 @@ BollDoc Serialize::loadDocument(std::istream& input, bool ignoreChecksum) {
     auto kontoplan = getNode(bollbok, "kontoplan");
     auto kptyp = getAttrStringOpt(kontoplan, "kptyp").value_or("");
     bolldoc.setKontoPlanTyp(kptyp);
-    for (auto konto = getNodeNothrow(kontoplan, "konto"); konto;
-         konto = konto->next_sibling("konto")) {
+    for (auto konto = getNodeNothrow(kontoplan, "konto"); konto; konto = konto->next_sibling("konto")) {
         int unid = getAttrInt(konto, "unid");
         auto text = getAttrString(konto, "text");
         auto typ = getAttrInt(konto, "typ");
         auto normalt = getAttrStringOpt(konto, "normalt");
         auto tagg = getAttrStringOpt(konto, "k1");
-        BollDoc::Konto k(unid, std::move(text), typ, std::move(normalt),
-                         std::move(tagg));
-        bolldoc.addKonto(std::move(k));
+        BollDoc::Konto k(unid, std::move(text), typ, normalt.value_or(""), tagg.value_or(""));
+        bolldoc.addOrUpdateKonto(std::move(k));
     }
 
     auto kontogrupper = getNodeNothrow(bollbok, "kontogrupper");
     if (kontogrupper) {
         for (auto kontogrupp = getNodeNothrow(kontogrupper, "kontogrupp"); kontogrupp;
-            kontogrupp = kontogrupp->next_sibling("kontogrupp")) {
+             kontogrupp = kontogrupp->next_sibling("kontogrupp")) {
             auto namn = getAttrString(kontogrupp, "namn");
             auto konton = getAttrString(kontogrupp, "konton");
             bolldoc.addKontoGrupp(std::make_pair(namn, konton));
@@ -155,34 +147,30 @@ BollDoc Serialize::loadDocument(std::istream& input, bool ignoreChecksum) {
     }
 
     auto verifikationer = getNodeNothrow(bollbok, "verifikationer");
-    for (auto verifikat = getNodeNothrow(verifikationer, "verifikat"); verifikat;
-         verifikat = verifikat->next_sibling("verifikat")) {
+    for (auto verifikat = getNodeNothrow(verifikationer, "verifikat"); verifikat; verifikat = verifikat->next_sibling("verifikat")) {
         auto unid = getAttrInt(verifikat, "unid");
         auto text = getAttrString(verifikat, "text");
         auto transdatum = getAttrString(verifikat, "transdatum");
         BollDoc::Verifikat v(unid, std::move(text), parseDate(transdatum));
-        for (auto rad = getNodeNothrow(verifikat, "rad"); rad;
-             rad = rad->next_sibling("rad")) {
+        for (auto rad = getNodeNothrow(verifikat, "rad"); rad; rad = rad->next_sibling("rad")) {
             auto bokdatum = getAttrString(rad, "bokdatum");
             auto konto = getAttrInt(rad, "konto");
             auto pengar = parsePengar(getAttrString(rad, "pengar"));
             auto struken = getAttrStringOpt(rad, "struken");
             std::optional<Date> strukenDate;
-            if (struken)
-                strukenDate = parseDate(*struken);
+            if (struken) strukenDate = parseDate(*struken);
             BollDoc::Rad r{parseDate(bokdatum), konto, pengar, strukenDate};
             v.addRad(std::move(r));
         }
         bolldoc.addVerifikat(std::move(v));
     }
-
+    bolldoc.clearDirty();
     return bolldoc;
 }
 
 void Serialize::saveDocumentCustom(const BollDoc& doc, std::ostream& output) {
     std::stringstream ss;
-    ss << "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>"
-       << std::endl;
+    ss << "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" << std::endl;
     ss << "<bollbok version=\"" << doc.getVersion() << "\" kontrollsumma=\"";
     size_t checksumpos = ss.tellp();
     ss << "00000000\">" << std::endl;
@@ -202,11 +190,11 @@ void Serialize::saveDocumentCustom(const BollDoc& doc, std::ostream& output) {
         AttrVec attrs = {{"unid", std::to_string(konto.second.getUnid())},
                          {"text", konto.second.getText()},
                          {"typ", std::to_string(konto.second.getTyp())}};
-        if (konto.second.getTagg()) {
-            attrs.push_back({"k1", *konto.second.getTagg()});
+        if (!konto.second.getTagg().empty()) {
+            attrs.push_back({"k1", konto.second.getTagg()});
         }
-        if (konto.second.getNormalt()) {
-            attrs.push_back({"normalt", *konto.second.getNormalt()});
+        if (!konto.second.getNormalt().empty()) {
+            attrs.push_back({"normalt", konto.second.getNormalt()});
         }
         writeXml(ss, indent, "konto", attrs, true, true);
     }
@@ -216,9 +204,7 @@ void Serialize::saveDocumentCustom(const BollDoc& doc, std::ostream& output) {
     writeXml(ss, indent, "kontogrupper", {});
     indent = "\t\t";
     for (const auto& kontogrupp : doc.getKontoGrupper()) {
-        writeXml(ss, indent, "kontogrupp",
-                 {{"namn", kontogrupp.first}, {"konton", kontogrupp.second}},
-                 true, false, false);
+        writeXml(ss, indent, "kontogrupp", {{"namn", kontogrupp.first}, {"konton", kontogrupp.second}}, true, false, false);
     }
     indent = "\t";
     ss << std::endl << indent << "</kontogrupper>" << std::endl;
@@ -236,14 +222,11 @@ void Serialize::saveDocumentCustom(const BollDoc& doc, std::ostream& output) {
             continue;
         }
         writeXml(ss, indent, "verifikat",
-                 {{"unid", std::to_string(v.getUnid())},
-                  {"text", toXmlText(v.getText())},
-                  {"transdatum", to_string(v.getTransdatum())}});
+                 {{"unid", std::to_string(v.getUnid())}, {"text", toXmlText(v.getText())}, {"transdatum", to_string(v.getTransdatum())}});
         indent = "\t\t\t";
         for (auto&& r : v.getRader()) {
-            AttrVec attrs = {{"bokdatum", to_string(r.getBokdatum())},
-                             {"konto", std::to_string(r.getKonto())},
-                             {"pengar", toXmlString(r.getPengar())}};
+            AttrVec attrs = {
+                {"bokdatum", to_string(r.getBokdatum())}, {"konto", std::to_string(r.getKonto())}, {"pengar", toXmlString(r.getPengar())}};
             if (r.getStruken()) {
                 attrs.push_back({"struken", to_string(*r.getStruken())});
             }
@@ -298,11 +281,11 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
         appendAttribute(doc, kontonode, "unid", konto.getUnid());
         appendAttribute(doc, kontonode, "text", konto.getText());
         appendAttribute(doc, kontonode, "typ", konto.getTyp());
-        if (konto.getTagg()) {
-            appendAttribute(doc, kontonode, "k1", *konto.getTagg());
+        if (!konto.getTagg().empty()) {
+            appendAttribute(doc, kontonode, "k1", konto.getTagg());
         }
-        if (konto.getNormalt()) {
-            appendAttribute(doc, kontonode, "normalt", *konto.getNormalt());
+        if (!konto.getNormalt().empty()) {
+            appendAttribute(doc, kontonode, "normalt", konto.getNormalt());
         }
     }
 
@@ -318,8 +301,7 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
     xml_node<>* objektlista = doc->allocate_node(node_element, "objektlista");
     bollbok->append_node(objektlista);
 
-    xml_node<>* verifikationer =
-        doc->allocate_node(node_element, "verifikationer");
+    xml_node<>* verifikationer = doc->allocate_node(node_element, "verifikationer");
     bollbok->append_node(verifikationer);
     int last_unid = bolldoc.getVerifikationer().back().getUnid();
     for (auto&& v : bolldoc.getVerifikationer()) {
@@ -348,7 +330,6 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
     std::stringstream ss;
     ss << *doc;
     uint32_t checksum = Utils::calcChecksum(ss.str());
-    appendAttribute(doc, bollbok, "kontrollsumma",
-                    doc->allocate_string(intToHex(checksum).c_str()));
+    appendAttribute(doc, bollbok, "kontrollsumma", doc->allocate_string(intToHex(checksum).c_str()));
     output << *doc;
 }

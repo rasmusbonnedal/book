@@ -10,12 +10,10 @@
 #include "pengar.h"
 
 class BollDoc {
-public:
+   public:
     class Konto {
-    public:
-        Konto(int unid, std::string text, int typ,
-              std::optional<std::string> normalt = std::nullopt,
-              std::optional<std::string> tagg = std::nullopt);
+       public:
+        Konto(int unid, std::string text, int typ, std::string normalt = "", std::string tagg = "");
         Konto(const Konto&) = default;
         Konto(Konto&&) = default;
         Konto& operator=(const Konto&) = default;
@@ -27,26 +25,33 @@ public:
 
         const std::string& getText() const;
 
+        std::string& getText();
+
         // 1: Balanskonto
         // 3: Resultatkonto
         int getTyp() const;
 
-        const std::optional<std::string>& getNormalt() const;
+        int& getTyp();
 
-        const std::optional<std::string>& getTagg() const;
+        const std::string& getNormalt() const;
 
-    private:
+        std::string& getNormalt();
+
+        const std::string& getTagg() const;
+
+        std::string& getTagg();
+
+       private:
         int _unid;
         std::string _text;
         int _typ;
-        std::optional<std::string> _normalt;
-        std::optional<std::string> _tagg;
+        std::string _normalt;
+        std::string _tagg;
     };
 
     class Rad {
-    public:
-        Rad(Date bokdatum, int konto, Pengar pengar,
-            std::optional<Date> struken = std::nullopt);
+       public:
+        Rad(Date bokdatum, int konto, Pengar pengar, std::optional<Date> struken = std::nullopt);
         Rad(const Rad&) = default;
         Rad(Rad&&) = default;
         Rad& operator=(const Rad&) = default;
@@ -62,7 +67,7 @@ public:
 
         const std::optional<Date>& getStruken() const;
 
-    private:
+       private:
         Date _bokdatum;
         int _konto;
         Pengar _pengar;
@@ -70,7 +75,9 @@ public:
     };
 
     class Verifikat {
-    public:
+        friend class BollDoc;
+
+       public:
         Verifikat(int unid, std::string text, Date transdatum);
         Verifikat(const Verifikat&) = default;
         Verifikat(Verifikat&&) = default;
@@ -83,6 +90,8 @@ public:
 
         const std::string& getText() const;
 
+        std::string& getText();
+
         void setText(const std::string& text);
 
         const Date& getTransdatum() const;
@@ -91,23 +100,22 @@ public:
 
         void addRad(Rad&& rad);
 
-        void update(const std::vector<Rad>& rader);
-
         const Rad& getRad(int i) const;
 
         const std::vector<Rad>& getRader() const;
 
         bool getOmslutning(Pengar& omslutning) const;
 
-    private:
+       private:
+        void update(const std::vector<Rad>& rader);
+
         int _unid;
         std::string _text;
         Date _transdatum;
         std::vector<Rad> _rader;
     };
 
-    BollDoc(int version, std::string firma, std::string orgnummer,
-            int bokforingsar, std::string valuta, bool avslutat);
+    BollDoc(int version, std::string firma, std::string orgnummer, int bokforingsar, std::string valuta, bool avslutat);
 
     bool operator==(const BollDoc& other) const;
 
@@ -123,19 +131,36 @@ public:
 
     bool getAvslutat() const;
 
-    void addKonto(Konto&& konto);
-
     const Konto& getKonto(int unid) const;
 
     const std::map<int, Konto>& getKontoPlan() const;
 
     const std::string& getKontoPlanTyp() const;
 
+    const std::vector<std::pair<std::string, std::string>>& getKontoGrupper() const;
+
+    int getNextVerifikatId() const;
+
+    const Verifikat& getVerifikat(int unid) const;
+
+    const std::vector<Verifikat>& getVerifikationer() const;
+
+    std::vector<const Verifikat*> getVerifikatRange(const Date& start, const Date& end) const;
+
+    std::vector<const Verifikat*> getVerifikatRange(const int unidStart, const int unidEnd) const;
+
+    BollDoc newYear() const;
+
+    bool isDirty() const;
+
+    void clearDirty();
+
+    // Mutating operations
+    void addOrUpdateKonto(Konto&& konto);
+
     void setKontoPlanTyp(const std::string& kptyp);
 
     void addKontoGrupp(const std::pair<std::string, std::string>& kontogrupp);
-
-    const std::vector<std::pair<std::string, std::string>>& getKontoGrupper() const;
 
     void addVerifikat(Verifikat&& verifikat);
 
@@ -145,26 +170,14 @@ public:
 
     void setVerifikatText(int unid, const std::string& text);
 
-    int getNextVerifikatId() const;
-
-    const Verifikat& getVerifikat(int unid) const;
-
-    const std::vector<Verifikat>& getVerifikationer() const;
-
-    std::vector<const Verifikat*> getVerifikatRange(const Date& start,
-                                                    const Date& end) const;
-
-    std::vector<const Verifikat*> getVerifikatRange(const int unidStart,
-                                                    const int unidEnd) const;
-
-    BollDoc newYear() const;
-
-private:
+   private:
     Verifikat& getVerifikatMut(int unid);
 
     void checkYear(const Date& date) const;
 
     void checkVerifikatId(int unid) const;
+
+    void setMutated();
 
     int _version;
     std::string _firma;
@@ -176,6 +189,7 @@ private:
     std::vector<Verifikat> _verifikat;
     std::string _kptyp;
     std::vector<std::pair<std::string, std::string>> _kontogrupper;
+    bool _dirty;
 };
 
 std::ostream& operator<<(std::ostream& stream, const BollDoc::Rad& rad);

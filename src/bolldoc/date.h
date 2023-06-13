@@ -39,6 +39,8 @@ public:
 
     Date addDays(int days) const;
 
+    static bool checkDate(int y, int m, int d);
+
 private:
     bool checkDate() const;
 
@@ -75,6 +77,8 @@ bool operator!=(const Date& lhs, const Date& rhs);
 std::ostream& operator<<(std::ostream& stream, const Date& d);
 
 std::string to_string(const Date& d);
+
+void to_string(const Date& d, char* buf);
 
 Date lastDayOfMonth(const Date& d);
 

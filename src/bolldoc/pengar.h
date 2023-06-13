@@ -27,6 +27,8 @@ Pengar parsePengar(const std::string& s);
 
 std::string toString2(const Pengar& p);
 
+void to_string(const Pengar& p, char* buf);
+
 std::string toXmlString(const Pengar& p);
 
 std::string toHtmlString(const Pengar& p);

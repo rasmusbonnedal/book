@@ -1,39 +1,45 @@
 #pragma once
 
+#include <assert.h>
+#include <imgui.h>
+
 #include <functional>
 #include <string>
 #include <vector>
 
+#include "operation.h"
+
 class ImGuiMenuItem {
-public:
+   public:
     enum Options { SEPARATOR };
-    ImGuiMenuItem(const std::string& label, const std::string& shortcut, std::function<void()> event);
+    ImGuiMenuItem(Operation operation);
     ImGuiMenuItem(Options o);
     void doit();
+    void checkShortcut();
 
-private:
-    std::string _label, _shortcut;
+   private:
     bool _is_separator = false;
-    std::function<void()> _event;
+    Operation _operation;
 };
 
 class ImGuiMenuHeader {
-public:
+   public:
     ImGuiMenuHeader(const std::string& name);
     void addItem(ImGuiMenuItem&& item);
     void addSeparator();
     void doit();
+    void checkShortcut();
 
-private:
+   private:
     std::vector<ImGuiMenuItem> _items;
     std::string _name;
 };
 
 class ImGuiMenu {
-public:
+   public:
     void addHeader(ImGuiMenuHeader&& header);
     void doit();
 
-private:
+   private:
     std::vector<ImGuiMenuHeader> _headers;
 };
