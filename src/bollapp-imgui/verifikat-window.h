@@ -11,4 +11,5 @@ class VerifikatWindow : public ImGuiWindowBase {
    private:
     FileHandler& _file_handler;
     int _selected_row;
+    std::vector<int> _verifikat_index;
 };

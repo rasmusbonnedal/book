@@ -3,6 +3,8 @@
 #include "file-handler.h"
 #include "imgui-window.h"
 
+#include <vector>
+
 class BookApp;
 
 class KontoWindow : public ImGuiWindowBase {
@@ -14,4 +16,5 @@ class KontoWindow : public ImGuiWindowBase {
     FileHandler& _file_handler;
     BookApp& _book_app;
     int _selected_row;
+    std::vector<int> _kontoplan_index;
 };
