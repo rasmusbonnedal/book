@@ -12,7 +12,8 @@ BollDoc::BollDoc(int version, std::string firma, std::string orgnummer, int bokf
       _bokforingsar(bokforingsar),
       _valuta(std::move(valuta)),
       _avslutat(avslutat),
-      _dirty(false) {}
+      _dirty(false),
+      _revision(0) {}
 
 bool BollDoc::operator==(const BollDoc& other) const {
     return _version == other._version && _firma == other._firma && _orgnummer == other._orgnummer && _bokforingsar == other._bokforingsar &&
@@ -330,6 +331,7 @@ std::ostream& operator<<(std::ostream& stream, const BollDoc::Rad& rad) {
 
 void BollDoc::setMutated() {
     _dirty = true;
+    _revision++;
 }
 
 bool BollDoc::isDirty() const {
@@ -338,4 +340,8 @@ bool BollDoc::isDirty() const {
 
 void BollDoc::clearDirty() {
     _dirty = false;
+}
+
+uint64_t BollDoc::getRevision() const {
+    return _revision;
 }

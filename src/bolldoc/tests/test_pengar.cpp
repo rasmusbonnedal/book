@@ -40,6 +40,30 @@ TEST_CASE("Pengar Stream") {
     CHECK("0,20" == toString2(Pengar(20)));
 }
 
+std::string wrap_to_string(const Pengar& p) {
+    char buf[256];
+    to_string(p, buf);
+    return buf;
+}
+
+TEST_CASE("Pengar Stream") {
+    CHECK("-1 000,29 kr" == wrap_to_string(Pengar(-100029)));
+    CHECK("-1 000,20 kr" == wrap_to_string(Pengar(-100020)));
+    CHECK("-1 000 kr" == wrap_to_string(Pengar(-100000)));
+    CHECK("1 000,29 kr" == wrap_to_string(Pengar(100029)));
+    CHECK("1 000,20 kr" == wrap_to_string(Pengar(100020)));
+    CHECK("1 000 kr" == wrap_to_string(Pengar(100000)));
+    CHECK("-8 000 000 000,01 kr" == wrap_to_string(Pengar(-800000000001)));
+    CHECK("-100,20 kr" == wrap_to_string(Pengar(-10020)));
+    CHECK("-10,20 kr" == wrap_to_string(Pengar(-1020)));
+    CHECK("-1,20 kr" == wrap_to_string(Pengar(-120)));
+    CHECK("-0,20 kr" == wrap_to_string(Pengar(-20)));
+    CHECK("100,20 kr" == wrap_to_string(Pengar(10020)));
+    CHECK("10,20 kr" == wrap_to_string(Pengar(1020)));
+    CHECK("1,20 kr" == wrap_to_string(Pengar(120)));
+    CHECK("0,20 kr" == wrap_to_string(Pengar(20)));
+}
+
 TEST_CASE("Pengar equality") {
     CHECK(parsePengar("-123,45") == Pengar(-12345));
     CHECK(parsePengar("123.45") == Pengar(12345));

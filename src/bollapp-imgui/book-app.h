@@ -7,6 +7,7 @@
 
 class VerifikatWindow;
 class KontoWindow;
+class SaldoWindow;
 class EditKontoDialog;
 class NewVerifikatDialog;
 class SaveFileChangesDialog;
@@ -27,6 +28,7 @@ class BookApp {
 
     std::shared_ptr<VerifikatWindow> _verifikat_window;
     std::shared_ptr<KontoWindow> _konto_window;
+    std::shared_ptr<SaldoWindow> _saldo_window;
     std::shared_ptr<EditKontoDialog> _edit_konto_dialog;
     std::shared_ptr<NewVerifikatDialog> _new_verifikat_dialog;
     std::shared_ptr<SaveFileChangesDialog> _save_file_changes_dialog;

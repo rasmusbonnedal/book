@@ -11,11 +11,7 @@
 #include "serialize.h"
 
 FileHandler::FileHandler() : _op(OP_NOP), _quit(false) {
-#if 0
     newFile();
-#else
-    openFile(std::filesystem::path(R"(C:\git\bokforing\test.bollbok)").u8string());
-#endif
 }
 
 FileHandler::~FileHandler() {}
@@ -95,6 +91,10 @@ bool FileHandler::hasTitleChanged() {
 
 const std::string& FileHandler::getTitle() const {
     return _title;
+}
+
+const std::filesystem::path& FileHandler::getPath() const {
+    return _filename;
 }
 
 std::string FileHandler::getFilename() const {

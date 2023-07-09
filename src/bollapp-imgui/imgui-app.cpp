@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <imgui_internal.h>
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
@@ -123,6 +124,9 @@ ImGuiApp::ImGuiApp(const std::string& name) : _name(name), _wantsToQuit(false), 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(_glfw_window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
+    _settings.init();
+    
+    ImGui::LoadIniSettingsFromDisk(ImGui::GetCurrentContext()->IO.IniFilename);
 }
 
 ImGuiApp::~ImGuiApp() {
@@ -229,6 +233,10 @@ void ImGuiApp::setStyle(bool dark) {
 
 ImGuiMenu& ImGuiApp::getMenu() {
     return _menu;
+}
+
+ImGuiSettings& ImGuiApp::getSettings() {
+    return _settings;
 }
 
 void ImGuiApp::setTitle(const std::string& title) {

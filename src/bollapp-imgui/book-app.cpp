@@ -6,6 +6,7 @@
 #include "edit-konto-dialog.h"
 #include "imgui-menu.h"
 #include "konto-window.h"
+#include "saldo-window.h"
 #include "new-verifikat-dialog.h"
 #include "save-file-changes-dialog.h"
 #include "verifikat-window.h"
@@ -18,6 +19,8 @@ BookApp::BookApp() : _app("Bokföring") {
     _app.addWindow(_verifikat_window);
     _konto_window = std::make_shared<KontoWindow>(_file_handler, *this);
     _app.addWindow(_konto_window);
+    _saldo_window = std::make_shared<SaldoWindow>(_file_handler);
+    _app.addWindow(_saldo_window);
     _edit_konto_dialog = std::make_shared<EditKontoDialog>(_file_handler);
     _app.addDialog(_edit_konto_dialog);
     _new_verifikat_dialog = std::make_shared<NewVerifikatDialog>(_file_handler);
@@ -50,6 +53,10 @@ BookApp::BookApp() : _app("Bokföring") {
 BookApp::~BookApp() {}
 
 void BookApp::run() {
+    std::string filename;
+    if (_app.getSettings().get("current_file", filename)) {
+        _file_handler.openFile(filename);
+    }
     _app.run();
 }
 
@@ -75,5 +82,9 @@ void BookApp::doOpCheckDirty(FileHandler::Operation op) {
         _save_file_changes_dialog->launch();
     } else {
         _file_handler.performOp();
+        auto file = _file_handler.getPath();
+        if (!file.empty()) {
+            _app.getSettings().set("current_file", file.u8string());
+        }
     }
 }

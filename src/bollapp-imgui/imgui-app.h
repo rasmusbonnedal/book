@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "imgui-menu.h"
+#include "imgui-settings.h"
 
 class ImGuiWindowBase;
 class ImGuiDialog;
@@ -23,6 +24,7 @@ class ImGuiApp {
 
     void setStyle(bool dark);
     ImGuiMenu& getMenu();
+    ImGuiSettings& getSettings();
     void setTitle(const std::string& title);
     void quit();
 
@@ -34,5 +36,6 @@ class ImGuiApp {
     std::vector<std::shared_ptr<ImGuiDialog>> _dialogs;
     std::vector<std::function<void()>> _events;
     ImGuiMenu _menu;
+    ImGuiSettings _settings;
     GLFWwindow* _glfw_window;
 };

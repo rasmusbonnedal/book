@@ -32,6 +32,8 @@ class FileHandler {
 
     std::string getFilename() const;
 
+    const std::filesystem::path& getPath() const;
+
     void setOp(Operation o);
 
     void cancelOp();
