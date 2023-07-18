@@ -21,30 +21,35 @@ void FileHandler::newFile() {
     _filename.clear();
 }
 
-bool FileHandler::open() {
+FileHandler::OpenError FileHandler::open(std::string& chosen_file) {
     nfdchar_t* out_path = NULL;
     nfdresult_t result = NFD_OpenDialog("bollbok", NULL, &out_path);
 
     if (result == NFD_OKAY) {
-        std::string path(out_path);
+        chosen_file = out_path;
         free(out_path);
-        openFile(path);
-        return true;
+        return openFile(chosen_file, DO_CHECKSUM);
     } else if (result == NFD_CANCEL) {
     } else {
         std::cout << "Error: " << NFD_GetError() << std::endl;
     }
-    return false;
+    return OE_CANCEL;
 }
 
-void FileHandler::openFile(const std::string& filename) {
+FileHandler::OpenError FileHandler::openFile(const std::string& filename, ChecksumPolicy checkpol) {
     auto p = std::filesystem::u8path(filename);
     std::ifstream ifs(p);
     if (ifs.good()) {
-        _doc = std::make_unique<BollDoc>(Serialize::loadDocument(ifs));
+        try {
+            _doc = std::make_unique<BollDoc>(Serialize::loadDocument(ifs, checkpol == IGNORE_CHECKSUM));
+        } catch (std::exception&) {
+            return OE_CHECKSUM_ERROR;
+        }
         _filename = p;
+        return OE_SUCCESS;
     } else {
         std::cout << "Error: Opening " << filename << std::endl;
+        return OE_FILE_ERROR;
     }
 }
 
@@ -117,14 +122,14 @@ bool FileHandler::shouldQuit() {
     return _quit;
 }
 
-bool FileHandler::performOp() {
+FileHandler::OpenError FileHandler::performOp(std::string& chosen_file) {
     if (_op == OP_NEW) {
         newFile();
     } else if (_op == OP_OPEN) {
-        return open();
+        return open(chosen_file);
     } else if (_op == OP_QUIT) {
         _quit = true;
     }
     _op = OP_NOP;
-    return true;
+    return OE_SUCCESS;
 }

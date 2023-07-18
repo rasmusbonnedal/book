@@ -62,7 +62,7 @@ void NewVerifikatDialog::doit() {
             if (is_last_item && is_konto_set && is_zero) {
                 int balans = 0;
                 for (float v : m_pengar_rad) {
-                    balans += (int)(v * 100.0f);
+                    balans += (int)round(v * 100.0f);
                 }
                 if (balans != 0) {
                     m_pengar_rad[i] = -balans * 0.01f;
@@ -78,7 +78,7 @@ void NewVerifikatDialog::doit() {
     }
     int balans = 0;
     for (float v : m_pengar_rad) {
-        balans += (int)(v * 100.0f);
+        balans += (int)round(v * 100.0f);
     }
     if (balans == 0) {
         ImGui::Text("Raderna balanserar!");
@@ -95,7 +95,7 @@ void NewVerifikatDialog::doit() {
     bool in_active_rows = true;
     for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
         int konto = m_konto_rad_data[i].index;
-        int pengar = (int)(m_pengar_rad[i] * 100.0f);
+        int pengar = (int)round(m_pengar_rad[i] * 100.0f);
         bool rad_ok = konto >= 0 && pengar != 0;
         bool rad_empty = konto == -1 && pengar == 0;
 
@@ -126,7 +126,7 @@ void NewVerifikatDialog::doit() {
             int konto_idx = m_konto_rad_data[i].index;
             if (konto_idx >= 0) {
                 int konto = m_konton_id[konto_idx];
-                int pengar = (int)(m_pengar_rad[i] * 100.0f);
+                int pengar = (int)round(m_pengar_rad[i] * 100.0f);
                 m_verifikat->addRad(BollDoc::Rad(now(), konto, Pengar(pengar)));
             }
         }

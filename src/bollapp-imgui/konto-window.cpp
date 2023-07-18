@@ -42,6 +42,9 @@ KontoWindow::KontoWindow(FileHandler& file_handler, BookApp& book_app)
     : ImGuiWindowBase("Konton"), _file_handler(file_handler), _book_app(book_app) {}
 
 void KontoWindow::doit() {
+    if (ImGui::Button("Nytt konto")) {
+        _book_app.editKontoDialog().launch();    
+    }
     if (ImGui::BeginTable("konton", 5,
                           ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable | ImGuiTableFlags_Borders |
                               ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_NoBordersInBody)) {

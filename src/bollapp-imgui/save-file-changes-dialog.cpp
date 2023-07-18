@@ -12,14 +12,16 @@ void SaveFileChangesDialog::doit() {
     if (ImGui::Button("Yes")) {
         // Don't proceed with op if user cancels save
         if (_file_handler.save()) {
-            _file_handler.performOp();
+            std::string chosen_file;
+            _file_handler.performOp(chosen_file);
         }
         ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
     if (ImGui::Button("No")) {
         // Don't clear dirty if user cancels operation
-        if (_file_handler.performOp()) {
+        std::string chosen_file;
+        if (_file_handler.performOp(chosen_file) == FileHandler::OE_SUCCESS) {
             _file_handler.getDoc().clearDirty();
         }
         ImGui::CloseCurrentPopup();

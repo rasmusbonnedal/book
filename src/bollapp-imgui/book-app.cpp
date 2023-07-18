@@ -10,6 +10,7 @@
 #include "new-verifikat-dialog.h"
 #include "save-file-changes-dialog.h"
 #include "verifikat-window.h"
+#include "checksum-fail-dialog.h"
 
 BookApp::BookApp() : _app("Bokföring") {
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -27,6 +28,8 @@ BookApp::BookApp() : _app("Bokföring") {
     _app.addDialog(_new_verifikat_dialog);
     _save_file_changes_dialog = std::make_shared<SaveFileChangesDialog>(_file_handler);
     _app.addDialog(_save_file_changes_dialog);
+    _checksum_fail_dialog = std::make_shared<ChecksumFailDialog>(_file_handler);
+    _app.addDialog(_checksum_fail_dialog);
 
     // Create events
     _app.addEvent(std::bind(&BookApp::event, this));
@@ -55,7 +58,7 @@ BookApp::~BookApp() {}
 void BookApp::run() {
     std::string filename;
     if (_app.getSettings().get("current_file", filename)) {
-        _file_handler.openFile(filename);
+        _file_handler.openFile(filename, FileHandler::DO_CHECKSUM);
     }
     _app.run();
 }
@@ -81,7 +84,10 @@ void BookApp::doOpCheckDirty(FileHandler::Operation op) {
     if (_file_handler.getDoc().isDirty()) {
         _save_file_changes_dialog->launch();
     } else {
-        _file_handler.performOp();
+        std::string chosen_file;
+        if (_file_handler.performOp(chosen_file) == FileHandler::OE_CHECKSUM_ERROR) {
+            _checksum_fail_dialog->launch(chosen_file);
+        }
         auto file = _file_handler.getPath();
         if (!file.empty()) {
             _app.getSettings().set("current_file", file.u8string());

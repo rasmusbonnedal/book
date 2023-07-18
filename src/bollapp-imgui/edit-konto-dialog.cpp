@@ -35,18 +35,54 @@ EditKontoDialog::EditKontoDialog(FileHandler& file_handler) : ImGuiDialog(u8"Än
 
 void EditKontoDialog::doit() {
     int unid = m_konto.getUnid();
-    ImGui::InputInt("Nummer", &unid, -1, -1, ImGuiInputTextFlags_ReadOnly);
+    bool konto_valid = true;
+    if (m_new_konto) {
+        if (m_konto.getUnid() == 0 || m_file_handler.getDoc().getKontoPlan().count(m_konto.getUnid()) > 0) {
+            konto_valid = false;
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+        }
+        ImGui::InputInt("Nummer", &unid, -1, -1);
+        if (!konto_valid) {
+            ImGui::PopStyleColor();        
+        }
+        if (unid != m_konto.getUnid()) {
+            m_konto = BollDoc::Konto(unid, m_konto.getText(), m_konto.getTyp(), m_konto.getNormalt(), m_konto.getTagg());
+        }    
+    } else {
+        ImGui::InputInt("Nummer", &unid, -1, -1, ImGuiInputTextFlags_ReadOnly);
+    }
+    bool namn_valid = !m_konto.getText().empty();
+    if (!namn_valid) {
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+    }
     ImGui::InputText("Namn", &m_konto.getText());
+    if (!namn_valid) {
+        ImGui::PopStyleColor();
+    }
     ImGui::InputText("Tagg", &m_konto.getTagg());
     const std::vector<std::pair<int, std::string>> typ_combo = {{1, "Balans"}, {3, "Resultat"}};
+    bool typ_valid = m_konto.getTyp() == 1 || m_konto.getTyp() == 3;
+    if (!typ_valid) {
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+    }
     comboBox("Typ", typ_combo, m_konto.getTyp());
+    if (!typ_valid) {
+        ImGui::PopStyleColor();
+    }
     const std::vector<std::pair<std::string, std::string>> norm_combo = {{"+", "+"}, {"-", "-"}, {"", "None"}};
     comboBox("Normal", norm_combo, m_konto.getNormalt());
 
     ImGui::Separator();
+    bool total_valid = konto_valid && namn_valid && typ_valid;
+    if (!total_valid) {
+        ImGui::BeginDisabled();
+    }
     if (ImGui::Button("OK")) {
         m_file_handler.getDoc().addOrUpdateKonto(std::move(m_konto));
         ImGui::CloseCurrentPopup();
+    }
+    if (!total_valid) {
+        ImGui::EndDisabled();
     }
     ImGui::SameLine();
     if (ImGui::Button("Cancel")) {

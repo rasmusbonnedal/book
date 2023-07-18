@@ -301,9 +301,11 @@ bool ImGui::ComboAutoSelectComplex(const char* label, char* input, int inputlen,
         ImGuiInputTextState* state = GetInputTextState(id);
 
         const char* buf_end = NULL;
-        state->CurLenW = ImTextStrFromUtf8(state->TextW.Data, state->TextW.Size, input, NULL, &buf_end);
-        state->CurLenA = (int)(buf_end - input);
-        state->CursorClamp();
+        if (state) {
+            state->CurLenW = ImTextStrFromUtf8(state->TextW.Data, state->TextW.Size, input, NULL, &buf_end);
+            state->CurLenA = (int)(buf_end - input);
+            state->CursorClamp();
+        }
     }
 
     EndChild();

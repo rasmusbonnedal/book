@@ -11,6 +11,7 @@ class SaldoWindow;
 class EditKontoDialog;
 class NewVerifikatDialog;
 class SaveFileChangesDialog;
+class ChecksumFailDialog;
 
 class BookApp {
    public:
@@ -32,6 +33,7 @@ class BookApp {
     std::shared_ptr<EditKontoDialog> _edit_konto_dialog;
     std::shared_ptr<NewVerifikatDialog> _new_verifikat_dialog;
     std::shared_ptr<SaveFileChangesDialog> _save_file_changes_dialog;
+    std::shared_ptr<ChecksumFailDialog> _checksum_fail_dialog;
 
     ImGuiApp _app;
     FileHandler _file_handler;

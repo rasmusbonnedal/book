@@ -11,10 +11,19 @@ class EditKontoDialog : public ImGuiDialog {
 
     void launch(int kontonr) {
         m_konto = m_file_handler.getDoc().getKonto(kontonr);
+        m_new_konto = false;
+        ImGuiDialog::launch();
+    }
+
+    // For new konto
+    void launch() {
+        m_konto = BollDoc::Konto(0, "", 0);
+        m_new_konto = true;
         ImGuiDialog::launch();
     }
 
    private:
     FileHandler& m_file_handler;
     BollDoc::Konto m_konto;
+    bool m_new_konto;
 };
