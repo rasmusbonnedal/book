@@ -2,8 +2,9 @@
 
 #include <sstream>
 
-#include "sieparse.h"
 #include "parsenumber.h"
+#include "sieparse.h"
+#include "string_utils.h"
 
 const char* sie_testdata =
     "#FLAGGA 0\n"
@@ -19,16 +20,19 @@ const char* sie_testdata =
     "#KPTYP BAS2014\n"
     "#KONTO 1010 \"Utvecklingsutgifter\"\n"
     "#SRU 1010 7201\n"
-    "#IB 0 1385 10000.00\n"
+    "#KONTO 1011 \"Balanserade utgifter f”r forskning och utveckling\"\n"
+    "#SRU 1011 7201\n"
+    "#IB 0 1385 10000.40\n"
     "#IB -1 1510 231866.00\n"
-    "#IB 0 1510 90909.00\n"
+    "#IB 0 1510 90909.20\n"
+    "#IB 0 1522 -100909.60\n"
     "#UB -1 1385 10000.00\n"
     "#UB 0 1385 91000.00\n"
     "#UB -2 1510 231866.00\n"
     "#UB -1 1510 90909.00\n"
-    "#UB 0 1510 0.00\n"
-    "#RES -1 3011 - 1053365.54\n"
-    "#RES 0 3011 -712620.71\n"
+    "#UB 0 1510 0.39\n"
+    "#RES -1 3011 -1053365.54\n"
+    "#RES 0 3011 -91000.39\n"
     "#VER \"V\" \"1\" 20230101 \"Bankavgift\" 20230103\n"
     "{\n"
     "\t#TRANS 1933 {} -70.00\n"
@@ -40,13 +44,19 @@ TEST_CASE("SIE parsing") {
     SIEData siedata;
     CHECK(parse(siedata, ss));
 
-    CHECK(siedata.fields["#ORGNR"][0] == "5592900004");
-    CHECK(siedata.fields["#FNAMN"][0] == "Myrkotten Konsult AB");
+    CHECK(siedata.foretags_namn == "Myrkotten Konsult AB");
+    CHECK(siedata.org_nummer == "559290-0004");
+    CHECK(siedata.rakenskapsar_start == 20230101);
+    CHECK(siedata.rakenskapsar_slut == 20231231);
 
     // Check #KONTO
-    CHECK(siedata.kontoplan.size() == 1);
+    CHECK(siedata.kontoplan.size() == 2);
     CHECK(siedata.kontoplan[1010].id == 1010);
     CHECK(siedata.kontoplan[1010].text == "Utvecklingsutgifter");
+    CHECK(siedata.kontoplan[1010].sru == 7201);
+    CHECK(siedata.kontoplan[1011].id == 1011);
+    CHECK(siedata.kontoplan[1011].text == u8"Balanserade utgifter för forskning och utveckling");
+    CHECK(siedata.kontoplan[1011].sru == 7201);
 
     // Check #VER
     CHECK(siedata.verifikat.size() == 1);
@@ -88,8 +98,13 @@ TEST_CASE("Number parsing") {
     int64_t n;
     CHECK((parse_number("1234567", n) && (n == 1234567)));
     CHECK((parse_number("-1234567", n) && (n == -1234567)));
+    CHECK((parse_number("00", n) && (n == 0)));
 
     CHECK_FALSE(parse_number("", n));
     CHECK_FALSE(parse_number("-", n));
     CHECK_FALSE(parse_number("5-", n));
+}
+
+TEST_CASE("UTF-8") {
+    CHECK(convert_cp437_to_utf8("\x94") == u8"ö");
 }

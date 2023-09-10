@@ -8,7 +8,7 @@ class BollDoc;
 
 class FileHandler {
    public:
-    enum Operation { OP_NEW, OP_OPEN, OP_QUIT, OP_NOP };
+    enum Operation { OP_NEW, OP_OPEN, OP_IMPORT, OP_QUIT, OP_NOP };
 
     enum OpenError { OE_SUCCESS = 0, OE_FILE_ERROR = 1, OE_CHECKSUM_ERROR = 2, OE_CANCEL = 3 };
 
@@ -47,6 +47,8 @@ class FileHandler {
     bool shouldQuit();
 
    private:
+    FileHandler::OpenError import_sie();
+       
     std::filesystem::path _filename;
     std::unique_ptr<BollDoc> _doc;
     std::string _title;

@@ -164,7 +164,7 @@ void BollDoc::checkVerifikatId(int unid) const {
 }
 
 BollDoc::Konto::Konto(int unid, std::string text, int typ, std::string normalt, std::string tagg)
-    : _unid(unid), _text(std::move(text)), _typ(typ), _normalt(std::move(normalt)), _tagg(std::move(tagg)) {}
+    : _unid(unid), _text(std::move(text)), _typ(typ), _normalt(std::move(normalt)), _tagg(std::move(tagg)), _sru(-1) {}
 
 bool BollDoc::Konto::operator==(const Konto& other) const {
     return _unid == other._unid && _text == other._text && _typ == other._typ && _normalt == other._normalt && _tagg == other._tagg;
@@ -205,6 +205,15 @@ const std::string& BollDoc::Konto::getTagg() const {
 std::string& BollDoc::Konto::getTagg() {
     return _tagg;
 }
+
+int BollDoc::Konto::getSRU() const {
+    return _sru;
+}
+
+int& BollDoc::Konto::getSRU() {
+    return _sru;
+}
+
 
 BollDoc::Rad::Rad(Date bokdatum, int konto, Pengar pengar, std::optional<Date> struken)
     : _bokdatum(std::move(bokdatum)), _konto(konto), _pengar(pengar), _struken(struken) {}

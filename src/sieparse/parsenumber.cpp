@@ -36,7 +36,7 @@ bool parse_number(const std::string_view& s, int64_t& number) {
     if (sign) {
         number = -number;
     }
-    return number;
+    return true;
 }
 
 bool parse_saldo(const std::string_view& s, int64_t& saldo) {

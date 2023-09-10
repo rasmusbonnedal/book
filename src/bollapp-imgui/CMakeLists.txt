@@ -10,6 +10,7 @@ target_link_libraries(bollapp-imgui-lib
     OpenGL::GL
     nativefiledialog
     bolldoc
+    sieparse
 )
 target_compile_definitions(bollapp-imgui-lib PUBLIC _CRT_SECURE_NO_WARNINGS=1)
 

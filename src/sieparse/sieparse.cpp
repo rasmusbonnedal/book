@@ -4,30 +4,9 @@
 #include <string_view>
 
 #include "parsenumber.h"
+#include "string_utils.h"
 
 namespace {
-
-std::string_view trim(const std::string_view& s) {
-    size_t start = s.find_first_not_of(" \t");
-    if (start == std::string::npos) {
-        return std::string_view();
-    }
-    size_t end = s.find_last_not_of("\n\r\t ");
-    return s.substr(start, end - start + 1);
-}
-
-std::vector<std::string_view> split(const std::string_view& s) {
-    std::vector<std::string_view> result;
-    size_t start, next = 0;
-    while (true) {
-        start = s.find_first_not_of(" \t\n\r", next);
-        if (start == std::string::npos) {
-            return result;
-        }
-        next = s.find_first_of(" \t\n\r", start);
-        result.push_back(s.substr(start, next - start));
-    }
-}
 
 bool parse_field(const std::string_view& line, std::string& tag, std::vector<std::string>& items) {
     enum ParseFieldState { ITEM, SPACE, BRACE, STRING, STRING_BACKSLASH };
@@ -43,7 +22,7 @@ bool parse_field(const std::string_view& line, std::string& tag, std::vector<std
         switch (state) {
             case ITEM: {
                 if (c == ' ' || c == '\t') {
-                    items.push_back(std::move(current_item));
+                    items.push_back(convert_cp437_to_utf8(current_item));
                     current_item.clear();
                     state = SPACE;
                 } else {
@@ -66,7 +45,7 @@ bool parse_field(const std::string_view& line, std::string& tag, std::vector<std
             case BRACE: {
                 if (c == '}') {
                     current_item += c;
-                    items.push_back(std::move(current_item));
+                    items.push_back(convert_cp437_to_utf8(current_item));
                     current_item.clear();
                     state = SPACE;
                 } else {
@@ -78,7 +57,7 @@ bool parse_field(const std::string_view& line, std::string& tag, std::vector<std
                 if (c == '\\') {
                     state = STRING_BACKSLASH;
                 } else if (c == '"') {
-                    items.push_back(std::move(current_item));
+                    items.push_back(convert_cp437_to_utf8(current_item));
                     current_item.clear();
                     state = SPACE;
                 } else {
@@ -102,7 +81,7 @@ bool parse_field(const std::string_view& line, std::string& tag, std::vector<std
         return false;
     }
     if (state == ITEM) {
-        items.push_back(std::move(current_item));
+        items.push_back(convert_cp437_to_utf8(current_item));
     }
     return true;
 }
@@ -181,7 +160,7 @@ bool process_verifikat(const std::vector<std::string>& items, SIEVerifikat& veri
     }
     if (items.size() > 4) {
         if (!parse_number(items[4], verifikat.bokforingsdatum)) {
-            return false;        
+            return false;
         }
     }
     return true;
@@ -202,11 +181,157 @@ bool process_konto(const std::vector<std::string>& items, SIEKonto& konto) {
     return true;
 }
 
+bool process_sru(const std::vector<std::string>& items, SIEKonto& konto) {
+    if (items.size() < 2) {
+        return false;
+    }
+    // items[0]: id
+    // items[1]: sru
+    int64_t id;
+    if (!parse_number(items[0], id)) {
+        return false;
+    }
+    int64_t sru;
+    if (!parse_number(items[1], sru)) {
+        return false;
+    }
+    konto.id = (int)id;
+    konto.sru = (int)sru;
+    return true;
+}
+
+bool process_rar(const std::vector<std::string>& items, SIEData& siedata) {
+    if (items.size() < 3) {
+        return false;
+    }
+    // items[0]: year_id
+    // items[1]: start date
+    // items[2]: end date
+
+    int64_t id;
+    if (!parse_number(items[0], id)) {
+        return false;
+    }
+    int64_t start;
+    if (!parse_number(items[1], start)) {
+        return false;
+    }
+    int64_t end;
+    if (!parse_number(items[2], end)) {
+        return false;
+    }
+    if (id == 0) {
+        siedata.rakenskapsar_start = (int)start;
+        siedata.rakenskapsar_slut = (int)end;
+    }
+    return true;
+}
+
+bool process_ib(const std::vector<std::string>& items, SIEData& siedata) {
+    if (items.size() < 3) {
+        return false;
+    }
+    // items[0]: year_id
+    // items[1]: konto
+    // items[2]: amount
+    int64_t id;
+    if (!parse_number(items[0], id)) {
+        return false;
+    }
+    int64_t konto;
+    if (!parse_number(items[1], konto)) {
+        return false;
+    }
+    int64_t saldo;
+    if (!parse_saldo(items[2], saldo)) {
+        return false;
+    }
+
+    siedata.balans_resultat[(int)id].ib[(int)konto] = saldo;
+    return true;
+}
+
+bool process_ub(const std::vector<std::string>& items, SIEData& siedata) {
+    if (items.size() < 3) {
+        return false;
+    }
+    // items[0]: year_id
+    // items[1]: konto
+    // items[2]: amount
+    int64_t id;
+    if (!parse_number(items[0], id)) {
+        return false;
+    }
+    int64_t konto;
+    if (!parse_number(items[1], konto)) {
+        return false;
+    }
+    int64_t saldo;
+    if (!parse_saldo(items[2], saldo)) {
+        return false;
+    }
+
+    siedata.balans_resultat[(int)id].ub[(int)konto] = saldo;
+    return true;
+}
+
+bool process_res(const std::vector<std::string>& items, SIEData& siedata) {
+    if (items.size() < 3) {
+        return false;
+    }
+    // items[0]: year_id
+    // items[1]: konto
+    // items[2]: amount
+    int64_t id;
+    if (!parse_number(items[0], id)) {
+        return false;
+    }
+    int64_t konto;
+    if (!parse_number(items[1], konto)) {
+        return false;
+    }
+    int64_t saldo;
+    if (!parse_saldo(items[2], saldo)) {
+        return false;
+    }
+
+    siedata.balans_resultat[(int)id].resultat[(int)konto] = saldo;
+    return true;
+}
+
+bool parse_error(const std::string& line, int line_number, const std::string& message) {
+    std::cerr << "Parse error line #" << line_number << ", " << message << std::endl;
+    std::cerr << "\"" << line << "\"" << std::endl;
+    return false;
+}
+
+bool verify_balances(const SIEData& siedata) {
+    int64_t ib = 0;
+    int64_t ub = 0;
+    int64_t resultat = 0;
+    auto it = siedata.balans_resultat.find(0);
+    if (it != siedata.balans_resultat.end()) {
+        const SIEBalansResultat& br = it->second;
+        for (const auto& [k, v] : br.ib) {
+            ib += v;
+        }
+        for (const auto& [k, v] : br.ub) {
+            ub += v;
+        }
+        for (const auto& [k, v] : br.resultat) {
+            resultat += v;
+        }
+    }
+    if (ib != 0 || ub != -resultat) {
+        std::cerr << "Balances doesn't match, IB = " << ib << ", UB = " << ub << ", Resultat = " << resultat << std::endl;
+        return false;
+    }
+    return true;
+}
+
 }  // namespace
 
-
 bool parse(SIEData& siedata, std::istream& is) {
-    (void)siedata;
     enum States { NORMAL, EXPECT_SUBENTRY, IN_SUBENTRY };
     std::string line;
     States parse_state = NORMAL;
@@ -223,9 +348,7 @@ bool parse(SIEData& siedata, std::istream& is) {
             continue;
         }
         if (token == INVALID) {
-            std::cerr << "Parse error line #" << line_number << ", invalid token" << std::endl;
-            std::cerr << "\"" << line << "\"" << std::endl;
-            return false;
+            return parse_error(line, line_number, "invalid token");
         }
         if (parse_state == NORMAL) {
             switch (token) {
@@ -233,34 +356,54 @@ bool parse(SIEData& siedata, std::istream& is) {
                     std::string tag;
                     std::vector<std::string> items;
                     if (!parse_field(strim, tag, items)) {
-                        std::cerr << "Parse error line #" << line_number << ", error parsing field" << std::endl;
-                        std::cerr << "\"" << line << "\"" << std::endl;
-                        return false;
+                        return parse_error(line, line_number, "parsing field");
                     }
                     if (tag == "#VER") {
                         parse_state = EXPECT_SUBENTRY;
                         if (!process_verifikat(items, verifikat)) {
-                            std::cerr << "Parse error line #" << line_number << ", error processing #VER" << std::endl;
-                            std::cerr << "\"" << line << "\"" << std::endl;
-                            return false;
+                            return parse_error(line, line_number, "processing #VER");
                         }
                     } else if (tag == "#KONTO") {
                         SIEKonto konto;
                         if (!process_konto(items, konto)) {
-                            std::cerr << "Parse error line #" << line_number << ", error processing #KONTO" << std::endl;
-                            std::cerr << "\"" << line << "\"" << std::endl;
-                            return false;
+                            return parse_error(line, line_number, "processing #KONTO");
                         }
                         if (siedata.kontoplan.count(konto.id) > 0) {
                             siedata.kontoplan[konto.id].text = konto.text;
-                        }
-                        else {
+                        } else {
                             siedata.kontoplan[konto.id] = konto;
                         }
+                    } else if (tag == "#SRU") {
+                        SIEKonto konto;
+                        if (!process_sru(items, konto)) {
+                            return parse_error(line, line_number, "processing #SRU");
+                        }
+                        if (siedata.kontoplan.count(konto.id) > 0) {
+                            siedata.kontoplan[konto.id].sru = konto.sru;
+                        } else {
+                            siedata.kontoplan[konto.id] = konto;
+                        }
+                    } else if (tag == "#RAR") {
+                        if (!process_rar(items, siedata)) {
+                            return parse_error(line, line_number, "processing #RAR");
+                        }
+                    } else if (tag == "#IB") {
+                        if (!process_ib(items, siedata)) {
+                            return parse_error(line, line_number, "processing #IB");
+                        }
+                    } else if (tag == "#UB") {
+                        if (!process_ub(items, siedata)) {
+                            return parse_error(line, line_number, "processing #UB");
+                        }
+                    } else if (tag == "#RES") {
+                        if (!process_res(items, siedata)) {
+                            return parse_error(line, line_number, "processing #RES");
+                        }
                     } else {
-                        std::cout << "TAG: " << tag << std::endl;
+                        // std::cout << "TAG: " << tag << std::endl;
                         siedata.fields[tag] = items;
                     }
+
                     break;
                 }
                 case OPEN_BRACE:
@@ -314,5 +457,27 @@ bool parse(SIEData& siedata, std::istream& is) {
             }
         }
     }
-    return true;
+    if (siedata.fields["#SIETYP"][0] != "4") {
+        std::cerr << "Only #SIETYP 4 supported (this is type " << siedata.fields["#SIETYP"][0] << ")" << std::endl;
+        return false;
+    }
+    auto& fnamn = siedata.fields["#FNAMN"];
+    if (fnamn.size() < 1) {
+        std::cerr << "#FNAMN not specified" << std::endl;
+        return false;
+    }
+    siedata.foretags_namn = fnamn[0];
+
+    auto& orgnr = siedata.fields["#ORGNR"];
+    if (orgnr.size() < 1) {
+        std::cerr << "#ORGNR not specified" << std::endl;
+        return false;
+    }
+    if (orgnr[0].size() != 10) {
+        std::cerr << "#ORGNR not 10 digits" << std::endl;
+        return false;
+    }
+    siedata.org_nummer = orgnr[0].substr(0, 6) + "-" + orgnr[0].substr(6, 4);
+
+    return verify_balances(siedata);
 }

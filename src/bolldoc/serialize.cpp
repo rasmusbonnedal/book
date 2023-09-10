@@ -30,6 +30,14 @@ std::string getAttrString(xml_node<>* node, const std::string& name) {
     return *attr;
 }
 
+std::optional<int> getAttrIntOpt(xml_node<>* node, const std::string& name) {
+    auto val = getAttrStringOpt(node, name);
+    if (val.has_value()) {
+        return std::make_optional(std::stoi(*val));
+    }
+    return std::nullopt;
+}
+
 int getAttrInt(xml_node<>* node, const std::string& name) {
     return std::stoi(getAttrString(node, name));
 }
@@ -132,7 +140,11 @@ BollDoc Serialize::loadDocument(std::istream& input, bool ignoreChecksum) {
         auto typ = getAttrInt(konto, "typ");
         auto normalt = getAttrStringOpt(konto, "normalt");
         auto tagg = getAttrStringOpt(konto, "k1");
+        auto sru = getAttrIntOpt(konto, "sru");
         BollDoc::Konto k(unid, std::move(text), typ, normalt.value_or(""), tagg.value_or(""));
+        if (sru) {
+            k.getSRU() = *sru;
+        }
         bolldoc.addOrUpdateKonto(std::move(k));
     }
 
@@ -196,6 +208,9 @@ void Serialize::saveDocumentCustom(const BollDoc& doc, std::ostream& output) {
         if (!konto.second.getNormalt().empty()) {
             attrs.push_back({"normalt", konto.second.getNormalt()});
         }
+        if (konto.second.getSRU() != -1) {
+            attrs.push_back({"sru", std::to_string(konto.second.getSRU())});
+        }
         writeXml(ss, indent, "konto", attrs, true, true);
     }
     indent = "\t";
@@ -214,7 +229,7 @@ void Serialize::saveDocumentCustom(const BollDoc& doc, std::ostream& output) {
 
     writeXml(ss, indent, "verifikationer", {});
     indent = "\t\t";
-    int last_unid = doc.getVerifikationer().back().getUnid();
+    int last_unid = doc.getVerifikationer().empty() ? 0 : doc.getVerifikationer().back().getUnid();
     for (const auto& v : doc.getVerifikationer()) {
         // This is a hack to make sure the last "Nytt verifikat" empty
         // verifikat is not saved.

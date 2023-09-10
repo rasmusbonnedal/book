@@ -41,12 +41,17 @@ class BollDoc {
 
         std::string& getTagg();
 
+        int getSRU() const;
+        
+        int& getSRU();
+
        private:
         int _unid;
         std::string _text;
         int _typ;
         std::string _normalt;
         std::string _tagg;
+        int _sru;
     };
 
     class Rad {
@@ -172,14 +177,14 @@ class BollDoc {
 
     void setVerifikatText(int unid, const std::string& text);
 
+    void setMutated();
+
    private:
     Verifikat& getVerifikatMut(int unid);
 
     void checkYear(const Date& date) const;
 
     void checkVerifikatId(int unid) const;
-
-    void setMutated();
 
     int _version;
     std::string _firma;

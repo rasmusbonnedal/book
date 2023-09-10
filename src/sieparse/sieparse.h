@@ -10,7 +10,7 @@
 
 class SIEKonto {
    public:
-    SIEKonto() : id(0), sru(0) {}
+    SIEKonto() : id(0), sru(-1) {}
     int id;
     std::string text;
     int sru;
@@ -25,11 +25,7 @@ class SIEBalansResultat {
 
 class SIETransaktion {
    public:
-       enum TransaktionType {
-           NORMAL,
-           RTRANS,
-           BTRANS
-    };
+    enum TransaktionType { NORMAL, RTRANS, BTRANS };
 
     int64_t konto;
     int64_t saldo;
@@ -48,10 +44,14 @@ class SIEVerifikat {
 
 class SIEData {
    public:
+    SIEData() : rakenskapsar_start(0), rakenskapsar_slut(0) {}
     std::map<std::string, std::vector<std::string>> fields;
     std::map<int, SIEBalansResultat> balans_resultat;
     std::vector<SIEVerifikat> verifikat;
     std::map<int, SIEKonto> kontoplan;
+    int rakenskapsar_start, rakenskapsar_slut;
+    std::string foretags_namn;
+    std::string org_nummer;
 };
 
 bool parse(SIEData& siedata, std::istream& is);

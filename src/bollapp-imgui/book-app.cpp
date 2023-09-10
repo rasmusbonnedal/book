@@ -42,6 +42,7 @@ BookApp::BookApp() : _app("Bokföring") {
         Operation("New", std::bind(&BookApp::doOpCheckDirty, this, FileHandler::OP_NEW))));
     file_menu.addItem(ImGuiMenuItem(
         Operation("Open", Shortcut(ImGuiKey_O, ImGuiMod_Ctrl), std::bind(&BookApp::doOpCheckDirty, this, FileHandler::OP_OPEN))));
+    file_menu.addItem(ImGuiMenuItem(Operation("Import SIE", {}, std::bind(&BookApp::doOpCheckDirty, this, FileHandler::OP_IMPORT))));
     file_menu.addItem(ImGuiMenuItem(Operation("Save", Shortcut(ImGuiKey_S, ImGuiMod_Ctrl), std::bind(&FileHandler::save, &_file_handler))));
     file_menu.addItem(ImGuiMenuItem(Operation("Save As...", {}, std::bind(&FileHandler::saveas, &_file_handler))));
     file_menu.addItem(ImGuiMenuItem(
