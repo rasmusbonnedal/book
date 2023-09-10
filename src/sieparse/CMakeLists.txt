@@ -1,0 +1,11 @@
+add_subdirectory(tests)
+
+file(GLOB SRCS *.cpp *.h)
+add_library(sieparse STATIC ${SRCS})
+#target_link_libraries(sieparse utf-cpp)
+target_include_directories(sieparse PUBLIC .)
+if(MSVC)
+	target_compile_options(sieparse PRIVATE -W4 -WX -experimental:external -external:anglebrackets -external:W3)
+else()
+	target_compile_options(sieparse PRIVATE -Wall -Werror)
+endif()

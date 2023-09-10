@@ -2,6 +2,7 @@
 add_subdirectory(bollapp-imgui)
 add_subdirectory(bolldoc)
 add_subdirectory(reports)
+add_subdirectory(sieparse)
 
 file(GLOB_RECURSE SOURCE_FILES *.cpp)
 file(GLOB_RECURSE HEADER_FILES *.h)
