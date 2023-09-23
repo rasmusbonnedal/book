@@ -16,7 +16,7 @@ BookApp::BookApp() : _app("Bokföring") {
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     // Create Windows
-    _verifikat_window = std::make_shared<VerifikatWindow>(_file_handler);
+    _verifikat_window = std::make_shared<VerifikatWindow>(_file_handler, *this);
     _app.addWindow(_verifikat_window);
     _konto_window = std::make_shared<KontoWindow>(_file_handler, *this);
     _app.addWindow(_konto_window);
@@ -66,6 +66,10 @@ void BookApp::run() {
 
 EditKontoDialog& BookApp::editKontoDialog() {
     return *_edit_konto_dialog;
+}
+
+NewVerifikatDialog& BookApp::newVerifikatDialog() {
+    return *_new_verifikat_dialog;
 }
 
 void BookApp::event() {

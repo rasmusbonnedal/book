@@ -11,6 +11,7 @@ class NewVerifikatDialog : public ImGuiDialog {
     NewVerifikatDialog(FileHandler& file_handler);
     void doit() final;
     void launchVer();
+    void launchEdit(const BollDoc::Verifikat& verifikat);
 
    private:
     FileHandler& m_file_handler;
@@ -21,4 +22,10 @@ class NewVerifikatDialog : public ImGuiDialog {
     std::vector<float> m_pengar_rad;
     std::string m_date;
     bool m_date_ok;
+
+    enum DialogMode {
+        NEW,
+        EDIT
+    };
+    DialogMode m_dialog_mode;
 };

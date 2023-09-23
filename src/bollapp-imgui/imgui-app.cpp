@@ -1,6 +1,7 @@
 #include "imgui-app.h"
 
 #include <chrono>
+#include <iostream>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -157,42 +158,44 @@ void ImGuiApp::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        _menu.doit();
+        try {
+            _menu.doit();
 
-        int index = 0;
-        for (auto& window : _windows) {
-            Timer t;
-            if (ImGui::Begin(window->name().c_str())) {
-                window->doit();
+            int index = 0;
+            for (auto& window : _windows) {
+                Timer t;
+                if (ImGui::Begin(window->name().c_str())) {
+                    window->doit();
+                }
+                ImGui::End();
+                window_timings[index].sample(t.stop() / 1000.0);
+                index++;
+            }
+            if (ImGui::Begin("Timings")) {
+                for (int i = 0; i < _windows.size(); ++i) {
+                    ImGui::Text("%s: %.2f ms", _windows[i]->name().c_str(), window_timings[i].get());
+                }
             }
             ImGui::End();
-            window_timings[index].sample(t.stop() / 1000.0);
-            index++;
-        }
-        if (ImGui::Begin("Timings")) {
-            for (int i = 0; i < _windows.size(); ++i) {
-                ImGui::Text("%s: %.2f ms", _windows[i]->name().c_str(), window_timings[i].get());
+
+            for (auto& dialog : _dialogs) {
+                dialog->actualLaunch();
+                if (ImGui::BeginPopupModal(dialog->name().c_str(), 0, ImGuiWindowFlags_AlwaysAutoResize)) {
+                    dialog->doit();
+                    ImGui::EndPopup();
+                }
             }
-        }
-        ImGui::End();
 
-
-
-        for (auto& dialog : _dialogs) {
-            dialog->actualLaunch();
-            if (ImGui::BeginPopupModal(dialog->name().c_str(), 0, ImGuiWindowFlags_AlwaysAutoResize)) {
-                dialog->doit();
-                ImGui::EndPopup();
+            for (auto& event : _events) {
+                event();
             }
-        }
-
-        for (auto& event : _events) {
-            event();
-        }
-        // Application can intercept quit by calling wantsToQuit()
-        // in event(). If this is not done app will quit here.
-        if (_wantsToQuit) {
-            _quit = true;
+            // Application can intercept quit by calling wantsToQuit()
+            // in event(). If this is not done app will quit here.
+            if (_wantsToQuit) {
+                _quit = true;
+            }
+        } catch (std::exception& e) {
+            std::cout << "Error: " << e.what() << std::endl;
         }
 
         // Rendering

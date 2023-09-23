@@ -92,6 +92,18 @@ void BollDoc::addVerifikat(Verifikat&& verifikat) {
     setMutated();
 }
 
+void BollDoc::updateVerifikat(Verifikat&& verifikat) {
+    // TODO: Limit this operation to verifikat created today!
+    if (verifikat.getUnid() >= getNextVerifikatId()) {
+        std::stringstream ss;
+        ss << "Verifikat with unid " << verifikat.getUnid() << " does not exist";
+        throw std::runtime_error(ss.str());
+    }
+    checkYear(verifikat.getTransdatum());
+    _verifikat[verifikat.getUnid()] = std::move(verifikat);
+    setMutated();
+}
+
 void BollDoc::updateVerifikat(int unid, const std::vector<Rad>& rader) {
     getVerifikatMut(unid).update(rader);
     setMutated();

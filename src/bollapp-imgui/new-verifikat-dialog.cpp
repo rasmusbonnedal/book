@@ -12,6 +12,8 @@ NewVerifikatDialog::NewVerifikatDialog(FileHandler& file_handler) : ImGuiDialog(
 
 void NewVerifikatDialog::launchVer() {
     m_date_ok = true;
+    m_dialog_mode = NEW;
+    setName("Nytt verifikat");
     int unid = m_file_handler.getDoc().getNextVerifikatId();
     Date date;
     if (unid > 0) {
@@ -33,6 +35,37 @@ void NewVerifikatDialog::launchVer() {
     ImGuiDialog::launch();
 }
 
+void NewVerifikatDialog::launchEdit(const BollDoc::Verifikat& verifikat) {
+    m_date_ok = true;
+    m_dialog_mode = EDIT;
+    setName("Editera verifikat");
+    m_verifikat = std::make_unique<BollDoc::Verifikat>(verifikat.getUnid(), verifikat.getText(), verifikat.getTransdatum());
+    m_date = to_string(m_verifikat->getTransdatum());
+    m_konton.clear();
+    for (const auto& [id, konto] : m_file_handler.getDoc().getKontoPlan()) {
+        m_konton.push_back(std::to_string(id) + " " + konto.getText());
+        m_konton_id.push_back(id);
+    }
+    m_konto_rad_data.clear();
+    m_pengar_rad.clear();
+
+    for (const auto& rad : verifikat.getRader()) {
+        int konto_index = -1;
+        // TODO: Need lookupmap
+        for (size_t i = 0; i < m_konton_id.size(); ++i) {
+            if (m_konton_id[i] == rad.getKonto()) {
+                konto_index = i;
+                break;
+            }
+        }
+        m_konto_rad_data.emplace_back(m_konton, konto_index);
+        m_pengar_rad.push_back(rad.getPengar().get() * 0.01f);
+    }
+    m_konto_rad_data.push_back(m_konton);
+    m_pengar_rad.push_back(0.0f);
+    ImGuiDialog::launch();
+}
+
 void NewVerifikatDialog::doit() {
     if (GImGui->CurrentWindow->Appearing) {
         ImGui::SetKeyboardFocusHere();
@@ -44,11 +77,12 @@ void NewVerifikatDialog::doit() {
         ImGui::SetKeyboardFocusHere();
     }
     if (ImGui::IsItemDeactivatedAfterEdit()) {
+        m_date_ok = false;
         if (auto d = parseDateNothrow(m_date)) {
-            m_verifikat->setTransdatum(*d);
-            m_date_ok = true;
-        } else {
-            m_date_ok = false;
+            if (d->getYear() == m_file_handler.getDoc().getBokforingsar()) {
+                m_verifikat->setTransdatum(*d);
+                m_date_ok = true;
+            }
         }
     }
     
@@ -121,19 +155,41 @@ void NewVerifikatDialog::doit() {
 
     ImGui::Separator();
     ImGui::BeginDisabled(!m_date_ok || m_verifikat->getText().empty() || balans != 0 || !rader_ok);
-    if (ImGui::Button("Add")) {
-        for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
-            int konto_idx = m_konto_rad_data[i].index;
-            if (konto_idx >= 0) {
-                int konto = m_konton_id[konto_idx];
-                int pengar = (int)round(m_pengar_rad[i] * 100.0f);
-                m_verifikat->addRad(BollDoc::Rad(now(), konto, Pengar(pengar)));
+    if (m_dialog_mode == NEW) {
+        if (ImGui::Button("Add")) {
+            for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
+                int konto_idx = m_konto_rad_data[i].index;
+                if (konto_idx >= 0) {
+                    int konto = m_konton_id[konto_idx];
+                    int pengar = (int)round(m_pengar_rad[i] * 100.0f);
+                    m_verifikat->addRad(BollDoc::Rad(now(), konto, Pengar(pengar)));
+                }
             }
+            m_file_handler.getDoc().addVerifikat(std::move(*m_verifikat));
+            m_verifikat.release();
+            ImGui::CloseCurrentPopup();
         }
-        m_file_handler.getDoc().addVerifikat(std::move(*m_verifikat));
-        m_verifikat.release();
-        ImGui::CloseCurrentPopup();
+    } else if (m_dialog_mode == EDIT) {
+        if (ImGui::Button("Update")) {
+            std::vector<BollDoc::Rad> rader;
+            for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
+                int konto_idx = m_konto_rad_data[i].index;
+                if (konto_idx >= 0) {
+                    int konto = m_konton_id[konto_idx];
+                    int pengar = (int)round(m_pengar_rad[i] * 100.0f);
+                    // TODO: Fix edit date if not now
+                    rader.emplace_back(now(), konto, Pengar(pengar));
+                }
+            }
+            int unid = m_verifikat->getUnid();
+            m_file_handler.getDoc().updateVerifikat(std::move(*m_verifikat));
+            m_file_handler.getDoc().updateVerifikat(unid, rader);
+            m_verifikat.release();
+            ImGui::CloseCurrentPopup();
+
+        }
     }
+
     ImGui::EndDisabled();
     ImGui::SameLine();
     if (ImGui::Button("Cancel")) {

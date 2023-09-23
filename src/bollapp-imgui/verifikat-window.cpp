@@ -6,6 +6,9 @@
 
 #include "bolldoc.h"
 
+#include "book-app.h"
+#include "new-verifikat-dialog.h"
+
 namespace {
 void sortVerifikat(const std::vector<BollDoc::Verifikat>& verifikat, std::vector<int>& verifikat_index, ImGuiTableSortSpecs* sort_spec) {
     if (sort_spec->SpecsCount == 0) {
@@ -34,8 +37,8 @@ void sortVerifikat(const std::vector<BollDoc::Verifikat>& verifikat, std::vector
 }
 }  // namespace
 
-VerifikatWindow::VerifikatWindow(FileHandler& file_handler)
-    : ImGuiWindowBase("Verifikat"), _selected_row(-1), _file_handler(file_handler) {}
+VerifikatWindow::VerifikatWindow(FileHandler& file_handler, BookApp& book_app)
+    : ImGuiWindowBase("Verifikat"), _selected_row(-1), _file_handler(file_handler), m_app(book_app), _sorted_revision(-1) {}
 
 namespace {
 void imguiRightAlign(const char* text) {
@@ -49,8 +52,8 @@ void imguiRightAlign(const char* text) {
 
 void VerifikatWindow::doit() {
     if (ImGui::BeginTable("verifikat", 4,
-                          ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable | ImGuiTableFlags_Borders |
-                              ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_NoBordersInBody)) {
+                          ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable | ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                              ImGuiTableFlags_ScrollY | ImGuiTableFlags_NoBordersInBody)) {
         ImGui::TableSetupColumn("Nr");
         ImGui::TableSetupColumn("Datum", ImGuiTableColumnFlags_DefaultSort);
         ImGui::TableSetupColumn("Beskrivning", ImGuiTableColumnFlags_NoSort);
@@ -66,6 +69,11 @@ void VerifikatWindow::doit() {
         }
 
         BollDoc& doc = _file_handler.getDoc();
+        if (doc.getRevision() != _sorted_revision) {
+            should_sort = true;
+            _sorted_revision = doc.getRevision();
+        }
+
         const auto& verifikationer = doc.getVerifikationer();
         if (_verifikat_index.size() != verifikationer.size() || should_sort) {
             _verifikat_index.clear();
@@ -89,6 +97,9 @@ void VerifikatWindow::doit() {
                 bool st = row == _selected_row;
                 if (ImGui::Selectable(display_buf, &st, ImGuiSelectableFlags_SpanAllColumns)) {
                     _selected_row = st ? row : -1;
+                }
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+                    m_app.newVerifikatDialog().launchEdit(verifikat);
                 }
 
                 ImGui::TableSetColumnIndex(1);

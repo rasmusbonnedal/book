@@ -21,6 +21,7 @@ class BookApp {
     void run();
 
     EditKontoDialog& editKontoDialog();
+    NewVerifikatDialog& newVerifikatDialog();
 
    private:
     void event();

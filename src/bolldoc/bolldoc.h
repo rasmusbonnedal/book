@@ -171,6 +171,8 @@ class BollDoc {
 
     void addVerifikat(Verifikat&& verifikat);
 
+    void updateVerifikat(Verifikat&& verifikat);
+
     void updateVerifikat(int unid, const std::vector<Rad>& rader);
 
     void setVerifikatTransdatum(int unid, const Date& date);
