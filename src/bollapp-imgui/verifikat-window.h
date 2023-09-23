@@ -14,6 +14,6 @@ class VerifikatWindow : public ImGuiWindowBase {
     FileHandler& _file_handler;
     int _selected_row;
     std::vector<int> _verifikat_index;
-    int _sorted_revision;
+    int64_t _sorted_revision;
     BookApp& m_app;
 };

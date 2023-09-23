@@ -12,19 +12,6 @@
 #include "sieparse.h"
 
 namespace {
-nfdresult_t open_dialog(const std::string& filter, std::string& filename) {
-    nfdchar_t* out_path = NULL;
-    nfdresult_t result = NFD_OpenDialog(filter.c_str(), NULL, &out_path);
-    if (result == NFD_OKAY) {
-        filename = out_path;
-        free(out_path);
-    } else if (result == NFD_CANCEL) {
-    } else {
-        std::cout << "Error: " << NFD_GetError() << std::endl;
-    }
-    return result;
-}
-
 Date int_to_date(int64_t date) {
     int year = (int)(date / 10000);
     int month = (date / 100) % 100;
@@ -84,7 +71,32 @@ std::unique_ptr<BollDoc> import_sie(const std::string& siefile) {
     return doc;
 }
 
+std::vector<std::string> kvittoStrings(int unid) {
+    std::vector<std::string> strs;
+
+    std::string unid_str = "V" + std::to_string(unid);
+    strs.push_back(unid_str);
+    for (int i = 1; i < 10; ++i) {
+        unid_str = "V" + std::to_string(unid) + "_" + std::to_string(i);
+        strs.push_back(unid_str);
+    }
+    return strs;
+}
+
 }  // namespace
+
+FileDialogResult fileOpenDialog(const std::string& filter, std::string& filename) {
+    nfdchar_t* out_path = NULL;
+    nfdresult_t result = NFD_OpenDialog(filter.c_str(), NULL, &out_path);
+    if (result == NFD_OKAY) {
+        filename = out_path;
+        free(out_path);
+    } else if (result == NFD_CANCEL) {
+    } else {
+        std::cout << "Error: " << NFD_GetError() << std::endl;
+    }
+    return (FileDialogResult)result;
+}
 
 FileHandler::FileHandler() : _op(OP_NOP), _quit(false) {
     newFile();
@@ -98,7 +110,7 @@ void FileHandler::newFile() {
 }
 
 FileHandler::OpenError FileHandler::open(std::string& chosen_file) {
-    if (open_dialog("bollbok", chosen_file) == NFD_OKAY) {
+    if (fileOpenDialog("bollbok", chosen_file) == FDR_OKAY) {
         return openFile(chosen_file, DO_CHECKSUM);
     }
     return OE_CANCEL;
@@ -123,7 +135,7 @@ FileHandler::OpenError FileHandler::openFile(const std::string& filename, Checks
 
 FileHandler::OpenError FileHandler::import_sie() {
     std::string siefile;
-    if (open_dialog("se", siefile) == NFD_OKAY) {
+    if (fileOpenDialog("se", siefile) == FDR_OKAY) {
         auto doc = ::import_sie(siefile);
         if (doc) {
             _doc = std::move(doc);
@@ -164,6 +176,77 @@ bool FileHandler::saveas() {
 BollDoc& FileHandler::getDoc() {
     return *_doc;
 }
+
+std::vector<std::filesystem::path> FileHandler::getKvitton(int unid) const {
+    std::vector<std::filesystem::path> kvitton;
+    if (_filename.empty()) {
+        return kvitton;
+    }
+    std::filesystem::path kvitto_dir = _filename;
+    kvitto_dir.replace_extension("kvitton");
+    if (std::filesystem::is_directory(kvitto_dir)) {
+        for (const auto& kvitto_str : kvittoStrings(unid)) {
+            std::filesystem::path p_pdf = kvitto_dir / (kvitto_str + ".pdf");
+            std::filesystem::path p_png = kvitto_dir / (kvitto_str + ".png");
+            if (std::filesystem::is_regular_file(p_pdf)) {
+                kvitton.push_back(p_pdf);
+            } else if (std::filesystem::is_regular_file(p_png)) {
+                kvitton.push_back(p_png);
+            }
+        }
+    }
+    return kvitton;
+}
+
+bool FileHandler::canAttachKvitto() const {
+    if (!_filename.empty()) {
+        std::filesystem::path kvitto_dir = _filename;
+        kvitto_dir.replace_extension("kvitton");
+        if (std::filesystem::is_directory(kvitto_dir)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool FileHandler::attachKvitto(int unid, const std::filesystem::path& kvitto) const {
+    if (!_filename.empty()) {
+        std::filesystem::path kvitto_dir = _filename;
+        kvitto_dir.replace_extension("kvitton");
+        if (std::filesystem::is_directory(kvitto_dir)) {
+            for (const auto& kvitto_str : kvittoStrings(unid)) {
+                std::filesystem::path p_pdf = kvitto_dir / (kvitto_str + ".pdf");
+                std::filesystem::path p_png = kvitto_dir / (kvitto_str + ".png");
+                if (std::filesystem::is_regular_file(p_pdf) || std::filesystem::is_regular_file(p_png)) {
+                    continue;
+                }
+                std::filesystem::path p;
+                if (kvitto.extension().string() == ".pdf") {
+                    p = p_pdf;
+                } else if (kvitto.extension().string() == ".png") {
+                    p = p_png;
+                } else {
+                    continue;
+                }
+                std::error_code ec;
+                std::filesystem::copy(kvitto, p, ec);
+                if (ec) {
+                    std::cout << "Could not copy from " << kvitto << " to " << p << std::endl;
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+            std::cout << "Could not find suitable destination for kvitto file" << std::endl;
+            return false;
+        }
+        std::cout << "Not a directory: " << kvitto_dir << std::endl;
+        return false;
+    }
+    std::cout << "Could not attach kvitto before saving file" << std::endl;
+    return false;
+}
+
 
 bool FileHandler::hasTitleChanged() {
     std::string title = getFilename();

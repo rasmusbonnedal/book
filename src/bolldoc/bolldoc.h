@@ -160,7 +160,7 @@ class BollDoc {
 
     void clearDirty();
 
-    uint64_t getRevision() const;
+    int64_t getRevision() const;
 
     // Mutating operations
     void addOrUpdateKonto(Konto&& konto);
@@ -199,7 +199,7 @@ class BollDoc {
     std::string _kptyp;
     std::vector<std::pair<std::string, std::string>> _kontogrupper;
     bool _dirty;
-    uint64_t _revision;
+    int64_t _revision;
 };
 
 std::ostream& operator<<(std::ostream& stream, const BollDoc::Rad& rad);

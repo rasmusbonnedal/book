@@ -5,8 +5,20 @@
 #include <misc/cpp/imgui_stdlib.h>
 
 #include "bolldoc.h"
-
 #include "file-handler.h"
+
+#ifdef WIN32
+#include <windows.h>
+#include <shellapi.h>
+#endif
+
+namespace {
+void openDocument(const std::filesystem::path& file) {
+#ifdef WIN32
+    ShellExecute(NULL, "open", file.string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
+#endif
+}
+}
 
 NewVerifikatDialog::NewVerifikatDialog(FileHandler& file_handler) : ImGuiDialog("Nytt verifikat"), m_file_handler(file_handler) {}
 
@@ -32,6 +44,9 @@ void NewVerifikatDialog::launchVer() {
     m_pengar_rad.clear();
     m_konto_rad_data.push_back(m_konton);
     m_pengar_rad.push_back(0.0f);
+    m_kvitton.clear();
+    m_attached_kvitton.clear();
+    m_can_attach_kvitto = m_file_handler.canAttachKvitto();
     ImGuiDialog::launch();
 }
 
@@ -54,7 +69,7 @@ void NewVerifikatDialog::launchEdit(const BollDoc::Verifikat& verifikat) {
         // TODO: Need lookupmap
         for (size_t i = 0; i < m_konton_id.size(); ++i) {
             if (m_konton_id[i] == rad.getKonto()) {
-                konto_index = i;
+                konto_index = (int)i;
                 break;
             }
         }
@@ -63,6 +78,10 @@ void NewVerifikatDialog::launchEdit(const BollDoc::Verifikat& verifikat) {
     }
     m_konto_rad_data.push_back(m_konton);
     m_pengar_rad.push_back(0.0f);
+
+    m_kvitton = m_file_handler.getKvitton(m_verifikat->getUnid());
+    m_attached_kvitton.clear();
+    m_can_attach_kvitto = m_file_handler.canAttachKvitto();
     ImGuiDialog::launch();
 }
 
@@ -85,7 +104,7 @@ void NewVerifikatDialog::doit() {
             }
         }
     }
-    
+
     for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
         std::string id = "##kontocombo" + std::to_string(i);
         if (ImGui::ComboAutoSelect(id.c_str(), m_konto_rad_data[i], m_konton, 0)) {
@@ -152,7 +171,36 @@ void NewVerifikatDialog::doit() {
             }
         }
     }
+    ImGui::Separator();
+    ImGui::Text("Kvitton:");
+    for (const auto& kvitto : m_kvitton) {
+        if (ImGui::Button(kvitto.filename().string().c_str())) {
+            openDocument(kvitto);
+        }
+    }
+    ImGui::Text("To attach:");
+    int i = 0;
+    int to_erase = -1;
+    for (const auto& kvitto : m_attached_kvitton) {
+        ImGui::Text(kvitto.u8string().c_str());
+        ImGui::SameLine();
+        if (ImGui::Button("X")) {
+            to_erase = i;
+        }
+        i++;
+    }
+    if (to_erase >= 0) {
+        m_attached_kvitton.erase(m_attached_kvitton.begin() + to_erase);    
+    }
 
+    ImGui::BeginDisabled(!m_can_attach_kvitto);
+    if (ImGui::Button("Attach kvitto")) {
+        std::string filename;
+        if (fileOpenDialog("pdf;png", filename) == FDR_OKAY) {
+            m_attached_kvitton.push_back(std::filesystem::u8path(filename));
+        }
+    }
+    ImGui::EndDisabled();
     ImGui::Separator();
     ImGui::BeginDisabled(!m_date_ok || m_verifikat->getText().empty() || balans != 0 || !rader_ok);
     if (m_dialog_mode == NEW) {
@@ -164,6 +212,9 @@ void NewVerifikatDialog::doit() {
                     int pengar = (int)round(m_pengar_rad[i] * 100.0f);
                     m_verifikat->addRad(BollDoc::Rad(now(), konto, Pengar(pengar)));
                 }
+            }
+            for (const auto& kvitto : m_attached_kvitton) {
+                m_file_handler.attachKvitto(m_verifikat->getUnid(), kvitto);
             }
             m_file_handler.getDoc().addVerifikat(std::move(*m_verifikat));
             m_verifikat.release();
@@ -182,11 +233,13 @@ void NewVerifikatDialog::doit() {
                 }
             }
             int unid = m_verifikat->getUnid();
+            for (const auto& kvitto : m_attached_kvitton) {
+                m_file_handler.attachKvitto(m_verifikat->getUnid(), kvitto);
+            }
             m_file_handler.getDoc().updateVerifikat(std::move(*m_verifikat));
             m_file_handler.getDoc().updateVerifikat(unid, rader);
             m_verifikat.release();
             ImGui::CloseCurrentPopup();
-
         }
     }
 

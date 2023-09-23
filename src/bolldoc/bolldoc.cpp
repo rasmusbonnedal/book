@@ -363,6 +363,6 @@ void BollDoc::clearDirty() {
     _dirty = false;
 }
 
-uint64_t BollDoc::getRevision() const {
+int64_t BollDoc::getRevision() const {
     return _revision;
 }

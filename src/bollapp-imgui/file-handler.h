@@ -6,6 +6,14 @@
 
 class BollDoc;
 
+typedef enum {
+    FDR_ERROR, /* programmatic error */
+    FDR_OKAY,  /* user pressed okay, or successful return */
+    FDR_CANCEL /* user pressed cancel */
+} FileDialogResult;
+
+FileDialogResult fileOpenDialog(const std::string& filter, std::string& filename);
+
 class FileHandler {
    public:
     enum Operation { OP_NEW, OP_OPEN, OP_IMPORT, OP_QUIT, OP_NOP };
@@ -29,6 +37,12 @@ class FileHandler {
     bool saveas();
 
     BollDoc& getDoc();
+
+    std::vector<std::filesystem::path> getKvitton(int unid) const;
+
+    bool canAttachKvitto() const;
+
+    bool attachKvitto(int unid, const std::filesystem::path& kvitto) const;
 
     bool hasTitleChanged();
 
