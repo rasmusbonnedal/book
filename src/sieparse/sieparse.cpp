@@ -116,23 +116,25 @@ bool process_trans(const std::string_view& tag, const std::vector<std::string>& 
     if (items.size() < 3) {
         return false;
     }
-    SIETransaktion transaktion;
+    SIETransaktion::TransaktionType typ;
+    int64_t konto;
+    int64_t saldo;
     if (tag == "#TRANS") {
-        transaktion.typ = SIETransaktion::NORMAL;
+        typ = SIETransaktion::NORMAL;
     } else if (tag == "#RTRANS") {
-        transaktion.typ = SIETransaktion::RTRANS;
+        typ = SIETransaktion::RTRANS;
     } else if (tag == "#BTRANS") {
-        transaktion.typ = SIETransaktion::BTRANS;
+        typ = SIETransaktion::BTRANS;
     } else {
         return false;
     }
-    if (!parse_number(items[0], transaktion.konto)) {
+    if (!parse_number(items[0], konto)) {
         return false;
     }
-    if (!parse_saldo(items[2], transaktion.saldo)) {
+    if (!parse_saldo(items[2], saldo)) {
         return false;
     }
-    verifikat.rader.push_back(std::move(transaktion));
+    verifikat.rader.emplace_back(konto, saldo, typ);
     return true;
 }
 

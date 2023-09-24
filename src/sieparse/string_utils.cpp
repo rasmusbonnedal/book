@@ -39,3 +39,41 @@ std::string convert_cp437_to_utf8(const std::string_view& s) {
     }
     return output;
 }
+
+std::string convert_utf8_to_cp437(const std::string_view& s) {
+    std::string output;
+    for (int i = 0; i < s.size(); ++i) {
+        unsigned char c = s[i];
+        int len = 0;
+        if ((c & 0x80) == 0) { // 1-byte
+            output.push_back(c);
+        } else if ((c & 0xf0) == 0xf0) { // 4-byte
+            len = 4;
+        } else if ((c & 0xe0) == 0xe0) { // 3-byte
+            len = 3;            
+        } else if ((c & 0xc0) == 0xc0) { // 2-byte
+            len = 2;
+        }
+        if (len > 0) {
+            if (i + len - 1 >= s.size()) {
+                break;
+            }
+            for (int j = 0; j < 0x80; j++) {
+                bool valid = true;
+                for (int k = 0; k < len; ++k) {
+                    unsigned char c0 = cp437_to_utf8[j][k];
+                    unsigned char c1 = s[i + k];
+                    if (c0 != c1) {
+                        valid = false;
+                        break;
+                    }
+                }
+                if (valid) {
+                    output.push_back((unsigned char)(j + 0x80));
+                    break;
+                }
+            }
+        }
+    }
+    return output;
+}
