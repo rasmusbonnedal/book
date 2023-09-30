@@ -90,6 +90,12 @@ std::string toString2(const Pengar& p) {
     return ss.str();
 }
 
+std::string to_string(const Pengar& p) {
+    char buf[64];
+    to_string(p, buf);
+    return std::string(buf);
+}
+
 void to_string(const Pengar& p, char* buf) {
     int64_t value = p.get();
     int64_t kronor = llabs(value / 100);

@@ -6,6 +6,7 @@
 #include "edit-konto-dialog.h"
 #include "imgui-menu.h"
 #include "konto-window.h"
+#include "report-window.h"
 #include "saldo-window.h"
 #include "new-verifikat-dialog.h"
 #include "save-file-changes-dialog.h"
@@ -20,6 +21,8 @@ BookApp::BookApp() : _app("Bokföring") {
     _app.addWindow(_verifikat_window);
     _konto_window = std::make_shared<KontoWindow>(_file_handler, *this);
     _app.addWindow(_konto_window);
+    _report_window = std::make_shared<ReportWindow>(_file_handler);
+    _app.addWindow(_report_window);
     _saldo_window = std::make_shared<SaldoWindow>(_file_handler);
     _app.addWindow(_saldo_window);
     _edit_konto_dialog = std::make_shared<EditKontoDialog>(_file_handler);
@@ -35,6 +38,13 @@ BookApp::BookApp() : _app("Bokföring") {
     _app.addEvent(std::bind(&BookApp::event, this));
 
     _app.setStyle(false);
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.Colors[ImGuiCol_WindowBg].w = 0.97f;
+    style.Colors[ImGuiCol_PopupBg].w = 0.98f;
+    style.Colors[ImGuiCol_TitleBg].w = 0.95f;
+    style.Colors[ImGuiCol_TitleBgActive].w = 0.97f;
+    style.Colors[ImGuiCol_TitleBgCollapsed].w = 0.90f;
+    style.Colors[ImGuiCol_TitleBgCollapsed].w = 0.90f;
 
     // Create Menu
     ImGuiMenuHeader file_menu("File");

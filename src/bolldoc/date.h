@@ -84,12 +84,14 @@ Date lastDayOfMonth(const Date& d);
 
 Date now();
 
+bool operator!=(const DateRange& lhs, const DateRange& rhs);
+
 std::ostream& operator<<(std::ostream& stream, const DateRange& d);
 
 std::string to_string(const DateRange& d);
 
 DateRange fullYear(int year);
 
-std::string dateTypeToString(const DateType t);
+const char* dateTypeToString(const DateType t);
 
 DateRange dateTypeToRange(const DateType t, int year);

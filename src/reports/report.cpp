@@ -101,7 +101,7 @@ std::string getTempFile(const std::string& name) {
 
 } // namespace
 
-std::string reportTypeString(ReportType t) {
+const char* reportTypeString(ReportType t) {
     switch (t) {
     case REPORT_RESULTAT:
         return "Resultaträkning";

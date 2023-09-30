@@ -170,6 +170,10 @@ Date now() {
     return Date(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 }
 
+bool operator!=(const DateRange& lhs, const DateRange& rhs) {
+    return lhs.getStart() != rhs.getStart() || lhs.getEnd() != rhs.getEnd();
+}
+
 std::ostream& operator<<(std::ostream& stream, const DateRange& d) {
     stream << d.getStart() << " - " << d.getEnd();
     return stream;
@@ -183,7 +187,7 @@ std::string to_string(const DateRange& d) {
 
 DateRange fullYear(int year) { return {Date(year, 1, 1), Date(year, 12, 31)}; }
 
-std::string dateTypeToString(const DateType t) {
+const char* dateTypeToString(const DateType t) {
     switch (t) {
     case DATETYPE_FULL:
         return "Hela året";

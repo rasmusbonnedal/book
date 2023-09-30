@@ -16,7 +16,7 @@ enum ReportType {
     REPORT_TYPE_COUNT
 };
 
-std::string reportTypeString(ReportType t);
+const char* reportTypeString(ReportType t);
 
 // Saldo report
 using SaldoRow = std::pair<int, Pengar>;
