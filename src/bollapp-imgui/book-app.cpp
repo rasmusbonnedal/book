@@ -8,6 +8,7 @@
 #include "konto-window.h"
 #include "report-window.h"
 #include "saldo-window.h"
+#include "one-verifikat-window.h"
 #include "new-verifikat-dialog.h"
 #include "save-file-changes-dialog.h"
 #include "verifikat-window.h"
@@ -25,6 +26,8 @@ BookApp::BookApp() : _app("Bokföring") {
     _app.addWindow(_report_window);
     _saldo_window = std::make_shared<SaldoWindow>(_file_handler);
     _app.addWindow(_saldo_window);
+    _one_verifikat_window = std::make_shared<OneVerifikatWindow>(_file_handler);
+    _app.addWindow(_one_verifikat_window);
     _edit_konto_dialog = std::make_shared<EditKontoDialog>(_file_handler);
     _app.addDialog(_edit_konto_dialog);
     _new_verifikat_dialog = std::make_shared<NewVerifikatDialog>(_file_handler);
@@ -80,6 +83,10 @@ EditKontoDialog& BookApp::editKontoDialog() {
 
 NewVerifikatDialog& BookApp::newVerifikatDialog() {
     return *_new_verifikat_dialog;
+}
+
+OneVerifikatWindow& BookApp::oneVerifikatWindow() {
+    return *_one_verifikat_window;
 }
 
 void BookApp::event() {

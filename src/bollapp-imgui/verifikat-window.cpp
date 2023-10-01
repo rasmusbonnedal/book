@@ -8,6 +8,7 @@
 
 #include "book-app.h"
 #include "new-verifikat-dialog.h"
+#include "one-verifikat-window.h"
 
 namespace {
 void sortVerifikat(const std::vector<BollDoc::Verifikat>& verifikat, std::vector<int>& verifikat_index, ImGuiTableSortSpecs* sort_spec) {
@@ -94,14 +95,12 @@ void VerifikatWindow::doit() {
                 // Id
                 ImGui::TableSetColumnIndex(0);
                 snprintf(display_buf, sizeof(display_buf), "%d", verifikat.getUnid());
-                bool st = row == _selected_row;
-                if (ImGui::Selectable(display_buf, &st, ImGuiSelectableFlags_SpanAllColumns)) {
-                    _selected_row = st ? row : -1;
+               if (ImGui::SmallButton(display_buf)) {
+                    m_app.oneVerifikatWindow().setVerifikat(verifikat.getUnid());
                 }
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
                     m_app.newVerifikatDialog().launchEdit(verifikat);
                 }
-
                 ImGui::TableSetColumnIndex(1);
                 to_string(verifikat.getTransdatum(), display_buf);
                 ImGui::TextUnformatted(display_buf);
