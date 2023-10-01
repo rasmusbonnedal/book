@@ -21,6 +21,8 @@ void imguiTextRightAlign(const std::string& s) {
     ImGui::TextUnformatted(s.c_str());
 }
 
+const int DEFAULT_SALDO_WIDTH = 90;
+
 class ResultatReportCache {
    public:
     void update(const BollDoc& doc, const DateRange& range) {
@@ -44,9 +46,9 @@ class ResultatReportCache {
         if (ImGui::BeginTable("resultatrapport", 3,
                               ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
                                   ImGuiTableFlags_NoBordersInBody)) {
-            ImGui::TableSetupColumn("##kontonr");
+            ImGui::TableSetupColumn("##kontonr", ImGuiTableColumnFlags_WidthFixed, 30);
             ImGui::TableSetupColumn("Konto");
-            ImGui::TableSetupColumn("Resultat");
+            ImGui::TableSetupColumn("Resultat", ImGuiTableColumnFlags_WidthFixed, DEFAULT_SALDO_WIDTH);
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableHeadersRow();
 
@@ -94,11 +96,11 @@ class BalansReportCache {
         if (ImGui::BeginTable("balansrapport", 5,
                               ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
                                   ImGuiTableFlags_NoBordersInBody)) {
-            ImGui::TableSetupColumn("##kontonr");
+            ImGui::TableSetupColumn("##kontonr", ImGuiTableColumnFlags_WidthFixed, 30);
             ImGui::TableSetupColumn("Konto");
-            ImGui::TableSetupColumn("IB");
-            ImGui::TableSetupColumn("Resultat");
-            ImGui::TableSetupColumn("UB");
+            ImGui::TableSetupColumn("IB", ImGuiTableColumnFlags_WidthFixed, DEFAULT_SALDO_WIDTH);
+            ImGui::TableSetupColumn("Resultat", ImGuiTableColumnFlags_WidthFixed, DEFAULT_SALDO_WIDTH);
+            ImGui::TableSetupColumn("UB", ImGuiTableColumnFlags_WidthFixed, DEFAULT_SALDO_WIDTH);
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableHeadersRow();
 
@@ -167,9 +169,9 @@ class TagReportCache {
                                   ImGuiTableFlags_NoBordersInBody)) {
             ImGui::TableSetupColumn("Tagg");
             ImGui::TableSetupColumn("Konton");
-            ImGui::TableSetupColumn("IB");
-            ImGui::TableSetupColumn("Resultat");
-            ImGui::TableSetupColumn("UB");
+            ImGui::TableSetupColumn("IB", ImGuiTableColumnFlags_WidthFixed, DEFAULT_SALDO_WIDTH);
+            ImGui::TableSetupColumn("Resultat", ImGuiTableColumnFlags_WidthFixed, DEFAULT_SALDO_WIDTH);
+            ImGui::TableSetupColumn("UB", ImGuiTableColumnFlags_WidthFixed, DEFAULT_SALDO_WIDTH);
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableHeadersRow();
 
@@ -230,9 +232,9 @@ class SaldoReportCache {
         if (ImGui::BeginTable("saldorapport", 3,
                               ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
                                   ImGuiTableFlags_NoBordersInBody)) {
-            ImGui::TableSetupColumn("##kontonr");
+            ImGui::TableSetupColumn("##kontonr", ImGuiTableColumnFlags_WidthFixed, 30);
             ImGui::TableSetupColumn("Konto");
-            ImGui::TableSetupColumn("Saldo");
+            ImGui::TableSetupColumn("Saldo", ImGuiTableColumnFlags_WidthFixed, DEFAULT_SALDO_WIDTH);
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableHeadersRow();
 

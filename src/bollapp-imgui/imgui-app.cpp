@@ -164,6 +164,7 @@ void ImGuiApp::run() {
             int index = 0;
             for (auto& window : _windows) {
                 Timer t;
+                ImGui::SetNextWindowSize(ImVec2(300, 500), ImGuiCond_FirstUseEver);
                 if (ImGui::Begin(window->name().c_str())) {
                     window->doit();
                 }
