@@ -18,7 +18,35 @@ void openDocument(const std::filesystem::path& file) {
     ShellExecute(NULL, "open", file.string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
 #endif
 }
+
+bool InputSaldo(const char* label, Pengar* pengar) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext& g = *GImGui;
+    ImGuiStyle& style = g.Style;
+
+    char buf[64];
+    to_string(*pengar, buf);
+
+    ImGuiInputFlags flags = ImGuiInputTextFlags_CharsDecimal;
+    flags |= ImGuiInputTextFlags_AutoSelectAll |
+             ImGuiInputTextFlags_NoMarkEdited;  // We call MarkItemEdited() ourselves by comparing the actual data rather than the string.
+
+    bool value_changed = false;
+    if (ImGui::InputText(label, buf, IM_ARRAYSIZE(buf), flags)) {
+        Pengar old_pengar = *pengar;
+        if (!parsePengarNothrow(buf, *pengar)) {
+            return false;
+        }
+        value_changed = !(*pengar == old_pengar);
+    }
+    if (value_changed) {
+        ImGui::MarkItemEdited(g.LastItemData.ID);
+    }
+    return value_changed;
 }
+}  // namespace
 
 NewVerifikatDialog::NewVerifikatDialog(FileHandler& file_handler) : ImGuiDialog("Nytt verifikat"), m_file_handler(file_handler) {}
 
@@ -44,7 +72,7 @@ void NewVerifikatDialog::launchVer() {
     m_konto_rad_data.clear();
     m_pengar_rad.clear();
     m_konto_rad_data.push_back(m_konton);
-    m_pengar_rad.push_back(0.0f);
+    m_pengar_rad.push_back(0);
     m_kvitton.clear();
     m_attached_kvitton.clear();
     m_can_attach_kvitto = m_file_handler.canAttachKvitto();
@@ -76,10 +104,10 @@ void NewVerifikatDialog::launchEdit(const BollDoc::Verifikat& verifikat) {
             }
         }
         m_konto_rad_data.emplace_back(m_konton, konto_index);
-        m_pengar_rad.push_back(rad.getPengar().get() * 0.01f);
+        m_pengar_rad.push_back(rad.getPengar());
     }
     m_konto_rad_data.push_back(m_konton);
-    m_pengar_rad.push_back(0.0f);
+    m_pengar_rad.push_back(0);
 
     m_kvitton = m_file_handler.getKvitton(m_verifikat->getUnid());
     m_attached_kvitton.clear();
@@ -107,42 +135,38 @@ void NewVerifikatDialog::doit() {
         }
     }
 
+    Pengar balans = 0;
+    for (Pengar v : m_pengar_rad) {
+        balans += v;
+    }
     for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
         std::string id = "##kontocombo" + std::to_string(i);
         if (ImGui::ComboAutoSelect(id.c_str(), m_konto_rad_data[i], m_konton, 0)) {
             ImGui::SetKeyboardFocusHere();
             bool is_last_item = i + 1 == m_konto_rad_data.size();
-            bool is_zero = m_pengar_rad[i] == 0.0;
+            bool is_zero = m_pengar_rad[i] == 0;
             bool is_konto_set = m_konto_rad_data[i].index > 0;
             if (is_last_item && is_konto_set && is_zero) {
-                int balans = 0;
-                for (double v : m_pengar_rad) {
-                    balans += (int)round(v * 100.0);
-                }
                 if (balans != 0) {
-                    m_pengar_rad[i] = -balans * 0.01;
+                    m_pengar_rad[i] = -balans;
                 }
             }
         }
         ImGui::SameLine();
         id = "##pengarbox" + std::to_string(i);
-        ImGui::InputDouble(id.c_str(), &m_pengar_rad[i], 0.0f, 0.0f, "%.2f kr", 0);
+        InputSaldo(id.c_str(), &m_pengar_rad[i]);
         if (ImGui::IsItemDeactivated()) {
             ImGui::SetKeyboardFocusHere();
         }
     }
-    int balans = 0;
-    for (double v : m_pengar_rad) {
-        balans += (int)round(v * 100.0);
-    }
     if (balans == 0) {
         ImGui::Text("Raderna balanserar!");
     } else {
-        ImGui::Text("Balans: %.2f kr", balans * 0.01);
+        ImGui::Text("Balans: %s", to_string(balans).c_str());
     }
-    if (m_konto_rad_data.back().index >= 0 && m_pengar_rad.back() != 0.0) {
+    if (m_konto_rad_data.back().index >= 0 && m_pengar_rad.back() != 0) {
         m_konto_rad_data.push_back(m_konton);
-        m_pengar_rad.push_back(0.0);
+        m_pengar_rad.push_back(0);
     }
 
     bool rader_ok = true;
@@ -150,9 +174,8 @@ void NewVerifikatDialog::doit() {
     bool in_active_rows = true;
     for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
         int konto = m_konto_rad_data[i].index;
-        int pengar = (int)round(m_pengar_rad[i] * 100.0);
-        bool rad_ok = konto >= 0 && pengar != 0;
-        bool rad_empty = konto == -1 && pengar == 0;
+        bool rad_ok = konto >= 0 && m_pengar_rad[i] != 0;
+        bool rad_empty = m_pengar_rad[i] == 0;
 
         if (in_active_rows) {
             if (rad_ok) {
@@ -211,8 +234,7 @@ void NewVerifikatDialog::doit() {
                 int konto_idx = m_konto_rad_data[i].index;
                 if (konto_idx >= 0) {
                     int konto = m_konton_id[konto_idx];
-                    int pengar = (int)round(m_pengar_rad[i] * 100.0f);
-                    m_verifikat->addRad(BollDoc::Rad(now(), konto, Pengar(pengar)));
+                    m_verifikat->addRad(BollDoc::Rad(now(), konto, m_pengar_rad[i]));
                 }
             }
             for (const auto& kvitto : m_attached_kvitton) {
@@ -227,11 +249,10 @@ void NewVerifikatDialog::doit() {
             std::vector<BollDoc::Rad> rader;
             for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
                 int konto_idx = m_konto_rad_data[i].index;
-                if (konto_idx >= 0) {
+                if (konto_idx >= 0 && m_pengar_rad[i] != 0) {
                     int konto = m_konton_id[konto_idx];
-                    int pengar = (int)round(m_pengar_rad[i] * 100.0f);
                     // TODO: Fix edit date if not now
-                    rader.emplace_back(now(), konto, Pengar(pengar));
+                    rader.emplace_back(now(), konto, m_pengar_rad[i]);
                 }
             }
             int unid = m_verifikat->getUnid();

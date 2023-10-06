@@ -66,22 +66,30 @@ namespace {
     const std::regex pengarRegex("^([-]?)(\\d+)[.,]?(\\d{0,2}) ?(?:kr)?$");
 }
 
-Pengar parsePengar(const std::string& s) {
+bool parsePengarNothrow(const std::string& s, Pengar& p) {
     std::string s2 = Utils::removeSpaces(s);
 
     std::smatch m;
     if (!std::regex_match(s2, m, pengarRegex) || m.size() != 4) {
-        throw std::runtime_error("Could not parse " + s + " as number");
+        return false;
     }
 
     bool sign = m[1] == "-";
     int64_t whole = parseInt(m[2]);
     int64_t dec = parseInt(m[3]);
-    if (m[3].str().size() == 1)
-        dec *= 10;
+    if (m[3].str().size() == 1) dec *= 10;
 
     int64_t value = whole * 100 + dec;
-    return sign ? -value : value;
+    p = sign ? -value : value;
+    return true;
+}
+
+Pengar parsePengar(const std::string& s) {
+    Pengar p;
+    if (!parsePengarNothrow(s, p)) {
+        throw std::runtime_error("Could not parse " + s + " as number");
+    }
+    return p;
 }
 
 std::string toString2(const Pengar& p) {
@@ -168,4 +176,8 @@ std::ostream& operator<<(std::ostream& stream, const Pengar& p) {
 
 bool operator==(const Pengar& lhs, const Pengar& rhs) {
     return lhs.get() == rhs.get();
+}
+
+bool operator!=(const Pengar& lhs, const Pengar& rhs) {
+    return lhs.get() != rhs.get();
 }

@@ -49,6 +49,8 @@ BookApp::BookApp() : _app("Bokföring") {
     style.Colors[ImGuiCol_TitleBgCollapsed].w = 0.90f;
     style.Colors[ImGuiCol_TitleBgCollapsed].w = 0.90f;
 
+    ImGui::GetCurrentContext()->PlatformLocaleDecimalPoint = ',';
+
     // Create Menu
     ImGuiMenuHeader file_menu("File");
     file_menu.addItem(ImGuiMenuItem(
