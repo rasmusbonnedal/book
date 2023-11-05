@@ -1,7 +1,16 @@
 #include "imgui-app.h"
 
 #include <chrono>
+#include <filesystem>
 #include <iostream>
+
+#if defined(_WIN32)
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <shellapi.h>
+#include <shlobj.h>
+#endif
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -62,6 +71,25 @@ class RollingAverageIsh {
     static const int N = 30;
 };
 
+std::filesystem::path getAppDataPath() {
+#if defined(_WIN32)
+    TCHAR szPath[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, szPath))) {
+        std::filesystem::path appdata(szPath);
+        appdata /= "Bollbok";
+        std::filesystem::create_directories(appdata);
+        return appdata;
+    }
+#elif __linux__
+    const char* home = getenv("HOME");
+    if (home) {
+        return std::string(home) + u8"/.bollbok";
+    }
+#else
+#error "Unsupported environment"
+#endif
+    return "";
+}
 
 }  // namespace
 
@@ -95,7 +123,7 @@ ImGuiApp::ImGuiApp(const std::string& name) : _name(name), _wantsToQuit(false), 
     glfwWindowHint(GLFW_SRGB_CAPABLE, use_srgb_framebuffer);
 
     // Create window with graphics context
-    _glfw_window = glfwCreateWindow(1280, 720, _name.c_str(), NULL, NULL);
+    _glfw_window = glfwCreateWindow(1400, 1200, _name.c_str(), NULL, NULL);
     if (_glfw_window == NULL) return;
     glfwMakeContextCurrent(_glfw_window);
     glfwSwapInterval(1);  // Enable vsync
@@ -107,12 +135,17 @@ ImGuiApp::ImGuiApp(const std::string& name) : _name(name), _wantsToQuit(false), 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
+
+    std::filesystem::path appdata = getAppDataPath();
+    std::filesystem::remove(appdata / "imgui.ini");
+    io.IniFilename = ImStrdup((appdata / "imgui.ini").u8string().c_str());
+
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     ImFontConfig ifc;
     ifc.OversampleH = 1;
     ifc.OversampleV = 1;
-    ifc.SizePixels = 15.0f;
+    ifc.SizePixels = 23.0f;
     ifc.PixelSnapH = false;
 
     io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/arial.ttf", ifc.SizePixels, &ifc);
@@ -126,7 +159,7 @@ ImGuiApp::ImGuiApp(const std::string& name) : _name(name), _wantsToQuit(false), 
     ImGui_ImplGlfw_InitForOpenGL(_glfw_window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
     _settings.init();
-    
+
     ImGui::LoadIniSettingsFromDisk(ImGui::GetCurrentContext()->IO.IniFilename);
 }
 
@@ -162,9 +195,14 @@ void ImGuiApp::run() {
             _menu.doit();
 
             int index = 0;
+            float width = ImGui::CalcTextSize("1 300.23 kr").x / 11.0f;
+            const ImVec2 menu_offset(0, _menu.height());
+            const ImVec2 char_size(width, _menu.height());
+
             for (auto& window : _windows) {
                 Timer t;
-                ImGui::SetNextWindowSize(ImVec2(300, 500), ImGuiCond_FirstUseEver);
+                ImGui::SetNextWindowSize(window->size() * char_size, ImGuiCond_FirstUseEver);
+                ImGui::SetNextWindowPos(window->pos() * char_size + ImVec2(0, _menu.height()), ImGuiCond_FirstUseEver);
                 if (ImGui::Begin(window->name().c_str())) {
                     window->doit();
                 }
@@ -172,12 +210,14 @@ void ImGuiApp::run() {
                 window_timings[index].sample(t.stop() / 1000.0);
                 index++;
             }
+#if 0
             if (ImGui::Begin("Timings")) {
                 for (int i = 0; i < _windows.size(); ++i) {
                     ImGui::Text("%s: %.2f ms", _windows[i]->name().c_str(), window_timings[i].get());
                 }
             }
             ImGui::End();
+#endif
 
             for (auto& dialog : _dialogs) {
                 dialog->actualLaunch();

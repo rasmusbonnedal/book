@@ -1,0 +1,282 @@
+{
+    "Momspliktig försäljning": {
+        "05": {
+            "desc": "Momspliktig försäljning som inte ingår i ruta 06, 07 eller 08",
+            "skvxml": "ForsMomsEjAnnan",
+            "accts": [
+                3000,
+                3001,
+                3002,
+                3003,
+                3011,
+                3012,
+                3013,
+                3106,
+                3730,
+                3731,
+                3732,
+                3920,
+                3921,
+                3922,
+                3925,
+                3950
+            ]
+        },
+        "06": {
+            "desc": "Momspliktiga uttag",
+            "skvxml": "UttagMoms",
+            "accts": [
+                3401,
+                3402,
+                3403
+            ]
+        },
+        "07": {
+            "desc": "Beskattningsunderlag vid vinstmarginalbeskattning",
+            "skvxml": "UlagMargbesk",
+            "accts": [
+                3200,
+                3211
+            ]
+        },
+        "08": {
+            "desc": "Hyresinkomster vid frivillig skattskyldighet",
+            "skvxml": "HyrinkomstFriv",
+            "accts": [
+                3913,
+                3914
+            ]
+        },
+        "10": {
+            "desc": "Utgående moms 25%",
+            "skvxml": "MomsUtgHog",
+            "accts": [
+                2610,
+                2611,
+                2612,
+                2613,
+                2616
+            ]
+        },
+        "11": {
+            "desc": "Utgående moms 12%",
+            "skvxml": "MomsUtgMedel",
+            "accts": [
+                2620,
+                2621,
+                2622,
+                2623,
+                2626
+            ]
+        },
+        "12": {
+            "desc": "Utgående moms 6%",
+            "skvxml": "MomsUtgLag",
+            "accts": [
+                2630,
+                2631,
+                2632,
+                2633,
+                2636
+            ]
+        }
+    },
+    "Momspliktliga inköp vid omvänd skatteskyldighet": {
+        "20": {
+            "desc": "Inköp av varor från ett annat EU-land",
+            "skvxml": "InkopVaruAnnatEg",
+            "accts": [
+                4515,
+                4516,
+                4517
+            ]
+        },
+        "21": {
+            "desc": "Inköp av tjänster från ett annat EU-land enligt huvudregeln",
+            "skvxml": "InkopTjanstAnnatEg",
+            "accts": [
+                4535,
+                4536,
+                4537
+            ]
+        },
+        "22": {
+            "desc": "Inköp av tjänster från ett land utanför EU",
+            "skvxml": "InkopTjanstUtomEg",
+            "accts": [
+                4531,
+                4532,
+                4533
+            ]
+        },
+        "23": {
+            "desc": "Inköp av varor i Sverige",
+            "skvxml": "InkopVaruSverige",
+            "accts": [
+                4415,
+                4416,
+                4417
+            ]
+        },
+        "24": {
+            "desc": "Övriga inköpt av tjänster",
+            "skvxml": "InkopTjanstSverige",
+            "accts": [
+                4425,
+                4426,
+                4427
+            ]
+        },
+        "30": {
+            "desc": "Utgående moms 25%",
+            "skvxml": "MomsInkopUtgHog",
+            "accts": [
+                2614,
+                2617
+            ]
+        },
+        "31": {
+            "desc": "Utgående moms 12%",
+            "skvxml": "MomsInkopUtgMedel",
+            "accts": [
+                2624,
+                2627
+            ]
+        },
+        "32": {
+            "desc": "Utgående moms 6%",
+            "skvxml": "MomsInkopUtgLag",
+            "accts": [
+                2634,
+                2637
+            ]
+        }
+    },
+    "Import": {
+        "50": {
+            "desc": "Beskattningsunderlag vid import",
+            "skvxml": "MomsUlagImport",
+            "accts": [
+                4545,
+                4546,
+                4547
+            ]
+        },
+        "60": {
+            "desc": "Utgående moms 25%",
+            "skvxml": "MomsImportUtgHog",
+            "accts": [
+                2615
+            ]
+        },
+        "61": {
+            "desc": "Utgående moms 12%",
+            "skvxml": "MomsImportUtgMedel",
+            "accts": [
+                2625
+            ]
+        },
+        "62": {
+            "desc": "Utgående moms 6%",
+            "skvxml": "MomsImportUtgLag",
+            "accts": [
+                2635
+            ]
+        }
+    },
+    "Försäljning m.m som är undantagen från moms": {
+        "35": {
+            "desc": "Försäljning av varor till ett annat EU-land",
+            "skvxml": "ForsVaruAnnatEg",
+            "accts": [
+                3108
+            ]
+        },
+        "36": {
+            "desc": "Försäljning av varor utanför EU",
+            "skvxml": "ForsVaruUtomEg",
+            "accts": [
+                3105
+            ]
+        },
+        "37": {
+            "desc": "Mellanmans inköp av varor vid trepartshandel",
+            "skvxml": "InkopVaruMellan3p",
+            "accts": [
+                4512
+            ]
+        },
+        "38": {
+            "desc": "Mellanmans försäljning av varor vid trepartshandel",
+            "skvxml": "ForsVaruMellan3p",
+            "accts": [
+                3107
+            ]
+        },
+        "39": {
+            "desc": "Försäljning av tjänster till näringsidkare i annat EU-land enligt huvudregeln",
+            "skvxml": "ForsTjSkskAnnatEg",
+            "accts": [
+                3308
+            ]
+        },
+        "40": {
+            "desc": "Övrig försäljning av tjänster omsatta utanför Sverige",
+            "skvxml": "ForsTjOvrUtomEg",
+            "accts": [
+                3305
+            ]
+        },
+        "41": {
+            "desc": "Försäljning när köparen är skattskyldig i Sverige",
+            "skvxml": "ForsKopareSkskSverige",
+            "accts": [
+                3231
+            ]
+        },
+        "42": {
+            "desc": "Övrig försäljning m.m",
+            "skvxml": "ForsOvrigt",
+            "accts": [
+                3004,
+                3014,
+                3089,
+                3404,
+                3911,
+                3912,
+                3980,
+                3981,
+                3985,
+                3987,
+                3988,
+                3989,
+                3990,
+                3991,
+                3992,
+                3993,
+                3994,
+                3995,
+                3996,
+                3997,
+                3998,
+                3999
+            ]
+        }
+    },
+    "Moms att dra av": {
+        "48": {
+            "desc": "Ingående moms att dra av",
+            "skvxml": "MomsIngAvdr",
+            "accts": [
+                2641
+            ]
+        }
+    },
+    "Moms att betala": {
+        "49": {
+            "desc": "Moms att betala",
+            "skvxml": "MomsBetala",
+            "accts": []
+        }
+    }
+}

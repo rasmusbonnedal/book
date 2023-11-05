@@ -39,7 +39,11 @@ void sortVerifikat(const std::vector<BollDoc::Verifikat>& verifikat, std::vector
 }  // namespace
 
 VerifikatWindow::VerifikatWindow(FileHandler& file_handler, BookApp& book_app)
-    : ImGuiWindowBase("Verifikat"), _selected_row(-1), _file_handler(file_handler), m_app(book_app), _sorted_revision(-1) {}
+    : ImGuiWindowBase("Verifikat", ImVec2(80, 30), ImVec2(0, 0)),
+      _selected_row(-1),
+      _file_handler(file_handler),
+      m_app(book_app),
+      _sorted_revision(-1) {}
 
 namespace {
 void imguiRightAlign(const char* text) {
@@ -95,7 +99,7 @@ void VerifikatWindow::doit() {
                 // Id
                 ImGui::TableSetColumnIndex(0);
                 snprintf(display_buf, sizeof(display_buf), "%d", verifikat.getUnid());
-               if (ImGui::SmallButton(display_buf)) {
+                if (ImGui::SmallButton(display_buf)) {
                     m_app.oneVerifikatWindow().setVerifikat(verifikat.getUnid());
                 }
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {

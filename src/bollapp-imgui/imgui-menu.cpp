@@ -63,6 +63,7 @@ void ImGuiMenu::doit() {
         for (auto& header : _headers) {
             header.doit();
         }
+        _height = ImGui::GetWindowSize().y;
         ImGui::EndMainMenuBar();
     }
     for (auto& header : _headers) {

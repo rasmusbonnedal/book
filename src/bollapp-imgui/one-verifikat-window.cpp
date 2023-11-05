@@ -22,7 +22,7 @@ const int DEFAULT_SALDO_WIDTH = 90;
 }  // namespace
 
 OneVerifikatWindow::OneVerifikatWindow(FileHandler& file_handler)
-    : ImGuiWindowBase("Ett verifikat"), _file_handler(file_handler), _revision(-1), _verifikat(-1) {}
+    : ImGuiWindowBase("Ett verifikat", ImVec2(60, 10), ImVec2(80, 15)), _file_handler(file_handler), _revision(-1), _verifikat(-1) {}
 
 void OneVerifikatWindow::setVerifikat(int v) {
     _verifikat = v;

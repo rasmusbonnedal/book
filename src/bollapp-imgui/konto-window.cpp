@@ -39,7 +39,7 @@ void sortKonton(const std::map<int, BollDoc::Konto>& kontoplan, std::vector<int>
 }
 
 KontoWindow::KontoWindow(FileHandler& file_handler, BookApp& book_app)
-    : ImGuiWindowBase("Konton"), _file_handler(file_handler), _book_app(book_app) {}
+    : ImGuiWindowBase("Konton", ImVec2(60, 15), ImVec2(80, 25)), _file_handler(file_handler), _book_app(book_app) {}
 
 void KontoWindow::doit() {
     if (ImGui::Button("Nytt konto")) {

@@ -132,7 +132,7 @@ TEST_CASE("SIE write") {
     siedata.verifikat.push_back(v);
 
     std::stringstream ss;
-    REQUIRE(siewrite(siedata, ss));
+    REQUIRE(siewrite(siedata, 20230924, ss));
 
     std::string s1 = ss.str();
     std::string s2 = siewrite_testdata;

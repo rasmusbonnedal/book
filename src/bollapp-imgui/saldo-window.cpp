@@ -14,7 +14,7 @@ void imguiRightAlign(const char* text) {
 }
 }  // namespace
 
-SaldoWindow::SaldoWindow(FileHandler& file_handler) : ImGuiWindowBase("Saldo"), _file_handler(file_handler) {
+SaldoWindow::SaldoWindow(FileHandler& file_handler) : ImGuiWindowBase("Saldo", ImVec2(80, 10), ImVec2(0, 30)), _file_handler(file_handler) {
     _cache_rev = 0xffffffff;
     makeSelectData();
 }

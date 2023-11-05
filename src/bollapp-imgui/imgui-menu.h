@@ -39,7 +39,11 @@ class ImGuiMenu {
    public:
     void addHeader(ImGuiMenuHeader&& header);
     void doit();
+    float height() const {
+        return _height;
+    }
 
    private:
     std::vector<ImGuiMenuHeader> _headers;
+    float _height;
 };

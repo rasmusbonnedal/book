@@ -318,7 +318,7 @@ class ReportCache {
 };
 
 ReportWindow::ReportWindow(FileHandler& file_handler)
-    : ImGuiWindowBase("Rapporter"), m_file_handler(file_handler), m_cache(std::make_unique<ReportCache>()), m_datum(0), m_report_type(0) {}
+    : ImGuiWindowBase("Rapporter", ImVec2(60, 15), ImVec2(80, 0)), m_file_handler(file_handler), m_cache(std::make_unique<ReportCache>()), m_datum(0), m_report_type(0) {}
 
 ReportWindow::~ReportWindow() = default;
 

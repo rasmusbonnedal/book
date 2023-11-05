@@ -5,6 +5,8 @@ set(SRCS
     bolldoc.h
     date.cpp
     date.h
+    moms.cpp
+    moms.h
     pengar.cpp
     pengar.h
     resultat.cpp

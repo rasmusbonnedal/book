@@ -91,7 +91,7 @@ void writerad(const SIETransaktion& rad, std::ostream& os) {
     writetag(typ, {Element::Int(rad.konto), Element::Token("{}"), Element::Valuta(rad.saldo)}, os);
 }
 
-int64_t now() {
+int64_t today() {
     auto t = std::chrono::system_clock::now();
     std::time_t tt = std::chrono::system_clock::to_time_t(t);
     auto tm = std::tm{0};
@@ -107,11 +107,11 @@ int64_t now() {
 
 }  // namespace
 
-bool siewrite(SIEData& siedata, std::ostream& os) {
+bool siewrite(SIEData& siedata, int64_t today, std::ostream& os) {
     writetag("FLAGGA", {Element::Int(0)}, os);
     writetag("PROGRAM", {Element::String("Bollbok Imgui"), Element::Token("1.0")}, os);
     writetag("FORMAT", {Element::Token("PC8")}, os);
-    writetag("GEN", {Element::Int(now())}, os);
+    writetag("GEN", {Element::Int(today)}, os);
     writetag("SIETYP", {Element::Int(4)}, os);
     writetag("ORGNR", {Element::Token(siedata.org_nummer.substr(0, 6) + siedata.org_nummer.substr(7, 4))}, os);
     writetag("FNAMN", {Element::String(siedata.foretags_namn)}, os);
