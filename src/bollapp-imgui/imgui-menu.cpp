@@ -55,6 +55,10 @@ void ImGuiMenu::addHeader(ImGuiMenuHeader&& header) {
     _headers.push_back(std::move(header));
 }
 
+void ImGuiMenu::clear() {
+    _headers.clear();
+}
+
 void ImGuiMenu::doit() {
     if (_headers.empty()) {
         return;

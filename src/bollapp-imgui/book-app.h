@@ -5,12 +5,14 @@
 #include "file-handler.h"
 #include "imgui-app.h"
 
+class BollDoc;
 class VerifikatWindow;
 class KontoWindow;
 class ReportWindow;
 class SaldoWindow;
 class OneVerifikatWindow;
 class EditKontoDialog;
+class MomsDialog;
 class NewVerifikatDialog;
 class SaveFileChangesDialog;
 class ChecksumFailDialog;
@@ -26,10 +28,13 @@ class BookApp {
     NewVerifikatDialog& newVerifikatDialog();
     OneVerifikatWindow& oneVerifikatWindow();
 
+    BollDoc& doc();
+
    private:
     void event();
 
-    void doOpCheckDirty(FileHandler::Operation op);
+    void doOpCheckDirty(FileHandler::Operation op, const std::string& arg = "");
+    void initMenu();
 
     std::shared_ptr<VerifikatWindow> _verifikat_window;
     std::shared_ptr<KontoWindow> _konto_window;
@@ -38,6 +43,7 @@ class BookApp {
     std::shared_ptr<OneVerifikatWindow> _one_verifikat_window;
     std::shared_ptr<EditKontoDialog> _edit_konto_dialog;
     std::shared_ptr<NewVerifikatDialog> _new_verifikat_dialog;
+    std::shared_ptr<MomsDialog> _moms_dialog;
     std::shared_ptr<SaveFileChangesDialog> _save_file_changes_dialog;
     std::shared_ptr<ChecksumFailDialog> _checksum_fail_dialog;
 

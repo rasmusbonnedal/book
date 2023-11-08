@@ -20,9 +20,14 @@ FieldSaldo summarize_moms(const BollDoc& doc, int month, const KontoMap& konto_m
     check_month(month);
 
     std::vector<const BollDoc::Verifikat*> verifikat;
+    bool is_locked = false;
     for (const auto& v : doc.getVerifikationer()) {
         if (v.getTransdatum().getMonth() == month) {
-            verifikat.push_back(&v);
+            if (v.getText().find("Momsredovisning") != std::string::npos) {
+                is_locked = true;            
+            } else {
+                verifikat.push_back(&v);
+            }
         }
     }
 

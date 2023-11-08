@@ -137,7 +137,7 @@ ImGuiApp::ImGuiApp(const std::string& name) : _name(name), _wantsToQuit(false), 
     ImGuiIO& io = ImGui::GetIO();
 
     std::filesystem::path appdata = getAppDataPath();
-    std::filesystem::remove(appdata / "imgui.ini");
+    // std::filesystem::remove(appdata / "imgui.ini");
     io.IniFilename = ImStrdup((appdata / "imgui.ini").u8string().c_str());
 
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls

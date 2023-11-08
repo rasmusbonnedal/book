@@ -98,6 +98,19 @@ FileDialogResult fileOpenDialog(const std::string& filter, std::string& filename
     return (FileDialogResult)result;
 }
 
+FileDialogResult fileSaveDialog(const std::string& filter, std::string& filename) {
+    nfdchar_t* out_path = NULL;
+    nfdresult_t result = NFD_SaveDialog(filter.c_str(), NULL, &out_path);
+    if (result == NFD_OKAY) {
+        filename = out_path;
+        free(out_path);
+    } else if (result == NFD_CANCEL) {
+    } else {
+        std::cout << "Error: " << NFD_GetError() << std::endl;
+    }
+    return (FileDialogResult)result;
+}
+
 FileHandler::FileHandler() : _op(OP_NOP), _quit(false) {
     newFile();
 }
@@ -276,8 +289,9 @@ std::string FileHandler::getFilename() const {
     }
 }
 
-void FileHandler::setOp(Operation o) {
+void FileHandler::setOp(Operation o, const std::string& arg) {
     _op = o;
+    _op_arg = arg;
 }
 
 void FileHandler::cancelOp() {
@@ -293,6 +307,9 @@ FileHandler::OpenError FileHandler::performOp(std::string& chosen_file) {
         newFile();
     } else if (_op == OP_OPEN) {
         return open(chosen_file);
+    } else if (_op == OP_OPEN_FILE) {
+        chosen_file = _op_arg;
+        return openFile(_op_arg, DO_CHECKSUM);
     } else if (_op == OP_IMPORT) {
         return import_sie();
     } else if (_op == OP_QUIT) {

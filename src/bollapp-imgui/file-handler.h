@@ -14,9 +14,11 @@ typedef enum {
 
 FileDialogResult fileOpenDialog(const std::string& filter, std::string& filename);
 
+FileDialogResult fileSaveDialog(const std::string& filter, std::string& filename);
+
 class FileHandler {
    public:
-    enum Operation { OP_NEW, OP_OPEN, OP_IMPORT, OP_QUIT, OP_NOP };
+    enum Operation { OP_NEW, OP_OPEN, OP_OPEN_FILE, OP_IMPORT, OP_QUIT, OP_NOP };
 
     enum OpenError { OE_SUCCESS = 0, OE_FILE_ERROR = 1, OE_CHECKSUM_ERROR = 2, OE_CANCEL = 3 };
 
@@ -52,7 +54,7 @@ class FileHandler {
 
     const std::filesystem::path& getPath() const;
 
-    void setOp(Operation o);
+    void setOp(Operation o, const std::string& arg);
 
     void cancelOp();
 
@@ -67,5 +69,6 @@ class FileHandler {
     std::unique_ptr<BollDoc> _doc;
     std::string _title;
     Operation _op;
+    std::string _op_arg;
     bool _quit;
 };

@@ -38,6 +38,7 @@ class ImGuiMenuHeader {
 class ImGuiMenu {
    public:
     void addHeader(ImGuiMenuHeader&& header);
+    void clear();
     void doit();
     float height() const {
         return _height;
