@@ -48,7 +48,10 @@ class Element {
                 break;
             case ELEM_TYPE_VALUTA:
                 os.fill('0');
-                os << (m_i / 100) << "." << std::setw(2) << (abs(m_i) % 100) << std::setw(0);
+                if (m_i < 0) {
+                    os << '-';
+                }
+                os << (abs(m_i) / 100) << '.' << std::setw(2) << (abs(m_i) % 100) << std::setw(0);
                 break;
             default:
                 assert(false);

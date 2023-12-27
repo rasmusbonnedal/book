@@ -8,8 +8,10 @@
 #include <iostream>
 
 #include "bolldoc.h"
+#include "report.h"
 #include "serialize.h"
 #include "sieparse.h"
+#include "siewrite.h"
 
 namespace {
 Date int_to_date(int64_t date) {
@@ -17,6 +19,64 @@ Date int_to_date(int64_t date) {
     int month = (date / 100) % 100;
     int day = date % 100;
     return Date(year, month, day);
+}
+
+int64_t date_to_int(const Date& date) {
+    return date.getYear() * 10000 + date.getMonth() * 100 + date.getDay();
+}
+
+bool export_sie(const BollDoc& doc, const std::filesystem::path& siefile) {
+    std::ofstream ofs(siefile);
+    if (!ofs.is_open()) {
+        std::cout << "Error: Opening " << siefile << std::endl;
+        return false;
+    }
+
+    SIEData siedata;
+    siedata.foretags_namn = doc.getFirma();
+    siedata.org_nummer = doc.getOrgnummer();
+    siedata.rakenskapsar_start = (int)date_to_int(Date(doc.getBokforingsar(), 1, 1));
+    siedata.rakenskapsar_slut = (int)date_to_int(Date(doc.getBokforingsar(), 12, 31));
+
+    for (const auto& [id, val] : doc.getKontoPlan()) {
+        siedata.kontoplan[id] = SIEKonto(id, val.getText(), val.getSRU());
+    }
+
+    auto& balans_resultat = siedata.balans_resultat[0];
+    for (const auto& rad : doc.getVerifikat(0).getRader()) {
+        balans_resultat.ib[rad.getKonto()] = rad.getPengar().get();
+    }
+
+    BalansRapport balans;
+    createBalansReport(doc, fullYear(doc.getBokforingsar()), balans);
+    for (const auto& rad : balans.m_balans) {
+        balans_resultat.ub[rad.m_konto] = rad.m_end.get();
+    }
+
+    ResultatRapport resultat;
+    createResultatReport(doc, fullYear(doc.getBokforingsar()), resultat);
+    for (const auto& rad : resultat.m_resultat) {
+        balans_resultat.resultat[rad.first] = rad.second.get();
+    }
+
+    for (const auto& ver : doc.getVerifikationer()) {
+        if (ver.getUnid() == 0) continue;
+        SIEVerifikat sv;
+        sv.transaktionsdatum = date_to_int(ver.getTransdatum());
+        sv.bokforingsdatum = date_to_int(ver.getRad(0).getBokdatum());
+        sv.id = ver.getUnid();
+        sv.text = ver.getText();
+        for (const auto& rad : ver.getRader()) {
+            if (rad.getStruken()) {
+                sv.rader.push_back(SIETransaktion(rad.getKonto(), rad.getPengar().get(), SIETransaktion::BTRANS));            
+            } else {
+                sv.rader.push_back(SIETransaktion(rad.getKonto(), rad.getPengar().get(), SIETransaktion::NORMAL));
+            }
+        }
+        siedata.verifikat.push_back(sv);
+    }
+
+    return siewrite(siedata, date_to_int(now()), ofs);
 }
 
 std::unique_ptr<BollDoc> import_sie(const std::string& siefile) {
@@ -185,6 +245,22 @@ bool FileHandler::saveas() {
     }
     return false;
 }
+
+bool FileHandler::export_sie() {
+    nfdchar_t* out_path = NULL;
+    nfdresult_t result = NFD_SaveDialog("se", NULL, &out_path);
+
+    if (result == NFD_OKAY) {
+        auto siefile = std::filesystem::u8path(out_path);
+        free(out_path);
+        return ::export_sie(getDoc(), siefile);
+    } else if (result == NFD_CANCEL) {
+    } else {
+        std::cout << "Error: " << NFD_GetError() << std::endl;
+    }
+    return false;
+}
+
 
 BollDoc& FileHandler::getDoc() {
     return *_doc;

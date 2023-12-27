@@ -104,6 +104,7 @@ void BookApp::initMenu() {
     file_menu.addItem(ImGuiMenuItem(Operation("Import SIE", {}, std::bind(&BookApp::doOpCheckDirty, this, FileHandler::OP_IMPORT, ""))));
     file_menu.addItem(ImGuiMenuItem(Operation("Save", Shortcut(ImGuiKey_S, ImGuiMod_Ctrl), std::bind(&FileHandler::save, &_file_handler))));
     file_menu.addItem(ImGuiMenuItem(Operation("Save As...", {}, std::bind(&FileHandler::saveas, &_file_handler))));
+    file_menu.addItem(ImGuiMenuItem(Operation("Export SIE", {}, std::bind(&FileHandler::export_sie, &_file_handler))));
     file_menu.addItem(ImGuiMenuItem(ImGuiMenuItem::SEPARATOR));
     for (int i = 0; i < 4; ++i) {
         std::string value;

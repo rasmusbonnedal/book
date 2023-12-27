@@ -102,6 +102,8 @@ const char* siewrite_testdata =
     "{\n"
     "\t#TRANS 1933 {} -70.00\n"
     "\t#TRANS 6570 {} 70.00\n"
+    "\t#TRANS 1933 {} -0.25\n"
+    "\t#TRANS 6570 {} 0.25\n"
     "}\n";
 
 TEST_CASE("SIE write") {
@@ -129,6 +131,8 @@ TEST_CASE("SIE write") {
     v.bokforingsdatum = 20230103;
     v.rader.emplace_back(1933, -7000, SIETransaktion::NORMAL);
     v.rader.emplace_back(6570, 7000, SIETransaktion::NORMAL);
+    v.rader.emplace_back(1933, -25, SIETransaktion::NORMAL);
+    v.rader.emplace_back(6570, 25, SIETransaktion::NORMAL);
     siedata.verifikat.push_back(v);
 
     std::stringstream ss;

@@ -38,6 +38,8 @@ class FileHandler {
 
     bool saveas();
 
+    bool export_sie();
+
     BollDoc& getDoc();
 
     std::vector<std::filesystem::path> getKvitton(int unid) const;
