@@ -48,12 +48,14 @@ def parseKomplettBank(lines, mindate):
     for line in csv.reader(lines, delimiter=','):
         date = line[0]
         if '20' in date:
-            curdate = datetime.strptime(date, '%Y-%m-%d')
+            curdate = datetime.strptime(date, '%d.%m.%Y')
+            date = curdate.strftime('%Y-%m-%d')
             if mindate and curdate < mindate:
                 continue
             text = line[2].strip()
             saldo = line[5].replace('\u00a0','')
-            result.append('\t'.join([date, saldo, '', '', text]))
+            saldo = saldo.replace('.', ',')
+            result.append('\t'.join(['', date, saldo, '', '', text]))
     result.reverse()
     return '\n'.join(result)
 
