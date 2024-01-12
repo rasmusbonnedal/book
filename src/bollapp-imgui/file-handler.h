@@ -18,7 +18,7 @@ FileDialogResult fileSaveDialog(const std::string& filter, std::string& filename
 
 class FileHandler {
    public:
-    enum Operation { OP_NEW, OP_OPEN, OP_OPEN_FILE, OP_IMPORT, OP_QUIT, OP_NOP };
+    enum Operation { OP_NEW, OP_NEWYEAR, OP_OPEN, OP_OPEN_FILE, OP_IMPORT, OP_QUIT, OP_NOP };
 
     enum OpenError { OE_SUCCESS = 0, OE_FILE_ERROR = 1, OE_CHECKSUM_ERROR = 2, OE_CANCEL = 3 };
 
@@ -29,6 +29,8 @@ class FileHandler {
     ~FileHandler();
 
     void newFile();
+
+    void newYear();
 
     OpenError open(std::string& chosen_file);
 

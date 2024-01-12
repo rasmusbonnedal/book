@@ -182,6 +182,11 @@ void FileHandler::newFile() {
     _filename.clear();
 }
 
+void FileHandler::newYear() {
+    _doc = std::make_unique<BollDoc>(_doc->newYear());
+    _filename.clear();
+}
+
 FileHandler::OpenError FileHandler::open(std::string& chosen_file) {
     if (fileOpenDialog("bollbok", chosen_file) == FDR_OKAY) {
         return openFile(chosen_file, DO_CHECKSUM);
@@ -381,6 +386,8 @@ bool FileHandler::shouldQuit() {
 FileHandler::OpenError FileHandler::performOp(std::string& chosen_file) {
     if (_op == OP_NEW) {
         newFile();
+    } else if (_op == OP_NEWYEAR) {
+        newYear();
     } else if (_op == OP_OPEN) {
         return open(chosen_file);
     } else if (_op == OP_OPEN_FILE) {

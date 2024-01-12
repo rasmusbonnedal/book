@@ -99,6 +99,7 @@ void BookApp::initMenu() {
     // Create Menu
     ImGuiMenuHeader file_menu("File");
     file_menu.addItem(ImGuiMenuItem(Operation("New", std::bind(&BookApp::doOpCheckDirty, this, FileHandler::OP_NEW, ""))));
+    file_menu.addItem(ImGuiMenuItem(Operation("New Year", std::bind(&BookApp::doOpCheckDirty, this, FileHandler::OP_NEWYEAR, ""))));
     file_menu.addItem(ImGuiMenuItem(
         Operation("Open", Shortcut(ImGuiKey_O, ImGuiMod_Ctrl), std::bind(&BookApp::doOpCheckDirty, this, FileHandler::OP_OPEN, ""))));
     file_menu.addItem(ImGuiMenuItem(Operation("Import SIE", {}, std::bind(&BookApp::doOpCheckDirty, this, FileHandler::OP_IMPORT, ""))));
