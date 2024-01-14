@@ -23,6 +23,7 @@
 #include <GLFW/glfw3.h>  // Will drag system OpenGL headers
 
 #include "color.h"
+#include "glfw-icon.h"
 #include "imgui-dialog.h"
 #include "imgui-window.h"
 
@@ -265,6 +266,10 @@ void ImGuiApp::addDialog(std::shared_ptr<ImGuiDialog> dialog) {
 
 void ImGuiApp::addEvent(std::function<void()> event) {
     _events.push_back(event);
+}
+
+void ImGuiApp::setIcon(const std::string& filename) {
+    loadGlfwIcon(_glfw_window, filename);
 }
 
 void ImGuiApp::setStyle(bool dark) {

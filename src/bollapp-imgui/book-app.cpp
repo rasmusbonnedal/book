@@ -54,6 +54,7 @@ BookApp::BookApp() : _app("Bokföring") {
 
     ImGui::GetCurrentContext()->PlatformLocaleDecimalPoint = ',';
     initMenu();
+    _app.setIcon("bollbok.png");
 }
 
 BookApp::~BookApp() {}

@@ -15,8 +15,9 @@ target_link_libraries(bollapp-imgui-lib
 )
 target_compile_definitions(bollapp-imgui-lib PUBLIC _CRT_SECURE_NO_WARNINGS=1)
 
-add_executable(bollapp-imgui main.cpp)
-target_link_libraries(bollapp-imgui bollapp-imgui-lib)
+add_executable(bollbok main.cpp appicon.rc)
+target_link_libraries(bollbok bollapp-imgui-lib)
+install(TARGETS bollbok DESTINATION .)
 
 add_executable(test-combo test-combo.cpp)
 target_link_libraries(test-combo bollapp-imgui-lib)

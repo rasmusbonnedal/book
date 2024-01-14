@@ -22,6 +22,7 @@ class ImGuiApp {
     void run();
     bool wantsToQuit();
 
+    void setIcon(const std::string& filename);
     void setStyle(bool dark);
     ImGuiMenu& getMenu();
     ImGuiSettings& getSettings();

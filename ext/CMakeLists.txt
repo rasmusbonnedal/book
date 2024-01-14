@@ -23,6 +23,8 @@ set_target_properties(glfw PROPERTIES FOLDER "ext/GLFW3")
 set_target_properties(update_mappings PROPERTIES FOLDER "ext/GLFW3")
 
 # Freetype
+SET(SKIP_INSTALL_ALL ON CACHE BOOL "")
+SET(FT_DISABLE_HARFBUZZ ON CACHE BOOL "")
 add_subdirectory(freetype)
 target_compile_options(freetype PRIVATE /wd4244 /wd4267)
 set_target_properties(freetype PROPERTIES FOLDER "ext")
