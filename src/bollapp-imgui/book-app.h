@@ -27,6 +27,7 @@ class BookApp {
     EditKontoDialog& editKontoDialog();
     NewVerifikatDialog& newVerifikatDialog();
     OneVerifikatWindow& oneVerifikatWindow();
+    SaldoWindow& saldoWindow();
 
     BollDoc& doc();
 

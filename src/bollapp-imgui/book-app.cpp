@@ -25,9 +25,9 @@ BookApp::BookApp() : _app("Bokföring") {
     _app.addWindow(_konto_window);
     _report_window = std::make_shared<ReportWindow>(_file_handler);
     _app.addWindow(_report_window);
-    _saldo_window = std::make_shared<SaldoWindow>(_file_handler);
+    _saldo_window = std::make_shared<SaldoWindow>(_file_handler, *this);
     _app.addWindow(_saldo_window);
-    _one_verifikat_window = std::make_shared<OneVerifikatWindow>(_file_handler);
+    _one_verifikat_window = std::make_shared<OneVerifikatWindow>(_file_handler, *this);
     _app.addWindow(_one_verifikat_window);
     _edit_konto_dialog = std::make_shared<EditKontoDialog>(_file_handler);
     _app.addDialog(_edit_konto_dialog);
@@ -81,6 +81,10 @@ NewVerifikatDialog& BookApp::newVerifikatDialog() {
 
 OneVerifikatWindow& BookApp::oneVerifikatWindow() {
     return *_one_verifikat_window;
+}
+
+SaldoWindow& BookApp::saldoWindow() {
+    return *_saldo_window;
 }
 
 void BookApp::event() {

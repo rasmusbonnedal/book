@@ -207,7 +207,9 @@ void NewVerifikatDialog::doit() {
     int i = 0;
     int to_erase = -1;
     for (const auto& kvitto : m_attached_kvitton) {
-        ImGui::Text(kvitto.u8string().c_str());
+        if (ImGui::Button(kvitto.u8string().c_str())) {
+            openDocument(kvitto);
+        }
         ImGui::SameLine();
         if (ImGui::Button("X")) {
             to_erase = i;

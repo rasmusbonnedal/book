@@ -3,6 +3,8 @@
 #include <imgui.h>
 
 #include "bolldoc.h"
+#include "book-app.h"
+#include "one-verifikat-window.h"
 
 namespace {
 void imguiRightAlign(const char* text) {
@@ -14,7 +16,8 @@ void imguiRightAlign(const char* text) {
 }
 }  // namespace
 
-SaldoWindow::SaldoWindow(FileHandler& file_handler) : ImGuiWindowBase("Saldo", ImVec2(80, 10), ImVec2(0, 30)), _file_handler(file_handler) {
+SaldoWindow::SaldoWindow(FileHandler& file_handler, BookApp& app)
+    : ImGuiWindowBase("Saldo", ImVec2(80, 10), ImVec2(0, 30)), _file_handler(file_handler), _app(app) {
     _cache_rev = 0xffffffff;
     makeSelectData();
 }
@@ -78,7 +81,9 @@ void SaldoWindow::doit() {
 
                     // Beskrivning
                     ImGui::TableSetColumnIndex(1);
-                    ImGui::TextUnformatted(v.getText().c_str());
+                    if (ImGui::Button(v.getText().c_str())) {
+                        _app.oneVerifikatWindow().setVerifikat(v.getUnid());
+                    }
 
                     // Belopp
                     ImGui::TableSetColumnIndex(2);
@@ -95,5 +100,14 @@ void SaldoWindow::doit() {
             }        
         }
         ImGui::EndTable();
+    }
+}
+
+void SaldoWindow::setKonto(int konto) {
+    for (int i = 0; i < _konton_id.size(); ++i) {
+        if (_konton_id[i] == konto) {
+            _konto_select->index = i;
+            return;
+        }
     }
 }

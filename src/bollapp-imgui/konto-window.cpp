@@ -5,6 +5,7 @@
 #include "bolldoc.h"
 #include "book-app.h"
 #include "edit-konto-dialog.h"
+#include "saldo-window.h"
 
 namespace {
 void sortKonton(const std::map<int, BollDoc::Konto>& kontoplan, std::vector<int>& kontoplan_index, ImGuiTableSortSpecs* sort_spec) {
@@ -86,7 +87,14 @@ void KontoWindow::doit() {
                 char buf[8];
                 snprintf(buf, sizeof(buf), "%d", kontonr);
                 bool st = row == _selected_row;
-                if (ImGui::Selectable(buf, &st, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
+                if (ImGui::Button(buf)) {
+                    _book_app.saldoWindow().setKonto(kontonr);
+                }
+
+                // Beskrivning
+                ImGui::TableSetColumnIndex(1);
+                if (ImGui::Selectable(konto.getText().c_str(), &st,
+                                      ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
                     _selected_row = st ? row : -1;
                     if (ImGui::IsMouseDoubleClicked(0)) {
                         _book_app.editKontoDialog().launch(kontonr);
@@ -94,9 +102,6 @@ void KontoWindow::doit() {
                     }
                 }
 
-                // Beskrivning
-                ImGui::TableSetColumnIndex(1);
-                ImGui::TextUnformatted(konto.getText().c_str());
                 // Tagg
                 ImGui::TableSetColumnIndex(2);
                 ImGui::TextUnformatted(konto.getTagg().c_str());

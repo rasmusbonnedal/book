@@ -54,6 +54,9 @@ Todo-list
 - [x] Right just pengar in Saldo view
 - [ ] Right click "go to verifikat" in saldo view
 - [ ] Show exceptions in dialog box
+- [x] Go to "konto saldo" when click on konto in verifikat
+- [x] Go to "verifikat" when click on line in konto saldo
+- [x] Go to "konto saldo" when click on konto in konton
 
 XML diffs
 *********

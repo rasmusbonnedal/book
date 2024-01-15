@@ -5,14 +5,18 @@
 #include "imgui_combo_autoselect.h"
 #include "imgui-window.h"
 
+class BookApp;
+
 class SaldoWindow : public ImGuiWindowBase {
    public:
-    SaldoWindow(FileHandler& file_handler);
+    SaldoWindow(FileHandler& file_handler, BookApp& book_app);
     void doit() final;
+    void setKonto(int konto);
 
    private:
     void makeSelectData();
 
+    BookApp& _app;
     FileHandler& _file_handler;
     std::vector<std::string> _konton;
     std::vector<int> _konton_id;

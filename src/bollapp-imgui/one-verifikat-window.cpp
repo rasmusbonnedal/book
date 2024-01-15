@@ -3,6 +3,9 @@
 #include <imgui.h>
 
 #include "bolldoc.h"
+#include "book-app.h"
+#include "file-handler.h"
+#include "saldo-window.h"
 
 namespace {
 void imguiRightAlign(const char* text) {
@@ -21,8 +24,12 @@ void imguiTextRightAlign(const std::string& s) {
 const int DEFAULT_SALDO_WIDTH = 90;
 }  // namespace
 
-OneVerifikatWindow::OneVerifikatWindow(FileHandler& file_handler)
-    : ImGuiWindowBase("Ett verifikat", ImVec2(60, 10), ImVec2(80, 15)), _file_handler(file_handler), _revision(-1), _verifikat(-1) {}
+OneVerifikatWindow::OneVerifikatWindow(FileHandler& file_handler, BookApp& app)
+    : ImGuiWindowBase("Ett verifikat", ImVec2(60, 10), ImVec2(80, 15)),
+      _file_handler(file_handler),
+      _app(app),
+      _revision(-1),
+      _verifikat(-1) {}
 
 void OneVerifikatWindow::setVerifikat(int v) {
     _verifikat = v;
@@ -56,7 +63,9 @@ void OneVerifikatWindow::doit() {
         for (auto& row : _rows) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(row.konto.c_str());
+            if (ImGui::Button(row.konto.c_str())) {
+                _app.saldoWindow().setKonto(row.konto_id);
+            }
             ImGui::TableNextColumn();
             ImGui::TextUnformatted(row.namn.c_str());
             ImGui::TableNextColumn();
@@ -85,6 +94,7 @@ void OneVerifikatWindow::update(bool need_update) {
         _datum = to_string(ver.getTransdatum());
         for (const auto& row : ver.getRader()) {
             Row srow;
+            srow.konto_id = row.getKonto();
             srow.konto = std::to_string(row.getKonto());
             srow.namn = _file_handler.getDoc().getKonto(row.getKonto()).getText();
             srow.saldo = to_string(row.getPengar());

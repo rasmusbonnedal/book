@@ -3,7 +3,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "1")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project(Bollbok VERSION 1.0.0)
+project(Bollbok VERSION 1.0.1)
 
 enable_testing()
 add_subdirectory(ext)
