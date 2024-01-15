@@ -5,15 +5,17 @@
 #include "serialize.h"
 
 int main(int, char**) {
-    BookApp app;
+    std::unique_ptr<BookApp> app;
     try {
-        app.run();
+        app = std::make_unique<BookApp>();
+        app->run();
     } catch (std::exception& e) {
         std::cerr << "Exception: " << e.what() << std::endl;
-        std::ofstream ofs("recovery.bollbok");
-        Serialize::saveDocumentCustom(app.doc(), ofs);
-        std::cerr << "Recovery file saved as recovery.bollbok" << std::endl;
+        if (app) {
+            std::ofstream ofs("recovery.bollbok");
+            Serialize::saveDocumentCustom(app->doc(), ofs);
+            std::cerr << "Recovery file saved as recovery.bollbok" << std::endl;
+        }
     }
-
     return 0;
 }

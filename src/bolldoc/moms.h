@@ -18,3 +18,5 @@ FieldSaldo summarize_moms(const BollDoc& doc, int month, const KontoMap& konto_m
 void sum_moms(FieldSaldo& field_saldo);
 
 std::string gen_moms_eskd(const BollDoc& doc, int month, const FieldSaldo& field_saldo, const FieldToSkv& field_to_skv);
+
+void loadMomsMapping(KontoMap& konto_map, FieldToSkv& field_to_skv, const std::string& filename);

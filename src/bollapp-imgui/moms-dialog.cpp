@@ -1,5 +1,8 @@
 #include "moms-dialog.h"
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include <fstream>
 
 #include <imgui.h>
@@ -17,13 +20,25 @@ void imguiRightAlign(const char* text) {
     }
 }
 
-// TODO!!! Import from kontomap json
-const KontoMap konto_map{{05, {3011}}, {10, {2611}}, {42, {3014, 3690}}, {48, {2641}}};
-const FieldToSkv field_to_skv = {{5, "ForsMomsEjAnnan"}, {10, "MomsUtgHog"}, {42, "ForsOvrigt"}, {48, "MomsIngAvdr"}, {49, "MomsBetala"}};
+bool getExePath(std::string& exepath) {
+    WCHAR szPath[MAX_PATH];
+    if (!GetModuleFileNameW(0, szPath, MAX_PATH)) {
+        return false;
+    }
+    auto path = std::filesystem::path(szPath).parent_path();
+    path = std::filesystem::canonical(path);
+    exepath = path.string();
+    return true;
+}
+
 }  // namespace
 
 MomsDialog::MomsDialog(FileHandler& file_handler)
-    : ImGuiDialog("Momsredovisning"), m_file_handler(file_handler), m_datum(DATETYPE_JANUARY) {}
+    : ImGuiDialog("Momsredovisning"), m_file_handler(file_handler), m_datum(DATETYPE_JANUARY) {
+    std::string exepath;
+    getExePath(exepath);
+    loadMomsMapping(m_konto_map, m_field_to_skv, exepath + "\\moms_mapping.json");
+}
 
 void MomsDialog::doit() {
     if (ImGui::BeginCombo(u8"Månad", dateTypeToString((DateType)m_datum))) {
@@ -43,7 +58,7 @@ void MomsDialog::doit() {
     const int month = m_datum + 1 - DATETYPE_JANUARY;
     FieldSaldo result;
     try {
-        result = summarize_moms(m_file_handler.getDoc(), month, konto_map, redovisning);
+        result = summarize_moms(m_file_handler.getDoc(), month, m_konto_map, redovisning);
     } catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
@@ -62,7 +77,7 @@ void MomsDialog::doit() {
             ImGui::TableSetColumnIndex(0);
             ImGui::Text("%d", field);
             ImGui::TableSetColumnIndex(1);
-            ImGui::TextUnformatted(field_to_skv.find(field)->second.c_str());
+            ImGui::TextUnformatted(m_field_to_skv.find(field)->second.c_str());
             ImGui::TableSetColumnIndex(2);
             const std::string saldo_str = to_string(saldo);
             imguiRightAlign(saldo_str.c_str());
@@ -106,7 +121,7 @@ void MomsDialog::doit() {
         }
 
         try {
-            std::string xml = gen_moms_eskd(doc, month, result, field_to_skv);
+            std::string xml = gen_moms_eskd(doc, month, result, m_field_to_skv);
             std::string filename;
             FileDialogResult result = fileSaveDialog("xml", filename);
             if (result == FDR_OKAY) {

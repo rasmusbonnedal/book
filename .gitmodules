@@ -19,3 +19,6 @@
 [submodule "ext/nativefiledialog"]
 	path = ext/nativefiledialog
 	url = https://github.com/mlabbe/nativefiledialog
+[submodule "ext/json"]
+	path = ext/json
+	url = https://github.com/nlohmann/json

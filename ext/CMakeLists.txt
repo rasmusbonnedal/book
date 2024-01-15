@@ -56,3 +56,6 @@ target_include_directories(nativefiledialog PUBLIC nativefiledialog/src/include)
 target_compile_definitions(nativefiledialog PRIVATE -D_CRT_SECURE_NO_WARNINGS)
 #target_compile_definitions(nativefiledialog PUBLIC -DFTG_IGNORE_UNICODE)
 set_target_properties(nativefiledialog PROPERTIES FOLDER "ext")
+
+# https://github.com/nlohmann/json
+add_subdirectory(json)

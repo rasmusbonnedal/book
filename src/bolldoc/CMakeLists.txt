@@ -18,7 +18,12 @@ set(SRCS
 )
 
 add_library(bolldoc STATIC ${SRCS})
-target_link_libraries(bolldoc rapidxml utf-cpp)
+target_link_libraries(bolldoc
+    rapidxml
+    utf-cpp
+    nlohmann_json
+)
+
 target_include_directories(bolldoc PUBLIC .)
 if(MSVC)
 	target_compile_options(bolldoc PRIVATE -W4 -WX -experimental:external -external:anglebrackets -external:W3)

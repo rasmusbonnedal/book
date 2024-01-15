@@ -1,5 +1,8 @@
 #include "moms.h"
 
+#include <nlohmann/json.hpp>
+
+#include <fstream>
 #include <set>
 
 namespace {
@@ -11,6 +14,11 @@ void check_month(int month) {
 
 int round_skv(const Pengar& p) {
     return (int)(p.get() / 100);
+}
+
+int parseInt(const std::string& s) {
+    if (s.length() == 0) return 0;
+    return std::stol(s);
 }
 
 }  // namespace
@@ -112,4 +120,22 @@ std::string gen_moms_eskd(const BollDoc& doc, int month, const FieldSaldo& field
     outxml += "  </Moms>\n";
     outxml += "</eSKDUpload>\n";
     return outxml;
+}
+
+void loadMomsMapping(KontoMap& konto_map, FieldToSkv& field_to_skv, const std::string& filename) {
+    std::ifstream ifs(filename);
+    if (ifs.is_open()) {
+        auto j = nlohmann::json::parse(ifs);
+        for (auto it = j.begin(); it != j.end(); ++it) {
+            for (auto it2 = it.value().begin(); it2 != it.value().end(); ++it2) {
+                int skv_no = parseInt(it2.key());
+                field_to_skv[skv_no] = it2.value()["skvxml"];
+                for (int acct : it2.value()["accts"]) {
+                    konto_map[skv_no].push_back(acct);
+                }
+            }
+        }
+    } else {
+        throw std::runtime_error("Could not open moms json file " + filename);
+    }
 }
