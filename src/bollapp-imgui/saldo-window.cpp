@@ -106,7 +106,7 @@ void SaldoWindow::doit() {
 void SaldoWindow::setKonto(int konto) {
     for (int i = 0; i < _konton_id.size(); ++i) {
         if (_konton_id[i] == konto) {
-            _konto_select->index = i;
+            _konto_select->setIndex(_konton, i);
             return;
         }
     }

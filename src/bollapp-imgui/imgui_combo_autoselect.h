@@ -12,11 +12,15 @@ struct ComboAutoSelectData {
     int cancel_index = -1;
     char input[128] = {};
 
-    ComboAutoSelectData(const std::vector<std::string>& items, int selected_index = -1) {
+    void setIndex(const std::vector<std::string>& items, int selected_index) {
         if (selected_index > -1 && selected_index < (int)items.size()) {
             strncpy(input, items[selected_index].c_str(), sizeof(input) - 1);
             index = selected_index;
         }
+    }
+
+    ComboAutoSelectData(const std::vector<std::string>& items, int selected_index = -1) {
+        setIndex(items, selected_index);
     }
 };
 
