@@ -149,7 +149,7 @@ void BookApp::doOpCheckDirty(FileHandler::Operation op, const std::string& arg) 
             std::string new_file = file.u8string();
             std::vector<std::string> recent_files;
             recent_files.push_back(new_file);
-            for (int i = 4; i >= 0; --i) {
+            for (int i = 0; i < 4; ++i) {
                 std::string value;
                 if (_app.getSettings().get("recent" + std::to_string(i), value) && value != new_file) {
                     recent_files.push_back(value);
