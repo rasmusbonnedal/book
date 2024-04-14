@@ -7,6 +7,8 @@
 
 class BookApp;
 
+// A window which lists all transactions for a specified account
+// At the top there is a combo box to select account
 class SaldoWindow : public ImGuiWindowBase {
    public:
     SaldoWindow(FileHandler& file_handler, BookApp& book_app);

@@ -8,6 +8,7 @@
 class BookApp;
 class FileHandler;
 
+// A window shich shows one verifikat
 class OneVerifikatWindow : public ImGuiWindowBase {
    public:
     OneVerifikatWindow(FileHandler& file_handler, BookApp& app);

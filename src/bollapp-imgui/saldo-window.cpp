@@ -69,6 +69,7 @@ void SaldoWindow::doit() {
 
         Pengar saldo;
         char display_buf[256];
+        int i = 0;
         for (auto& v : _verifikat_cache) {
             for (auto& rad : v.getRader()) {
                 if (!rad.getStruken() && rad.getKonto() == _konton_id[_konto_select->index]) {
@@ -81,7 +82,7 @@ void SaldoWindow::doit() {
 
                     // Beskrivning
                     ImGui::TableSetColumnIndex(1);
-                    if (ImGui::Button(v.getText().c_str())) {
+                    if (ImGui::Button((v.getText() + "##" + std::to_string(i++)).c_str())) {
                         _app.oneVerifikatWindow().setVerifikat(v.getUnid());
                     }
 
@@ -110,4 +111,5 @@ void SaldoWindow::setKonto(int konto) {
             return;
         }
     }
+    std::cout << "Error: Could not set konto: " << konto << std::endl;
 }
