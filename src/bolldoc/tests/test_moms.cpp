@@ -53,7 +53,7 @@ TEST_CASE("Moms") {
     auto doc = createDoc();
     KontoMap konto_map{{51, {1910}}, {52, {1911, 1912, 1913}}, {53, {1914, 1915}}};
     Verifikat redovisning;
-    FieldSaldo result = summarize_moms(doc, 3, konto_map, redovisning);
+    FieldSaldo result = summarize_moms(doc, DATETYPE_MARCH, konto_map, redovisning);
     CHECK(result[51] == Pengar(300));
     CHECK(result[52] == Pengar(960));
     CHECK(result[53] == Pengar(690));
@@ -63,8 +63,8 @@ TEST_CASE("Invalid date") {
     auto doc = createDoc();
     KontoMap konto_map;
     Verifikat redovisning;
-    CHECK_THROWS(summarize_moms(doc, 0, konto_map, redovisning));
-    CHECK_THROWS(summarize_moms(doc, 13, konto_map, redovisning));
+    CHECK_THROWS(summarize_moms(doc, DATETYPE_FULL, konto_map, redovisning));
+    CHECK_THROWS(summarize_moms(doc, DATETYPE_COUNT, konto_map, redovisning));
 }
 
 const std::string ref_aug2021 = R"(<?xml version="1.0" encoding="utf-8"?>
@@ -82,7 +82,7 @@ TEST_CASE("eSKD empty") {
     auto doc = createDoc();
     FieldSaldo result;
     sum_moms(result);
-    std::string xml = gen_moms_eskd(doc, 8, result, field_to_skv);
+    std::string xml = gen_moms_eskd(doc, DATETYPE_AUGUST, result, field_to_skv);
     CHECK(xml == ref_aug2021);
 }
 
@@ -107,7 +107,7 @@ TEST_CASE("Moms nov 2021") {
     sum_moms(field_saldo);
     CHECK(field_saldo[49] == -5698300);
 
-    std::string xml = gen_moms_eskd(doc, 3, field_saldo, field_to_skv);
+    std::string xml = gen_moms_eskd(doc, DATETYPE_MARCH, field_saldo, field_to_skv);
     CHECK(xml == ref_nov2021);
 }
 
@@ -147,7 +147,7 @@ TEST_CASE("Moms dec 2021") {
     BollDoc doc = createDoc(dec_2021, 2021, 12);
 
     Verifikat redovisning;
-    FieldSaldo result = summarize_moms(doc, 12, konto_map, redovisning);
+    FieldSaldo result = summarize_moms(doc, DATETYPE_DECEMBER, konto_map, redovisning);
 
     CHECK(result[5] == -18549270);
     CHECK(result[10] == -4637317);
@@ -159,7 +159,7 @@ TEST_CASE("Moms dec 2021") {
     CHECK(redovisning[2650] == -4583000);
     CHECK(redovisning[3740] == 3);
 
-    std::string xml = gen_moms_eskd(doc, 12, result, field_to_skv);
+    std::string xml = gen_moms_eskd(doc, DATETYPE_DECEMBER, result, field_to_skv);
     CHECK(xml == ref_dec2021);
 }
 
@@ -179,13 +179,13 @@ const std::string ref_jan2022 = R"(<?xml version="1.0" encoding="utf-8"?>
 TEST_CASE("Moms jan 2022") {
     BollDoc doc = createDoc(jan_2022, 2022, 1);
     Verifikat redovisning;
-    FieldSaldo result = summarize_moms(doc, 1, konto_map, redovisning);
+    FieldSaldo result = summarize_moms(doc, DATETYPE_JANUARY, konto_map, redovisning);
     CHECK(redovisning[1650] == 22400);
     CHECK(redovisning[2641] == -22480);
     CHECK(redovisning[3740] == 80);
     CHECK(result[49] == 22400);
 
-    std::string xml = gen_moms_eskd(doc, 1, result, field_to_skv);
+    std::string xml = gen_moms_eskd(doc, DATETYPE_JANUARY, result, field_to_skv);
     CHECK(xml == ref_jan2022);
 }
 
@@ -215,7 +215,7 @@ const std::string ref_dec2022 = R"(<?xml version="1.0" encoding="utf-8"?>
 TEST_CASE("Moms dec 2022") {
     BollDoc doc = createDoc(dec_2022, 2022, 12);
     Verifikat redovisning;
-    FieldSaldo result = summarize_moms(doc, 12, konto_map, redovisning);
+    FieldSaldo result = summarize_moms(doc, DATETYPE_DECEMBER, konto_map, redovisning);
     CHECK(redovisning[2611] == 4413385);
     CHECK(redovisning[2641] == -26970);
     CHECK(redovisning[2650] == -4386400);
@@ -223,6 +223,6 @@ TEST_CASE("Moms dec 2022") {
     CHECK(result[49] == -4386400);
     CHECK(result[05] == -17653540);
 
-    std::string xml = gen_moms_eskd(doc, 12, result, field_to_skv);
+    std::string xml = gen_moms_eskd(doc, DATETYPE_DECEMBER, result, field_to_skv);
     CHECK(xml == ref_dec2022);
 }

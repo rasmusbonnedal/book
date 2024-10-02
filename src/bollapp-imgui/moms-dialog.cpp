@@ -42,7 +42,7 @@ MomsDialog::MomsDialog(FileHandler& file_handler)
 
 void MomsDialog::doit() {
     if (ImGui::BeginCombo(u8"Månad", dateTypeToString((DateType)m_datum))) {
-        for (int n = DATETYPE_JANUARY; n < DATETYPE_COUNT; ++n) {
+        for (int n = DATETYPE_Q1; n < DATETYPE_COUNT; ++n) {
             bool is_selected = (n == m_datum);
             if (ImGui::Selectable(dateTypeToString((DateType)n), is_selected)) {
                 m_datum = n;
@@ -55,10 +55,9 @@ void MomsDialog::doit() {
     }
 
     Verifikat redovisning;
-    const int month = m_datum + 1 - DATETYPE_JANUARY;
     FieldSaldo result;
     try {
-        result = summarize_moms(m_file_handler.getDoc(), month, m_konto_map, redovisning);
+        result = summarize_moms(m_file_handler.getDoc(), (DateType)m_datum, m_konto_map, redovisning);
     } catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
@@ -114,14 +113,14 @@ void MomsDialog::doit() {
         auto& doc = m_file_handler.getDoc();
         int id = doc.getNextVerifikatId();
         int year = doc.getBokforingsar();
-        Date date = lastDayOfMonth(Date(year, month, 1));
+        Date date = dateTypeToRange((DateType)m_datum, year).getEnd();
         BollDoc::Verifikat ver(id, "Momsredovisning " + std::string(dateTypeToString((DateType)m_datum)) + " " + std::to_string(year), date);
         for (const auto& [konto, saldo] : redovisning) {
             ver.addRad(BollDoc::Rad(now(), konto, saldo));        
         }
 
         try {
-            std::string xml = gen_moms_eskd(doc, month, result, m_field_to_skv);
+            std::string xml = gen_moms_eskd(doc, (DateType)m_datum, result, m_field_to_skv);
             std::string filename;
             FileDialogResult result = fileSaveDialog("xml", filename);
             if (result == FDR_OKAY) {

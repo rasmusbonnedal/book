@@ -91,6 +91,10 @@ const Date& DateRange::getStart() const { return _start; }
 
 const Date& DateRange::getEnd() const { return _end; }
 
+bool DateRange::isInRange(const Date& d) const {
+    return d >= _start && d <= _end;
+}
+
 namespace {
 const std::regex dateRegex("(\\d{4})-(\\d\\d)-(\\d\\d)");
 }
@@ -128,7 +132,17 @@ bool operator<(const Date& lhs, const Date& rhs) {
     }
 }
 
-bool operator>=(const Date& lhs, const Date& rhs) { return !(lhs < rhs); }
+bool operator>(const Date& lhs, const Date& rhs) {
+    return rhs < lhs;
+}
+
+bool operator>=(const Date& lhs, const Date& rhs) {
+    return !(lhs < rhs);
+}
+
+bool operator<=(const Date& lhs, const Date& rhs) {
+    return !(rhs < lhs);
+}
 
 bool operator==(const Date& lhs, const Date& rhs) {
     return lhs.getYear() == rhs.getYear() && lhs.getMonth() == rhs.getMonth() &&

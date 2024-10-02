@@ -57,6 +57,8 @@ public:
 
     const Date& getEnd() const;
 
+    bool isInRange(const Date& d) const;
+
 private:
     Date _start;
     Date _end;
@@ -68,7 +70,11 @@ std::optional<Date> parseDateNothrow(const std::string& s);
 
 bool operator<(const Date& lhs, const Date& rhs);
 
+bool operator>(const Date& lhs, const Date& rhs);
+
 bool operator>=(const Date& lhs, const Date& rhs);
+
+bool operator<=(const Date& lhs, const Date& rhs);
 
 bool operator==(const Date& lhs, const Date& rhs);
 

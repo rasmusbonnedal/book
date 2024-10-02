@@ -21,6 +21,12 @@ TEST_CASE("Date <") {
     CHECK(Date(2001, 10, 2) < Date(2001, 10, 3));
 }
 
+TEST_CASE("Date >") {
+    CHECK(Date(2001, 10, 2) > Date(2001, 10, 1));
+    CHECK(Date(2001, 10, 2) > Date(2001, 9, 2));
+    CHECK(Date(2001, 10, 2) > Date(2001, 9, 30));
+}
+
 TEST_CASE("Date >=") {
     CHECK(Date(2001, 10, 2) >= Date(2000, 11, 3));
     CHECK(Date(2001, 10, 2) >= Date(2001, 9, 3));
@@ -30,6 +36,13 @@ TEST_CASE("Date >=") {
     CHECK_FALSE(Date(2001, 10, 2) >= Date(2001, 11, 1));
     CHECK_FALSE(Date(2001, 10, 2) >= Date(2001, 10, 3));
 }
+
+TEST_CASE("Date <=") {
+    CHECK(Date(2001, 10, 2) <= Date(2001, 10, 2));
+    CHECK(Date(2001, 10, 2) <= Date(2001, 10, 3));
+    CHECK(Date(2001, 10, 2) <= Date(2001, 10, 4));
+}
+
 
 TEST_CASE("Valid Date") {
     CHECK_NOTHROW(Date(0, 1, 1));
@@ -103,4 +116,13 @@ TEST_CASE("Parse Date timer") {
     }
     float time = t.stop();
     CHECK(time < 0.1f);
+}
+
+TEST_CASE("Date Range") {
+    DateRange dr(Date(2000, 6, 2), Date(2000, 7, 30));
+    CHECK(dr.isInRange(Date(2000, 6, 2)));
+    CHECK(dr.isInRange(Date(2000, 7, 1)));
+    CHECK(dr.isInRange(Date(2000, 7, 30)));
+    CHECK_FALSE(dr.isInRange(Date(2000, 6, 1)));
+    CHECK_FALSE(dr.isInRange(Date(2000, 7, 31)));
 }

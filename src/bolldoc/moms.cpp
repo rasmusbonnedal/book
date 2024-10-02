@@ -6,9 +6,9 @@
 #include <set>
 
 namespace {
-void check_month(int month) {
-    if (month < 1 || month > 12) {
-        throw std::runtime_error("Illegal month number " + std::to_string(month));
+void check_date(DateType date) {
+    if (date < DATETYPE_Q1 || date > DATETYPE_DECEMBER) {
+        throw std::runtime_error("Illegal month number " + std::string(dateTypeToString(date)));
     }
 }
 
@@ -23,14 +23,16 @@ int parseInt(const std::string& s) {
 
 }  // namespace
 
-FieldSaldo summarize_moms(const BollDoc& doc, int month, const KontoMap& konto_map, Verifikat& redovisning) {
+FieldSaldo summarize_moms(const BollDoc& doc, DateType date, const KontoMap& konto_map, Verifikat& redovisning) {
     const std::set<int> add_fields{10, 11, 12, 30, 31, 32, 48, 60, 61, 62};
-    check_month(month);
+    check_date(date);
+
+    DateRange date_range = dateTypeToRange(date, doc.getBokforingsar());
 
     std::vector<const BollDoc::Verifikat*> verifikat;
     bool is_locked = false;
     for (const auto& v : doc.getVerifikationer()) {
-        if (v.getTransdatum().getMonth() == month) {
+        if (date_range.isInRange(v.getTransdatum())) {
             if (v.getText().find("Momsredovisning") != std::string::npos) {
                 is_locked = true;            
             } else {
@@ -89,8 +91,8 @@ void sum_moms(FieldSaldo& field_saldo) {
     field_saldo[49] = Pengar(field_49 * 100);
 }
 
-std::string gen_moms_eskd(const BollDoc& doc, int month, const FieldSaldo& field_saldo, const FieldToSkv& field_to_skv) {
-    check_month(month);
+std::string gen_moms_eskd(const BollDoc& doc, DateType date_type, const FieldSaldo& field_saldo, const FieldToSkv& field_to_skv) {
+    check_date(date_type);
 
     if (field_saldo.count(49) == 0) {
         throw std::runtime_error("field_saldo lacks sum field");
@@ -103,7 +105,8 @@ std::string gen_moms_eskd(const BollDoc& doc, int month, const FieldSaldo& field
     outxml += "  <OrgNr>" + doc.getOrgnummer() + "</OrgNr>\n";
     outxml += "  <Moms>\n";
     char buf[12];
-    snprintf(buf, 11, "%04d%02d", doc.getBokforingsar(), month);
+
+    snprintf(buf, 11, "%04d%02d", doc.getBokforingsar(), dateTypeToRange(date_type, doc.getBokforingsar()).getEnd().getMonth());
     outxml += "    <Period>" + std::string(buf) + "</Period>\n";
     for (const auto& [field, saldo] : field_saldo) {
         auto it = field_to_skv.find(field);
