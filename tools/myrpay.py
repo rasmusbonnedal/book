@@ -8,7 +8,7 @@ from openpyxl import load_workbook
 
 company = {
     'name': u'AB Schmaktiebolaget',
-    'org_nr': '165512345678',
+    'org_nr': '165560269986',
     'contact_name': u'Alf Orm',
     'contact_tel': '0733123456',
     'contact_email': 'alf.orm@schmaktie.se',
@@ -18,7 +18,7 @@ company = {
 
 employee = {
     'name': u'Ben Burt',
-    'id': '19821231-1243',
+    'id': '198612312382',
     'account': '5169-0012345'
 }
 
