@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Skatteverket omrade="Arbetsgivardeklaration" xmlns="http://xmls.skatteverket.se/se/skatteverket/da/instans/schema/1.1">
+    <Avsandare xmlns="http://xmls.skatteverket.se/se/skatteverket/da/komponent/schema/1.1">
+        <Programnamn>MyrPay</Programnamn>
+        <Organisationsnummer>{{ org_nummer }}</Organisationsnummer>
+        <TekniskKontaktperson>
+            <Namn>{{ kontakt_namn }}</Namn>
+            <Telefon>{{ kontakt_tel_nummer }}</Telefon>
+            <Epostadress>{{ kontakt_email}}</Epostadress>
+        </TekniskKontaktperson>
+        <Skapad>{{ skapad_tid }}</Skapad>
+    </Avsandare>
+    <Blankettgemensamt xmlns="http://xmls.skatteverket.se/se/skatteverket/da/komponent/schema/1.1">
+        <Arbetsgivare>
+            <AgRegistreradId>{{ org_nummer }}</AgRegistreradId>
+            <Kontaktperson>
+                <Namn>{{ kontakt_namn }}</Namn>
+                <Telefon>{{ kontakt_tel_nummer }}</Telefon>
+                <Epostadress>{{ kontakt_email}}</Epostadress>
+            </Kontaktperson>
+        </Arbetsgivare>
+    </Blankettgemensamt>
+    <Blankett xmlns="http://xmls.skatteverket.se/se/skatteverket/da/komponent/schema/1.1">
+        <Arendeinformation>
+            <Arendeagare>{{ org_nummer }}</Arendeagare>
+            <Period>{{ period }}</Period>
+        </Arendeinformation>
+        <Blankettinnehall>
+            <HU>
+                <ArbetsgivareHUGROUP>
+                    <AgRegistreradId faltkod="201">{{ org_nummer }}</AgRegistreradId>
+                </ArbetsgivareHUGROUP>
+                <RedovisningsPeriod faltkod="006">{{ period }}</RedovisningsPeriod>
+                <UlagFoU faltkod="470">0</UlagFoU>
+                <UlagRegionaltStod faltkod="471">0</UlagRegionaltStod>
+                <AvdragFoU faltkod="475">0</AvdragFoU>
+                <AvdragRegionaltStod faltkod="476">0</AvdragRegionaltStod>
+                <SummaArbAvgSlf faltkod="487">{{ total_arbavg }}</SummaArbAvgSlf>
+                <SummaSkatteavdr faltkod="497">{{ total_skatteavdr }}</SummaSkatteavdr>
+            </HU>
+        </Blankettinnehall>
+    </Blankett>
+{% for iu in ius %}
+    <Blankett xmlns="http://xmls.skatteverket.se/se/skatteverket/da/komponent/schema/1.1">
+        <Arendeinformation>
+            <Arendeagare>{{ org_nummer }}</Arendeagare>
+            <Period>{{ period }}</Period>
+        </Arendeinformation>
+        <Blankettinnehall>
+            <IU>
+                <ArbetsgivareIUGROUP>
+                    <AgRegistreradId faltkod="201">{{ org_nummer }}</AgRegistreradId>
+                </ArbetsgivareIUGROUP>
+                <BetalningsmottagareIUGROUP>
+                    <BetalningsmottagareIDChoice>
+                        <BetalningsmottagarId faltkod="215">{{ iu.BetalningsmottagarId }}</BetalningsmottagarId>
+                    </BetalningsmottagareIDChoice>
+                </BetalningsmottagareIUGROUP>
+                <AvdrPrelSkatt faltkod="001">{{ iu.AvdrPrelSkatt }}</AvdrPrelSkatt>
+                <RedovisningsPeriod faltkod="006">{{ period }}</RedovisningsPeriod>
+                <KontantErsattningUlagAG faltkod="011">{{ iu.KontantErsattningUlagAG }}</KontantErsattningUlagAG>
+                <SkatteplOvrigaFormanerUlagAG faltkod="012">{{ iu.SkatteplOvrigaFormanerUlagAG }}</SkatteplOvrigaFormanerUlagAG>
+                <SkatteplBilformanUlagAG faltkod="013">{{ iu.SkatteplBilformanUlagAG }}</SkatteplBilformanUlagAG>
+                <DrivmVidBilformanUlagAG faltkod="018">{{ iu.DrivmVidBilformanUlagAG }}</DrivmVidBilformanUlagAG>
+                <AndraKostnadsers faltkod="020">{{ iu.AndraKostnadsers }}</AndraKostnadsers>
+{% if iu.BilErsattning %}
+                <BilErsattning faltkod="050">1</BilErsattning>
+{% endif %}
+{% if iu.Traktamente %}
+                <Traktamente faltkod="051">1</Traktamente>
+{% endif %}
+                <ArbetsplatsensGatuadress faltkod="245">{{ iu.ArbetsplatsensGatuadress }}</ArbetsplatsensGatuadress>
+                <ArbetsplatsensOrt faltkod="246">{{ iu.ArbetsplatsensOrt }}</ArbetsplatsensOrt>
+                <Specifikationsnummer faltkod="570">1</Specifikationsnummer>
+            </IU>
+        </Blankettinnehall>
+    </Blankett>
+{% for fu in iu.franvaro_uppgifter %}
+    <Franvarouppgift xmlns="http://xmls.skatteverket.se/se/skatteverket/da/komponent/schema/1.1">
+        <RedovisningsPeriod faltkod="006">{{ period }}</RedovisningsPeriod>
+        <AgRegistreradId faltkod="201">{{ org_nummer }}</AgRegistreradId>
+        <BetalningsmottagarId faltkod="215">{{ iu.BetalningsmottagarId }}</BetalningsmottagarId>
+        <FranvaroDatum faltkod="821">{{ fu.FranvaroDatum }}</FranvaroDatum>
+        <FranvaroSpecifikationsnummer faltkod="822">1</FranvaroSpecifikationsnummer>
+        <FranvaroTyp faltkod="823">TILLFALLIG_FORALDRAPENNING</FranvaroTyp>
+        <FranvaroProcentTFP faltkod="824">{{ fu.FranvaroProcentTFP }}</FranvaroProcentTFP>
+        <FranvaroTimmarTFP faltkod="825">{{ fu.FranvaroTimmarTFP }}</FranvaroTimmarTFP>
+    </Franvarouppgift>
+{% endfor %}
+{% endfor %}
+</Skatteverket>
