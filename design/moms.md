@@ -63,7 +63,7 @@ Moms
 ### Moms att dra av
 |Fält |Beskrivning                |Mappade konton |
 |-----|---------------------------|---------------|
-|48   |Ingående moms att dra av   |2641           |
+|48   |Ingående moms att dra av   |2640-2649      |
 
 ## Mappning Fält -> SKV XML-fält
 |Fält |SKV XML |

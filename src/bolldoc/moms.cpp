@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include <fstream>
+#include <iostream>
 #include <set>
 
 namespace {
@@ -21,10 +22,19 @@ int parseInt(const std::string& s) {
     return std::stol(s);
 }
 
+bool is_balance_acct(int konto) {
+    int first_digit = konto / 1000;
+    return first_digit == 1 || first_digit == 2;
+}
+
+bool is_purchase_acct(int konto) {
+    int first_digit = konto / 1000;
+    return first_digit == 4 || first_digit == 5 || first_digit == 6;
+}
+
 }  // namespace
 
 FieldSaldo summarize_moms(const BollDoc& doc, DateType date, const KontoMap& konto_map, Verifikat& redovisning) {
-    const std::set<int> add_fields{10, 11, 12, 30, 31, 32, 48, 60, 61, 62};
     check_date(date);
 
     DateRange date_range = dateTypeToRange(date, doc.getBokforingsar());
@@ -44,51 +54,49 @@ FieldSaldo summarize_moms(const BollDoc& doc, DateType date, const KontoMap& kon
     FieldSaldo fields;
     for (const auto& [field, konton] : konto_map) {
         Pengar saldo;
+        bool is_balance = false;
         for (const auto& konto : konton) {
             for (const auto v : verifikat) {
                 for (const auto& rad : v->getRader()) {
                     if (rad.getKonto() == konto && !rad.getStruken()) {
-                        saldo += rad.getPengar();
-                        if (add_fields.count(field)) {
+                        if (is_purchase_acct(konto)) {
+                            saldo += rad.getPengar();
+                        } else {
+                            saldo += -rad.getPengar();
+                        }
+                        if (is_balance_acct(konto)) {
                             redovisning[konto] += -rad.getPengar();
+                            is_balance = true;
                         }
                     }
                 }
             }
         }
         if (saldo != 0) {
-            fields[field] = saldo;
+            if (is_balance) {
+                fields[49] += Pengar(round_skv(saldo) * 100);
+            }
+            fields[field] = Pengar(round_skv(saldo) * 100);
         }
     }
-    sum_moms(fields);
-    if (fields[49].get() > 0) {
-        redovisning[1650] = fields[49];
+    // Fix sign on avdragen moms
+    fields[48] = -fields[48];
+    if (fields[49].get() < 0) {
+        redovisning[1650] = -fields[49];
     } else {
-        redovisning[2650] = fields[49];
+        redovisning[2650] = -fields[49];
     }
     Pengar oresavrundning;
     for (const auto& [konto, rad]: redovisning) {
         oresavrundning += rad;
     }
-    if (oresavrundning.get() >= 100 || oresavrundning.get() <= -100) {
-        throw std::runtime_error("Momsredovisning doesn't add up: " + to_string(oresavrundning));
+    if (abs(oresavrundning.get()) >= 1000) {
+        std::cout << "Öresavrundning curiously large: " + to_string(oresavrundning);
     }
     if (oresavrundning != 0) {
         redovisning[3740] = -oresavrundning;
     }
     return fields;
-}
-
-void sum_moms(FieldSaldo& field_saldo) {
-    const std::set<int> add_fields{10, 11, 12, 30, 31, 32, 48, 60, 61, 62};
-
-    int field_49 = 0;
-    for (const auto& [field, saldo] : field_saldo) {
-        if (add_fields.count(field)) {
-            field_49 += round_skv(saldo);
-        }
-    }
-    field_saldo[49] = Pengar(field_49 * 100);
 }
 
 std::string gen_moms_eskd(const BollDoc& doc, DateType date_type, const FieldSaldo& field_saldo, const FieldToSkv& field_to_skv) {
@@ -114,9 +122,9 @@ std::string gen_moms_eskd(const BollDoc& doc, DateType date_type, const FieldSal
             throw std::runtime_error("Field " + std::to_string(field) + " not in field_to_skv map");        
         }
         const std::string& skvxml = it->second;
-        int value = -round_skv(saldo);
-        if (field == 48) {
-            value = -value;
+        int value = round_skv(saldo);
+        if (field != 49 && value < 0) {
+            throw std::runtime_error("Unexpected negative value in eSKD " + std::to_string(field) + " = " + std::to_string(value));
         }
         outxml += "    <" + skvxml + ">" + std::to_string(value) + "</" + skvxml + ">\n";
     }
