@@ -63,7 +63,7 @@ def report(months, vab, year, month):
     month_name = m[0]
     brutto_lon = m[1]
     avdrag_vab = m[2]
-    avdrag_skatt = m[3]
+    avdrag_skatt = skv_avrunda_nedat(m[3])
     bilforman = m[4] + m[5]
     nettolon_avdrag = m[5]
     traktamente = m[6] != None
