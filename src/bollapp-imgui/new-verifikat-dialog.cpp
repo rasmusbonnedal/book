@@ -175,6 +175,10 @@ void NewVerifikatDialog::doit() {
     for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
         int konto = m_konto_rad_data[i].index;
         bool rad_ok = konto >= 0 && m_pengar_rad[i] != 0;
+        // If on the import verifikat, rows with 0 is ok
+        if (m_verifikat->getUnid() == 0) {
+            rad_ok = konto >= 0;
+        }
         bool rad_empty = m_pengar_rad[i] == 0;
 
         if (in_active_rows) {
@@ -229,7 +233,27 @@ void NewVerifikatDialog::doit() {
     }
     ImGui::EndDisabled();
     ImGui::Separator();
-    ImGui::BeginDisabled(!m_date_ok || m_verifikat->getText().empty() || balans != 0 || !rader_ok);
+    bool disable_button = false;
+    std::string disable_tooltip;
+
+    if (!m_date_ok) {
+        disable_button = true;
+        disable_tooltip += "Felaktigt datum\n";
+    }
+    if (m_verifikat->getText().empty()) {
+        disable_button = true;
+        disable_tooltip += "Text �r tom\n";
+    }
+    if (balans != 0) {
+        disable_button = true;
+        disable_tooltip += "Verifikatet balanserar inte\n";
+    }
+    if (!rader_ok) {
+        disable_button = true;
+        disable_tooltip += "Fel i en eller flera rader\n";
+    }
+
+    ImGui::BeginDisabled(disable_button);
     if (m_dialog_mode == NEW) {
         if (ImGui::Button("Add")) {
             for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
@@ -267,8 +291,10 @@ void NewVerifikatDialog::doit() {
             ImGui::CloseCurrentPopup();
         }
     }
-
     ImGui::EndDisabled();
+    if (disable_button && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::SetTooltip(disable_tooltip.c_str());
+    }
     ImGui::SameLine();
     if (ImGui::Button("Cancel")) {
         m_verifikat.release();
