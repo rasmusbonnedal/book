@@ -48,13 +48,13 @@ def parseKomplettBank(lines, mindate):
     for line in csv.reader(lines, delimiter=','):
         date = line[0]
         if '20' in date:
-            curdate = datetime.strptime(date, '%d.%m.%Y')
+            curdate = datetime.strptime(date.split(' ')[0], '%d.%m.%Y')
             date = curdate.strftime('%Y-%m-%d')
             if mindate and curdate < mindate:
                 continue
             text = line[2].strip()
-            saldo = line[5].replace('\u00a0','')
-            saldo = saldo.replace('.', ',')
+            saldo = line[5]
+            # saldo = saldo.replace('.', ',')
             result.append('\t'.join(['', date, saldo, '', '', text]))
     result.reverse()
     return '\n'.join(result)
@@ -74,7 +74,7 @@ mindate = None
 if len(sys.argv) == 1:
     lines = [x for x in pyperclip.paste().splitlines() if len(x) > 0]
 else:
-    with open(sys.argv[1], 'rt') as f:
+    with open(sys.argv[1], 'rt', encoding="utf-8") as f:
         if len(sys.argv) > 2:
             mindate = datetime.strptime(sys.argv[2], "%Y-%m-%d")
         lines = f.readlines()
