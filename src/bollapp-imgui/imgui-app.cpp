@@ -2,7 +2,9 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 
 #if defined(_WIN32)
 #define NOMINMAX
@@ -24,6 +26,7 @@
 
 #include "color.h"
 #include "glfw-icon.h"
+#include "imgui-default-layout.h"
 #include "imgui-dialog.h"
 #include "imgui-window.h"
 
@@ -143,6 +146,7 @@ ImGuiApp::ImGuiApp(const std::string& name) : _name(name), _wantsToQuit(false), 
 
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
     ImFontConfig ifc;
     ifc.OversampleH = 1;
     ifc.OversampleV = 1;
@@ -161,7 +165,20 @@ ImGuiApp::ImGuiApp(const std::string& name) : _name(name), _wantsToQuit(false), 
     ImGui_ImplOpenGL3_Init(glsl_version);
     _settings.init();
 
-    ImGui::LoadIniSettingsFromDisk(ImGui::GetCurrentContext()->IO.IniFilename);
+    // Load defaults + user settings in a single call: imgui clears previously
+    // read docking data at the start of every settings load, so calling
+    // LoadIniSettingsFromMemory() and then LoadIniSettingsFromDisk() would
+    // discard the default dock node tree.
+    std::string user_ini;
+    {
+        std::ifstream file(appdata / "imgui.ini");
+        if (file) {
+            std::stringstream ss;
+            ss << file.rdbuf();
+            user_ini = ss.str();
+        }
+    }
+    ImGui::LoadIniSettingsFromMemory(composeImguiIni(user_ini).c_str());
 }
 
 ImGuiApp::~ImGuiApp() {
@@ -193,6 +210,8 @@ void ImGuiApp::run() {
         ImGui::NewFrame();
 
         try {
+            ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+
             _menu.doit();
 
             int index = 0;
