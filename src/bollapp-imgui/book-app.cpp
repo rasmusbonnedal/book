@@ -52,7 +52,7 @@ BookApp::BookApp() : _app("Bokföring") {
     style.Colors[ImGuiCol_TitleBgCollapsed].w = 0.90f;
     style.Colors[ImGuiCol_TitleBgCollapsed].w = 0.90f;
 
-    ImGui::GetCurrentContext()->PlatformLocaleDecimalPoint = ',';
+    ImGui::GetPlatformIO().Platform_LocaleDecimalPoint = ',';
     initMenu();
     _app.setIcon("bollbok.png");
 }

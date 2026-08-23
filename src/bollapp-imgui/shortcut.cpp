@@ -11,6 +11,9 @@ Shortcut::Shortcut(ImGuiKey key, ImGuiKey modifier) : _key(key), _modifier(modif
 }
 
 bool Shortcut::isPressed() const {
+    if (_key == ImGuiKey_None) {
+        return false;
+    }
     ImGuiIO& io = ImGui::GetIO();
     if (!ImGui::IsKeyPressed(_key, false)) {
         return false;

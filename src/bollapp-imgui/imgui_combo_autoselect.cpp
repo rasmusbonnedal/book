@@ -221,14 +221,14 @@ bool ImGui::ComboAutoSelectComplex(const char* label, char* input, int inputlen,
     bool arrowScroll = false;
     // int arrowScrollIdx = *current_item;
 
-    if (IsKeyPressed(GetKeyIndex(ImGuiKey_UpArrow))) {
+    if (IsKeyPressed(ImGuiKey_UpArrow)) {
         if (*current_item > 0) {
             *current_item -= 1;
             arrowScroll = true;
             SetWindowFocus();
         }
     }
-    if (IsKeyPressed(GetKeyIndex(ImGuiKey_DownArrow))) {
+    if (IsKeyPressed(ImGuiKey_DownArrow)) {
         if (*current_item >= -1 && *current_item < items_count - 1) {
             *current_item += 1;
             arrowScroll = true;
@@ -237,19 +237,30 @@ bool ImGui::ComboAutoSelectComplex(const char* label, char* input, int inputlen,
     }
 
     // select the first match
-    if (IsKeyPressed(GetKeyIndex(ImGuiKey_Enter))) {
+    if (IsKeyPressed(ImGuiKey_Enter)) {
         arrowScroll = true;
-        *current_item = fuzzy_search(input, data);
-        if (*current_item < 0) *input = 0;
+        int match = fuzzy_search(input, data);
+        if (match >= 0) {
+            *current_item = match;
+        }
+        // No match for the search string: keep the currently selected/highlighted
+        // item and restore its text into the input instead of clearing it.
+        else if (*current_item < 0) {
+            *input = 0;
+        } else {
+            const char* s = NULL;
+            items_getter(data, *current_item, &s);
+            strncpy(input, s, inputlen);
+        }
         CloseCurrentPopup();
     }
 
-    if (IsKeyPressed(GetKeyIndex(ImGuiKey_Backspace))) {
+    if (IsKeyPressed(ImGuiKey_Backspace)) {
         *current_item = fuzzy_search(input, data);
         selectionChanged = true;
     }
 
-    if (IsKeyPressed(GetKeyIndex(ImGuiKey_Escape))) {
+    if (IsKeyPressed(ImGuiKey_Escape)) {
         *current_item = *cancel_item;
         if (*current_item >= 0) {
             const char* s;
@@ -296,15 +307,18 @@ bool ImGui::ComboAutoSelectComplex(const char* label, char* input, int inputlen,
         const char* sActiveidxValue2 = NULL;
         items_getter(data, *current_item, &sActiveidxValue2);
         strncpy(input, sActiveidxValue2, inputlen);
-        ImGuiWindow* wnd = FindWindowByName(name);
-        const ImGuiID id = wnd->GetID("##inputText");
-        ImGuiInputTextState* state = GetInputTextState(id);
 
-        const char* buf_end = NULL;
-        if (state) {
-            state->CurLenW = ImTextStrFromUtf8(state->TextW.Data, state->TextW.Size, input, NULL, &buf_end);
-            state->CurLenA = (int)(buf_end - input);
-            state->CursorClamp();
+        // Only reload the internal input state when the popup stays open (arrow navigation).
+        // On Enter (done == true) the popup closes; leaving a pending reload flag would leak
+        // into the next focused InputText and wipe its initial select-all.
+        if (!done) {
+            ImGuiWindow* wnd = FindWindowByName(name);
+            const ImGuiID id = wnd->GetID("##inputText");
+            ImGuiInputTextState* state = GetInputTextState(id);
+
+            if (state) {
+                state->ReloadUserBufAndMoveToEnd();
+            }
         }
     }
 

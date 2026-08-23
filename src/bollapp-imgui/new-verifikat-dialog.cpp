@@ -29,22 +29,25 @@ bool InputSaldo(const char* label, Pengar* pengar) {
     char buf[64];
     to_string(*pengar, buf);
 
-    ImGuiInputFlags flags = ImGuiInputTextFlags_CharsDecimal;
-    flags |= ImGuiInputTextFlags_AutoSelectAll |
-             ImGuiInputTextFlags_NoMarkEdited;  // We call MarkItemEdited() ourselves by comparing the actual data rather than the string.
+    // We call MarkItemEdited() ourselves by comparing the actual data rather than the string.
+    ImGui::PushItemFlag(ImGuiItemFlags_NoMarkEdited, true);
 
     bool value_changed = false;
-    if (ImGui::InputText(label, buf, IM_ARRAYSIZE(buf), flags)) {
+    bool parsed = true;
+    if (ImGui::InputText(label, buf, IM_ARRAYSIZE(buf), ImGuiInputTextFlags_CharsDecimal | ImGuiInputTextFlags_AutoSelectAll)) {
         Pengar old_pengar = *pengar;
         if (!parsePengarNothrow(buf, *pengar)) {
-            return false;
+            parsed = false;
+            *pengar = old_pengar;
+        } else {
+            value_changed = !(*pengar == old_pengar);
         }
-        value_changed = !(*pengar == old_pengar);
     }
     if (value_changed) {
         ImGui::MarkItemEdited(g.LastItemData.ID);
     }
-    return value_changed;
+    ImGui::PopItemFlag();
+    return value_changed && parsed;
 }
 }  // namespace
 
