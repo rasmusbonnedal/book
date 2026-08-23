@@ -39,6 +39,9 @@ void SaldoWindow::doit() {
     }
     if (ImGui::ComboAutoSelect("Konto", *_konto_select, _konton, 0)) {
     }
+    ImGui::SameLine();
+    if (ImGui::Checkbox("Lås", &_locked)) {
+    }
     if (_konto_select->index < 0) {
         return;
     }
@@ -112,4 +115,11 @@ void SaldoWindow::setKonto(int konto) {
         }
     }
     std::cout << "Error: Could not set konto: " << konto << std::endl;
+}
+
+int SaldoWindow::getLockedKonto() const {
+    if (_locked && _konto_select->index >= 0 && _konto_select->index < (int)_konton_id.size()) {
+        return _konton_id[_konto_select->index];
+    }
+    return -1;
 }

@@ -7,16 +7,18 @@
 #include "imgui_combo_autoselect.h"
 
 class FileHandler;
+class BookApp;
 
 class NewVerifikatDialog : public ImGuiDialog {
    public:
-    NewVerifikatDialog(FileHandler& file_handler);
+    NewVerifikatDialog(FileHandler& file_handler, BookApp& app);
     void doit() final;
     void launchVer();
     void launchEdit(const BollDoc::Verifikat& verifikat);
 
    private:
     FileHandler& m_file_handler;
+    BookApp& m_app;
     std::unique_ptr<BollDoc::Verifikat> m_verifikat;
     std::vector<std::string> m_konton;
     std::vector<int> m_konton_id;

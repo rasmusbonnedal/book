@@ -14,6 +14,8 @@ class SaldoWindow : public ImGuiWindowBase {
     SaldoWindow(FileHandler& file_handler, BookApp& book_app);
     void doit() final;
     void setKonto(int konto);
+    // Returns the locked konto, or -1 if no konto is locked.
+    int getLockedKonto() const;
 
    private:
     void makeSelectData();
@@ -23,6 +25,7 @@ class SaldoWindow : public ImGuiWindowBase {
     std::vector<std::string> _konton;
     std::vector<int> _konton_id;
     std::unique_ptr<ImGui::ComboAutoSelectData> _konto_select;
+    bool _locked = false;
     std::vector<BollDoc::Verifikat> _verifikat_cache;
     uint64_t _cache_rev;
 };

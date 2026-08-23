@@ -8,6 +8,10 @@ From the root, `cmake --build build`. Run tests with `ctest --test-dir build`
 This is a GUI application so many things need manual testing. When the agent make changes
 it can add stuff to this list and the human will test it in the GUI.
 * Example item
+* Saldo "Lås": check the Lås checkbox beside the Konto combo, then open Nytt
+  verifikat - first line should be prefilled with that account. Removing the account
+  from all rows should disable Add with a tooltip. Unchecking Lås removes the
+  requirement, and Editera verifikat should not be affected by the lock.
 
 # Todo List
 * Upgrade Imgui from 1.89 to 1.92 - some build errors ✅
@@ -15,5 +19,7 @@ it can add stuff to this list and the human will test it in the GUI.
     pengar input box but the text is not selected. I think this is a regression. ✅
 * Change the code to support Imgui docking ✅
 * When entering a new verifikat make it impossible to click cancel by hitting enter on keyboard - It's easy to tab there and cancel by mistake ✅
-* When entering many verifikat from an account statement make a feature where you enter an account which must be present in all entered verifikats
+* When entering many verifikat from an account statement make a feature where you enter an account which must be present in all entered verifikats ✅
+  * My suggestion for UI: Have a lock checkbox beside the Konto combobox in the Saldo dialog. If it's checked, new verifikat dialog should have that acct prefilled on the first line and should be considered invalid if it does not contain an entry with that account ✅
+
 

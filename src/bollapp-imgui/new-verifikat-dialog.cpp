@@ -5,7 +5,9 @@
 #include <misc/cpp/imgui_stdlib.h>
 
 #include "bolldoc.h"
+#include "book-app.h"
 #include "file-handler.h"
+#include "saldo-window.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -51,7 +53,7 @@ bool InputSaldo(const char* label, Pengar* pengar) {
 }
 }  // namespace
 
-NewVerifikatDialog::NewVerifikatDialog(FileHandler& file_handler) : ImGuiDialog("Nytt verifikat"), m_file_handler(file_handler) {}
+NewVerifikatDialog::NewVerifikatDialog(FileHandler& file_handler, BookApp& app) : ImGuiDialog("Nytt verifikat"), m_file_handler(file_handler), m_app(app) {}
 
 void NewVerifikatDialog::launchVer() {
     m_date_ok = true;
@@ -74,7 +76,17 @@ void NewVerifikatDialog::launchVer() {
     }
     m_konto_rad_data.clear();
     m_pengar_rad.clear();
-    m_konto_rad_data.push_back(m_konton);
+    // If an account is locked in the Saldo window, prefill the first line
+    // with it so verifikats from an account statement get it right away.
+    int locked_konto = m_app.saldoWindow().getLockedKonto();
+    int locked_index = -1;
+    for (size_t i = 0; i < m_konton_id.size(); ++i) {
+        if (m_konton_id[i] == locked_konto) {
+            locked_index = (int)i;
+            break;
+        }
+    }
+    m_konto_rad_data.emplace_back(m_konton, locked_index);
     m_pengar_rad.push_back(0);
     m_kvitton.clear();
     m_attached_kvitton.clear();
@@ -203,6 +215,23 @@ void NewVerifikatDialog::doit() {
             }
         }
     }
+
+    // If an account is locked in the Saldo window, at least one row must
+    // use it.
+    bool locked_ok = true;
+    if (m_dialog_mode == NEW) {
+        int locked_konto = m_app.saldoWindow().getLockedKonto();
+        if (locked_konto >= 0) {
+            locked_ok = false;
+            for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
+                int idx = m_konto_rad_data[i].index;
+                if (idx >= 0 && m_konton_id[idx] == locked_konto) {
+                    locked_ok = true;
+                    break;
+                }
+            }
+        }
+    }
     ImGui::Separator();
     ImGui::Text("Kvitton:");
     for (const auto& kvitto : m_kvitton) {
@@ -254,6 +283,10 @@ void NewVerifikatDialog::doit() {
     if (!rader_ok) {
         disable_button = true;
         disable_tooltip += "Fel i en eller flera rader\n";
+    }
+    if (!locked_ok) {
+        disable_button = true;
+        disable_tooltip += "Låst konto från Saldo saknas\n";
     }
 
     ImGui::BeginDisabled(disable_button);

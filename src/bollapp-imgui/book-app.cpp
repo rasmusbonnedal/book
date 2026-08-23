@@ -31,7 +31,7 @@ BookApp::BookApp() : _app("Bokföring") {
     _app.addWindow(_one_verifikat_window);
     _edit_konto_dialog = std::make_shared<EditKontoDialog>(_file_handler);
     _app.addDialog(_edit_konto_dialog);
-    _new_verifikat_dialog = std::make_shared<NewVerifikatDialog>(_file_handler);
+    _new_verifikat_dialog = std::make_shared<NewVerifikatDialog>(_file_handler, *this);
     _app.addDialog(_new_verifikat_dialog);
     _moms_dialog = std::make_shared<MomsDialog>(_file_handler);
     _app.addDialog(_moms_dialog);
