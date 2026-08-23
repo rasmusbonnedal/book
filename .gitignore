@@ -1,8 +1,10 @@
 build
-intsall
+install
 build*
 .DS_Store
 docs/bok1_rewrite.bollbok
 docs/output.bollbok
 *.aps
 .vscode
+.ruff_cache
+package-lock.json

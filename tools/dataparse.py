@@ -64,7 +64,8 @@ def parsePreem(lines, mindate):
     for line in zip(lines[1::3], lines[0::3], lines[2::3]):
         line = list(line)
         line[2] = line[2].replace(' ', '')
-        print(line[2])
+        if line[1].startswith('Köp '):
+            line[1] = line[1][4:]
         result.append('\t'.join(line))
     return '\n'.join(result)
 
