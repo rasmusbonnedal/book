@@ -299,8 +299,13 @@ void NewVerifikatDialog::doit() {
         ImGui::SetTooltip(disable_tooltip.c_str());
     }
     ImGui::SameLine();
+    // Make it impossible to cancel by mistake with the keyboard: the button
+    // cannot be reached by tabbing or directional navigation, so it can only
+    // be pressed with the mouse.
+    ImGui::PushItemFlag(ImGuiItemFlags_NoNav, true);
     if (ImGui::Button("Cancel")) {
         m_verifikat.release();
         ImGui::CloseCurrentPopup();
     }
+    ImGui::PopItemFlag();
 }
