@@ -13,7 +13,7 @@ target_link_libraries(bollapp-imgui-lib
     reports
     sieparse
 )
-target_compile_definitions(bollapp-imgui-lib PUBLIC _CRT_SECURE_NO_WARNINGS=1)
+target_compile_definitions(bollapp-imgui-lib PUBLIC _CRT_SECURE_NO_WARNINGS=1 PROJECT_VERSION="${PROJECT_VERSION}")
 
 add_executable(bollbok main.cpp appicon.rc)
 target_link_libraries(bollbok bollapp-imgui-lib)

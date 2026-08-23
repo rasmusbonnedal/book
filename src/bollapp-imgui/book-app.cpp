@@ -89,7 +89,7 @@ SaldoWindow& BookApp::saldoWindow() {
 
 void BookApp::event() {
     if (_file_handler.hasTitleChanged()) {
-        _app.setTitle("ImGui Bollbok: " + _file_handler.getTitle());
+        _app.setTitle("ImGui Bollbok " + std::string(PROJECT_VERSION) + ": " + _file_handler.getTitle());
     }
     if (_app.wantsToQuit()) {
         doOpCheckDirty(FileHandler::OP_QUIT);
