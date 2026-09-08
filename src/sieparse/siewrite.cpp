@@ -116,7 +116,7 @@ bool siewrite(SIEData& siedata, int64_t today, std::ostream& os) {
     writetag("FORMAT", {Element::Token("PC8")}, os);
     writetag("GEN", {Element::Int(today)}, os);
     writetag("SIETYP", {Element::Int(4)}, os);
-    writetag("ORGNR", {Element::Token(siedata.org_nummer.substr(0, 11))}, os);
+    writetag("ORGNR", {Element::Token(siedata.org_nummer)}, os);
     writetag("FNAMN", {Element::String(siedata.foretags_namn)}, os);
     writetag("RAR", {Element::Int(0), Element::Int(siedata.rakenskapsar_start), Element::Int(siedata.rakenskapsar_slut)}, os);
     writetag("KPTYP", {Element::Token("BAS2014")}, os);

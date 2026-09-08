@@ -250,11 +250,12 @@ const std::optional<Date>& BollDoc::Rad::getStruken() const {
     return _struken;
 }
 
-BollDoc::Verifikat::Verifikat(int unid, std::string text, Date transdatum)
-    : _unid(unid), _text(std::move(text)), _transdatum(std::move(transdatum)) {}
+BollDoc::Verifikat::Verifikat(int unid, std::string text, Date transdatum, bool bokforingsorder)
+    : _unid(unid), _text(std::move(text)), _transdatum(std::move(transdatum)), _bokforingsorder(bokforingsorder) {}
 
 bool BollDoc::Verifikat::operator==(const Verifikat& other) const {
-    return _unid == other._unid && _text == other._text && _transdatum == other._transdatum && _rader == other._rader;
+    return _unid == other._unid && _text == other._text && _transdatum == other._transdatum &&
+           _bokforingsorder == other._bokforingsorder && _rader == other._rader;
 }
 
 int BollDoc::Verifikat::getUnid() const {
@@ -279,6 +280,10 @@ const Date& BollDoc::Verifikat::getTransdatum() const {
 
 void BollDoc::Verifikat::setTransdatum(const Date& date) {
     _transdatum = date;
+}
+
+bool BollDoc::Verifikat::isBokforingsorder() const {
+    return _bokforingsorder;
 }
 
 void BollDoc::Verifikat::addRad(Rad&& rad) {
