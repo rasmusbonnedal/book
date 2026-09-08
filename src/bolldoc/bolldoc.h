@@ -105,6 +105,8 @@ class BollDoc {
 
         bool isBokforingsorder() const;
 
+        void promoteToVerifikat();
+
         void addRad(Rad&& rad);
 
         const Rad& getRad(int i) const;

@@ -406,7 +406,13 @@ void NewVerifikatDialog::doit() {
             ImGui::CloseCurrentPopup();
         }
     } else if (m_dialog_mode == EDIT) {
-        if (ImGui::Button("Update")) {
+        const bool update = ImGui::Button("Update");
+        bool promote = false;
+        if (m_verifikat->isBokforingsorder()) {
+            ImGui::SameLine();
+            promote = ImGui::Button("Bokför");
+        }
+        if (update || promote) {
             std::vector<BollDoc::Rad> rader;
             for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
                 int konto_idx = m_konto_rad_data[i].index;
@@ -415,6 +421,9 @@ void NewVerifikatDialog::doit() {
                     rader.emplace_back(m_bokdatum_rad[i], konto,
                                        m_pengar_rad[i], m_struken_rad[i]);
                 }
+            }
+            if (promote) {
+                m_verifikat->promoteToVerifikat();
             }
             int unid = m_verifikat->getUnid();
             for (const auto& kvitto : m_attached_kvitton) {

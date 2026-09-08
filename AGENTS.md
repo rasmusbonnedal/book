@@ -11,6 +11,9 @@ it can add stuff to this list and the human will test it in the GUI.
 * Edit a verifikat and choose **Struk** on a row. The row should become
   read-only and struck through, the remaining rows should still balance, and
   after Update the struck row should not affect Saldo or reports.
+* Edit a bokföringsorder and choose **Bokför**. The dialog should close, the
+  entry should use the ordinary verifikat color, and reopening it should show
+  **Editera verifikat** without a **Bokför** button.
 
 # Todo List
 * Upgrade Imgui from 1.89 to 1.92 - some build errors ✅
@@ -29,5 +32,5 @@ it can add stuff to this list and the human will test it in the GUI.
   4. Bokföringsorder should not be included in rapporter ✅
   5. Show rows in Saldo window from bokföringsorder in another color ✅
   6. Add a test that verifies that a bokföringsorder is not exported in sie ✅
-  7. Make a button in edit bokföringsorder to promote it to verifikat
+  7. Make a button in edit bokföringsorder to promote it to verifikat ✅
   

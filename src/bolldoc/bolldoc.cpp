@@ -286,6 +286,10 @@ bool BollDoc::Verifikat::isBokforingsorder() const {
     return _bokforingsorder;
 }
 
+void BollDoc::Verifikat::promoteToVerifikat() {
+    _bokforingsorder = false;
+}
+
 void BollDoc::Verifikat::addRad(Rad&& rad) {
     _rader.push_back(std::move(rad));
 }
