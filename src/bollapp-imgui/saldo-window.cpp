@@ -78,6 +78,10 @@ void SaldoWindow::doit() {
                 if (!rad.getStruken() && rad.getKonto() == _konton_id[_konto_select->index]) {
                     saldo = saldo + rad.getPengar();
                     ImGui::TableNextRow();
+                    if (v.isBokforingsorder()) {
+                        ImGui::PushStyleColor(ImGuiCol_Text,
+                                              IM_COL32(255, 191, 0, 255));
+                    }
                     // Datum
                     ImGui::TableSetColumnIndex(0);
                     to_string(v.getTransdatum(), display_buf);
@@ -100,6 +104,9 @@ void SaldoWindow::doit() {
                     to_string(saldo, display_buf);
                     imguiRightAlign(display_buf);
                     ImGui::TextUnformatted(display_buf);
+                    if (v.isBokforingsorder()) {
+                        ImGui::PopStyleColor();
+                    }
                 }
             }        
         }
