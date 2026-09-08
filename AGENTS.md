@@ -28,6 +28,6 @@ it can add stuff to this list and the human will test it in the GUI.
   3. Show in verifikatlist that it is a bokföringsorder - another color ✅
   4. Bokföringsorder should not be included in rapporter ✅
   5. Show rows in Saldo window from bokföringsorder in another color ✅
-  6. Add a test that verifies that a bokföringsorder is not exported in sie
+  6. Add a test that verifies that a bokföringsorder is not exported in sie ✅
   7. Make a button in edit bokföringsorder to promote it to verifikat
   

@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <ostream>
 #include <string>
 
 class BollDoc;
@@ -15,6 +16,8 @@ typedef enum {
 FileDialogResult fileOpenDialog(const std::string& filter, std::string& filename);
 
 FileDialogResult fileSaveDialog(const std::string& filter, std::string& filename);
+
+bool export_sie(const BollDoc& doc, std::ostream& os);
 
 class FileHandler {
    public:

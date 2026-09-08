@@ -22,6 +22,8 @@ install(TARGETS bollbok DESTINATION .)
 add_executable(test-combo test-combo.cpp)
 target_link_libraries(test-combo bollapp-imgui-lib)
 
+add_subdirectory(tests)
+
 function(copy_install_file file destdir)
     install(FILES ${file} DESTINATION ${destdir})
     add_custom_command(TARGET bollbok POST_BUILD
