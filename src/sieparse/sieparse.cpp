@@ -475,11 +475,11 @@ bool parse(SIEData& siedata, std::istream& is) {
         std::cerr << "#ORGNR not specified" << std::endl;
         return false;
     }
-    if (orgnr[0].size() != 10) {
-        std::cerr << "#ORGNR not 10 digits" << std::endl;
+    if (orgnr[0].size() != 11) {
+        std::cerr << "#ORGNR not 11 characters" << std::endl;
         return false;
     }
-    siedata.org_nummer = orgnr[0].substr(0, 6) + "-" + orgnr[0].substr(6, 4);
+    siedata.org_nummer = orgnr[0].substr(0, 6) + "-" + orgnr[0].substr(7, 4);
 
     return verify_balances(siedata);
 }

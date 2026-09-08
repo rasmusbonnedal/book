@@ -106,6 +106,54 @@ TEST_CASE("Update") {
     CHECK(doc.getVerifikat(0).getTransdatum() == Date(2018, 03, 27));
 }
 
+TEST_CASE("Promote bokforingsorder to verifikat") {
+    BollDoc::Verifikat verifikat{0, "Preliminär hyra", Date(2018, 3, 1), true};
+    verifikat.addRad({Date(2018, 3, 2), 1910, parsePengar("-8000")});
+    verifikat.addRad({Date(2018, 3, 2), 5010, parsePengar("8000")});
+
+    REQUIRE(verifikat.isBokforingsorder());
+    verifikat.promoteToVerifikat();
+
+    CHECK_FALSE(verifikat.isBokforingsorder());
+    CHECK(verifikat.getText() == "Preliminär hyra");
+    CHECK(verifikat.getTransdatum() == Date(2018, 3, 1));
+    REQUIRE(verifikat.getRader().size() == 2);
+    CHECK(verifikat.getRad(0).getKonto() == 1910);
+    CHECK(verifikat.getRad(0).getPengar() == parsePengar("-8000"));
+    CHECK(verifikat.getRad(1).getKonto() == 5010);
+    CHECK(verifikat.getRad(1).getPengar() == parsePengar("8000"));
+}
+
+TEST_CASE("Convert today's verifikat to bokforingsorder") {
+    const Date today(2018, 3, 2);
+    BollDoc::Verifikat verifikat{0, "Dagens hyra", Date(2018, 3, 1)};
+    verifikat.addRad({today, 1910, parsePengar("-8000")});
+    verifikat.addRad({today, 5010, parsePengar("8000")});
+
+    REQUIRE(verifikat.canConvertToBokforingsorder(today));
+    verifikat.convertToBokforingsorder(today);
+
+    CHECK(verifikat.isBokforingsorder());
+    CHECK(verifikat.getText() == "Dagens hyra");
+    CHECK(verifikat.getTransdatum() == Date(2018, 3, 1));
+    REQUIRE(verifikat.getRader().size() == 2);
+    CHECK(verifikat.getRad(0).getKonto() == 1910);
+    CHECK(verifikat.getRad(1).getKonto() == 5010);
+}
+
+TEST_CASE("Do not convert verifikat with an older row to bokforingsorder") {
+    const Date today(2018, 3, 2);
+    BollDoc::Verifikat verifikat{0, "Äldre hyra", Date(2018, 3, 1)};
+    verifikat.addRad({today, 1910, parsePengar("-8000")});
+    verifikat.addRad({Date(2018, 3, 1), 5010, parsePengar("8000")});
+
+    CHECK_FALSE(verifikat.canConvertToBokforingsorder(today));
+    CHECK_THROWS_WITH(
+        verifikat.convertToBokforingsorder(today),
+        "Only a verifikat whose rows were entered on the conversion date can be converted to a bokforingsorder");
+    CHECK_FALSE(verifikat.isBokforingsorder());
+}
+
 TEST_CASE("Add") {
     BollDoc doc = createDoc();
 

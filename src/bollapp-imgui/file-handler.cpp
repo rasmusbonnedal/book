@@ -25,14 +25,7 @@ int64_t date_to_int(const Date& date) {
     return date.getYear() * 10000 + date.getMonth() * 100 + date.getDay();
 }
 
-bool export_sie(const BollDoc& doc, const std::filesystem::path& siefile) {
-    std::ofstream ofs(siefile);
-    if (!ofs.is_open()) {
-        std::cout << "Error: Opening " << siefile << std::endl;
-        return false;
-    }
-
-    SIEData siedata;
+void create_siedata(const BollDoc& doc, SIEData& siedata) {
     siedata.foretags_namn = doc.getFirma();
     siedata.org_nummer = doc.getOrgnummer();
     siedata.rakenskapsar_start = (int)date_to_int(Date(doc.getBokforingsar(), 1, 1));
@@ -60,7 +53,7 @@ bool export_sie(const BollDoc& doc, const std::filesystem::path& siefile) {
     }
 
     for (const auto& ver : doc.getVerifikationer()) {
-        if (ver.getUnid() == 0) continue;
+        if (ver.getUnid() == 0 || ver.isBokforingsorder()) continue;
         SIEVerifikat sv;
         sv.transaktionsdatum = date_to_int(ver.getTransdatum());
         sv.bokforingsdatum = date_to_int(ver.getRad(0).getBokdatum());
@@ -76,7 +69,6 @@ bool export_sie(const BollDoc& doc, const std::filesystem::path& siefile) {
         siedata.verifikat.push_back(sv);
     }
 
-    return siewrite(siedata, date_to_int(now()), ofs);
 }
 
 std::unique_ptr<BollDoc> import_sie(const std::string& siefile) {
@@ -111,7 +103,7 @@ std::unique_ptr<BollDoc> import_sie(const std::string& siefile) {
         doc->addOrUpdateKonto(std::move(k));
     }
 
-    BollDoc::Verifikat ib_ver(0, u8"Ingående saldon", Date(0, 1, 1));
+    BollDoc::Verifikat ib_ver(0, u8"IngÃ¥ende saldon", Date(0, 1, 1));
     if (siedata.balans_resultat.count(0) > 0) {
         for (const auto& ib : siedata.balans_resultat[0].ib) {
             ib_ver.addRad(BollDoc::Rad(Date(0, 1, 1), ib.first, ib.second));
@@ -144,6 +136,12 @@ std::vector<std::string> kvittoStrings(int unid) {
 }
 
 }  // namespace
+
+bool export_sie(const BollDoc& doc, std::ostream& os) {
+    SIEData siedata;
+    create_siedata(doc, siedata);
+    return siewrite(siedata, date_to_int(now()), os);
+}
 
 FileDialogResult fileOpenDialog(const std::string& filter, std::string& filename) {
     nfdchar_t* out_path = NULL;
@@ -258,7 +256,12 @@ bool FileHandler::export_sie() {
     if (result == NFD_OKAY) {
         auto siefile = std::filesystem::u8path(out_path);
         free(out_path);
-        return ::export_sie(getDoc(), siefile);
+        std::ofstream ofs(siefile);
+        if (!ofs.is_open()) {
+            std::cout << "Error: Opening " << siefile << std::endl;
+            return false;
+        }
+        return ::export_sie(getDoc(), ofs);
     } else if (result == NFD_CANCEL) {
     } else {
         std::cout << "Error: " << NFD_GetError() << std::endl;

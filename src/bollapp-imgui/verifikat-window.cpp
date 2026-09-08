@@ -96,6 +96,9 @@ void VerifikatWindow::doit() {
             for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++) {
                 const auto& verifikat = verifikationer[_verifikat_index[row]];
                 ImGui::TableNextRow();
+                if (verifikat.isBokforingsorder()) {
+                    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 191, 0, 255));
+                }
                 // Id
                 ImGui::TableSetColumnIndex(0);
                 snprintf(display_buf, sizeof(display_buf), "%d", verifikat.getUnid());
@@ -121,6 +124,9 @@ void VerifikatWindow::doit() {
                     ImGui::TextUnformatted(display_buf);
                 } else {
                     ImGui::TextUnformatted("- obalanserad -");
+                }
+                if (verifikat.isBokforingsorder()) {
+                    ImGui::PopStyleColor();
                 }
             }
         }

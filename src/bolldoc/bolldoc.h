@@ -83,7 +83,7 @@ class BollDoc {
         friend class BollDoc;
 
        public:
-        Verifikat(int unid, std::string text, Date transdatum);
+        Verifikat(int unid, std::string text, Date transdatum, bool bokforingsorder = false);
         Verifikat(const Verifikat&) = default;
         Verifikat(Verifikat&&) = default;
         Verifikat& operator=(const Verifikat&) = default;
@@ -103,6 +103,14 @@ class BollDoc {
 
         void setTransdatum(const Date& date);
 
+        bool isBokforingsorder() const;
+
+        void promoteToVerifikat();
+
+        bool canConvertToBokforingsorder(const Date& date) const;
+
+        void convertToBokforingsorder(const Date& date);
+
         void addRad(Rad&& rad);
 
         const Rad& getRad(int i) const;
@@ -117,6 +125,7 @@ class BollDoc {
         int _unid;
         std::string _text;
         Date _transdatum;
+        bool _bokforingsorder;
         std::vector<Rad> _rader;
     };
 

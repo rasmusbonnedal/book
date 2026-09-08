@@ -64,7 +64,7 @@ TEST_CASE("Serialize save") {
     v2.addRad({parseDate("2018-12-25"), 5010, parsePengar("8000")});
     doc.addVerifikat(std::move(v2));
 
-    BollDoc::Verifikat v3{2, "Försäljning", parseDate("2018-02-01")};
+    BollDoc::Verifikat v3{2, "Försäljning", parseDate("2018-02-01"), true};
     v3.addRad({parseDate("2018-12-25"), 1910, parsePengar("3000")});
     v3.addRad({parseDate("2018-12-25"), 3000, parsePengar("-3000"),
                parseDate("2019-07-21")});
@@ -82,4 +82,6 @@ TEST_CASE("Serialize save") {
     REQUIRE(input.good());
     auto loadedDoc = Serialize::loadDocument(input);
     REQUIRE(doc == loadedDoc);
+    CHECK(loadedDoc.getVerifikat(2).isBokforingsorder());
+    CHECK_FALSE(loadedDoc.getVerifikat(1).isBokforingsorder());
 }

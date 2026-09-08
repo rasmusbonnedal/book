@@ -129,6 +129,9 @@ void BookApp::initMenu() {
     ImGuiMenuHeader edit_menu("Edit");
     edit_menu.addItem(ImGuiMenuItem(
         Operation("New Verifikat", Shortcut(ImGuiKey_N, ImGuiMod_Ctrl), std::bind(&NewVerifikatDialog::launchVer, _new_verifikat_dialog))));
+    edit_menu.addItem(ImGuiMenuItem(
+        Operation("New Bokföringsorder", Shortcut(ImGuiKey_B, ImGuiMod_Ctrl),
+                  std::bind(&NewVerifikatDialog::launchBokforingsorder, _new_verifikat_dialog))));
     edit_menu.addItem(
         ImGuiMenuItem(Operation("Momsredovisning", Shortcut(ImGuiKey_M, ImGuiMod_Ctrl), std::bind(&MomsDialog::launch, _moms_dialog))));
     _app.getMenu().addHeader(std::move(edit_menu));

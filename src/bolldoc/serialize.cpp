@@ -163,7 +163,8 @@ BollDoc Serialize::loadDocument(std::istream& input, bool ignoreChecksum) {
         auto unid = getAttrInt(verifikat, "unid");
         auto text = getAttrString(verifikat, "text");
         auto transdatum = getAttrString(verifikat, "transdatum");
-        BollDoc::Verifikat v(unid, std::move(text), parseDate(transdatum));
+        auto bokforingsorder = getAttrStringOpt(verifikat, "bokforingsorder");
+        BollDoc::Verifikat v(unid, std::move(text), parseDate(transdatum), bokforingsorder.value_or("0") == "1");
         for (auto rad = getNodeNothrow(verifikat, "rad"); rad; rad = rad->next_sibling("rad")) {
             auto bokdatum = getAttrString(rad, "bokdatum");
             auto konto = getAttrInt(rad, "konto");
@@ -236,8 +237,11 @@ void Serialize::saveDocumentCustom(const BollDoc& doc, std::ostream& output) {
         if (v.getRader().empty() && v.getUnid() == last_unid) {
             continue;
         }
-        writeXml(ss, indent, "verifikat",
-                 {{"unid", std::to_string(v.getUnid())}, {"text", toXmlText(v.getText())}, {"transdatum", to_string(v.getTransdatum())}});
+        AttrVec verifikatAttrs = {{"unid", std::to_string(v.getUnid())}, {"text", toXmlText(v.getText())}, {"transdatum", to_string(v.getTransdatum())}};
+        if (v.isBokforingsorder()) {
+            verifikatAttrs.push_back({"bokforingsorder", "1"});
+        }
+        writeXml(ss, indent, "verifikat", verifikatAttrs);
         indent = "\t\t\t";
         for (auto&& r : v.getRader()) {
             AttrVec attrs = {
@@ -330,6 +334,9 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
         appendAttribute(doc, verifikat, "unid", v.getUnid());
         appendAttribute(doc, verifikat, "text", v.getText());
         appendAttribute(doc, verifikat, "transdatum", v.getTransdatum());
+        if (v.isBokforingsorder()) {
+            appendAttribute(doc, verifikat, "bokforingsorder", "1");
+        }
         for (auto&& r : v.getRader()) {
             xml_node<>* rad = doc->allocate_node(node_element, "rad");
             verifikat->append_node(rad);

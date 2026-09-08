@@ -14,9 +14,12 @@ class NewVerifikatDialog : public ImGuiDialog {
     NewVerifikatDialog(FileHandler& file_handler, BookApp& app);
     void doit() final;
     void launchVer();
+    void launchBokforingsorder();
     void launchEdit(const BollDoc::Verifikat& verifikat);
 
    private:
+    void launchNew(bool bokforingsorder);
+
     FileHandler& m_file_handler;
     BookApp& m_app;
     std::unique_ptr<BollDoc::Verifikat> m_verifikat;
