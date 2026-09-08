@@ -21,4 +21,9 @@ it can add stuff to this list and the human will test it in the GUI.
 * When entering many verifikat from an account statement make a feature where you enter an account which must be present in all entered verifikats ✅
   * My suggestion for UI: Have a lock checkbox beside the Konto combobox in the Saldo dialog. If it's checked, new verifikat dialog should have that acct prefilled on the first line and should be considered invalid if it does not contain an entry with that account ✅
 * Add a feature to mark rows in verifikat as deleted (struken). ✅
+* Make it illegal / impossible to edit rows on a verifikat unless they were entered on the same day. The user should only be able to strike rows and add new ones. ✅
+* Add feature bokföringsorder. They are preliminary verifikat but marked in the data model. They are not generally included in reports but are shown in transactions lists, with a clear marking. They are not exported to sie files. Implement it by doing the following steps:
+  1. Add it to the data model. Add tests to make sure it serializes and deserializes well.
+  2. Add it to transaction list in Saldo window. Mark them with a * or something like that.
+  3. Make it possible to create bokföringsorder instead of New verifikat.
 

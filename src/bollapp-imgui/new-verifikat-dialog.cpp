@@ -76,6 +76,7 @@ void NewVerifikatDialog::launchVer() {
     }
     m_konto_rad_data.clear();
     m_pengar_rad.clear();
+    m_bokdatum_rad.clear();
     m_struken_rad.clear();
     // If an account is locked in the Saldo window, prefill the first line
     // with it so verifikats from an account statement get it right away.
@@ -89,6 +90,7 @@ void NewVerifikatDialog::launchVer() {
     }
     m_konto_rad_data.emplace_back(m_konton, locked_index);
     m_pengar_rad.push_back(0);
+    m_bokdatum_rad.push_back(now());
     m_struken_rad.push_back(std::nullopt);
     m_kvitton.clear();
     m_attached_kvitton.clear();
@@ -110,6 +112,7 @@ void NewVerifikatDialog::launchEdit(const BollDoc::Verifikat& verifikat) {
     }
     m_konto_rad_data.clear();
     m_pengar_rad.clear();
+    m_bokdatum_rad.clear();
     m_struken_rad.clear();
 
     for (const auto& rad : verifikat.getRader()) {
@@ -123,10 +126,12 @@ void NewVerifikatDialog::launchEdit(const BollDoc::Verifikat& verifikat) {
         }
         m_konto_rad_data.emplace_back(m_konton, konto_index);
         m_pengar_rad.push_back(rad.getPengar());
+        m_bokdatum_rad.push_back(rad.getBokdatum());
         m_struken_rad.push_back(rad.getStruken());
     }
     m_konto_rad_data.push_back(m_konton);
     m_pengar_rad.push_back(0);
+    m_bokdatum_rad.push_back(now());
     m_struken_rad.push_back(std::nullopt);
 
     m_kvitton = m_file_handler.getKvitton(m_verifikat->getUnid());
@@ -164,10 +169,12 @@ void NewVerifikatDialog::doit() {
     }
     for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
         const bool struken = m_struken_rad[i].has_value();
+        const bool editable_today = m_bokdatum_rad[i] == now();
         const ImVec2 row_start = ImGui::GetCursorScreenPos();
-        if (struken) {
+        if (struken || !editable_today) {
             // A struck row is retained for audit purposes and must not be
-            // changed into a different transaction.
+            // changed into a different transaction. Rows entered before
+            // today have the same protection, but can still be struck.
             ImGui::BeginDisabled();
         }
         std::string id = "##kontocombo" + std::to_string(i);
@@ -182,15 +189,17 @@ void NewVerifikatDialog::doit() {
                 }
             }
         }
-        bool transaction_hovered = struken && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
+        bool transaction_hovered = (struken || !editable_today) &&
+                                  ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
         ImGui::SameLine();
         id = "##pengarbox" + std::to_string(i);
         InputSaldo(id.c_str(), &m_pengar_rad[i]);
         bool jump_to_next = ImGui::IsItemDeactivated();
         transaction_hovered = transaction_hovered ||
-                              (struken && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled));
+                              ((struken || !editable_today) &&
+                               ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled));
         const ImVec2 transaction_end = ImGui::GetItemRectMax();
-        if (struken) {
+        if (struken || !editable_today) {
             ImGui::EndDisabled();
         }
         if (m_dialog_mode == EDIT) {
@@ -211,6 +220,9 @@ void NewVerifikatDialog::doit() {
             if (transaction_hovered) {
                 ImGui::SetTooltip("Struken %s", to_string(*m_struken_rad[i]).c_str());
             }
+        } else if (!editable_today && transaction_hovered) {
+            ImGui::SetTooltip("Raden kan bara ändras samma dag som den bokfördes (%s). Du kan fortfarande stryka den.",
+                              to_string(m_bokdatum_rad[i]).c_str());
         }
         if (jump_to_next) {
             ImGui::SetKeyboardFocusHere();
@@ -224,6 +236,7 @@ void NewVerifikatDialog::doit() {
     if (m_konto_rad_data.back().index >= 0 && m_pengar_rad.back() != 0) {
         m_konto_rad_data.push_back(m_konton);
         m_pengar_rad.push_back(0);
+        m_bokdatum_rad.push_back(now());
         m_struken_rad.push_back(std::nullopt);
     }
 
@@ -364,8 +377,8 @@ void NewVerifikatDialog::doit() {
                 int konto_idx = m_konto_rad_data[i].index;
                 if (konto_idx >= 0 && m_pengar_rad[i] != 0) {
                     int konto = m_konton_id[konto_idx];
-                    // TODO: Fix edit date if not now
-                    rader.emplace_back(now(), konto, m_pengar_rad[i], m_struken_rad[i]);
+                    rader.emplace_back(m_bokdatum_rad[i], konto,
+                                       m_pengar_rad[i], m_struken_rad[i]);
                 }
             }
             int unid = m_verifikat->getUnid();
