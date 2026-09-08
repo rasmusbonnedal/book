@@ -70,7 +70,7 @@ template <typename VerifikatPred, typename RowPred, typename Op>
 void filterVerifikat(const BollDoc& doc, VerifikatPred vpred, RowPred rpred,
                      Op op) {
     for (auto& v : doc.getVerifikationer()) {
-        if (vpred(v)) {
+        if (!v.isBokforingsorder() && vpred(v)) {
             for (auto& r : v.getRader()) {
                 if (rpred(r)) {
                     op(r.getKonto(), r.getPengar(), v.getTransdatum());

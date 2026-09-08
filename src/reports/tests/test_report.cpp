@@ -21,6 +21,17 @@ BollDoc createDoc() {
         }
         doc.addVerifikat(std::move(v));
     }
+
+    // This entry falls within every tested report period and would change all
+    // expected balances if bokföringsorder were included in reports.
+    BollDoc::Verifikat bokforingsorder{
+        13, "Preliminär hyra", Date(2018, 2, 1), true};
+    bokforingsorder.addRad(
+        {Date(2018, 2, 1), 1910, parsePengar("-1000")});
+    bokforingsorder.addRad(
+        {Date(2018, 2, 1), 5010, parsePengar("1000")});
+    doc.addVerifikat(std::move(bokforingsorder));
+
     doc.addOrUpdateKonto({1910, "Bankkonto", 1, "", "T1"});
     doc.addOrUpdateKonto({5010, "Byggkostnader", 3, "", "T2"});
     doc.addOrUpdateKonto({5011, "Andra kostnader", 3, "", "T2"});

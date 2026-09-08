@@ -23,7 +23,11 @@ it can add stuff to this list and the human will test it in the GUI.
 * Add a feature to mark rows in verifikat as deleted (struken). ✅
 * Make it illegal / impossible to edit rows on a verifikat unless they were entered on the same day. The user should only be able to strike rows and add new ones. ✅
 * Add feature bokföringsorder. They are preliminary verifikat but marked in the data model. They are not generally included in reports but are shown in transactions lists, with a clear marking. They are not exported to sie files. Implement it by doing the following steps:
-  1. Add it to the data model. Add tests to make sure it serializes and deserializes well.
-  2. Add it to transaction list in Saldo window. Mark them with a * or something like that.
-  3. Make it possible to create bokföringsorder instead of New verifikat.
-
+  1. Add it to the data model. Add tests to make sure it serializes and deserializes well. ✅
+  2. Make it possible to create bokföringsorder instead of New verifikat. ✅
+  3. Show in verifikatlist that it is a bokföringsorder - another color ✅
+  4. Bokföringsorder should not be included in rapporter ✅
+  5. Show rows in Saldo window from bokföringsorder in another color
+  6. Add a test that verifies that a bokföringsorder is not exported in sie
+  7. Make a button in edit bokföringsorder to promote it to verifikat
+  
