@@ -60,16 +60,39 @@ void OneVerifikatWindow::doit() {
         ImGui::TableSetupColumn("Saldo", ImGuiTableColumnFlags_WidthFixed, DEFAULT_SALDO_WIDTH);
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableHeadersRow();
-        for (auto& row : _rows) {
+        int id = 0;
+        for (const auto& row : _rows) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            ImGui::PushID(id++);
             if (ImGui::Button(row.konto.c_str())) {
                 _app.saldoWindow().setKonto(row.konto_id);
             }
+            ImGui::PopID();
             ImGui::TableNextColumn();
+
             ImGui::TextUnformatted(row.namn.c_str());
+            if (row.struken.has_value()) {
+                const ImVec2 text_start = ImGui::GetItemRectMin();
+                const ImVec2 text_end = ImGui::GetItemRectMax();
+                ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                const float y = (text_start.y + text_end.y) * 0.5f;
+                draw_list->AddLine(ImVec2(text_start.x, y), ImVec2(text_end.x, y),
+                                   ImGui::GetColorU32(ImGuiCol_Text), 2.0f);
+            }
+
             ImGui::TableNextColumn();
-            imguiTextRightAlign(row.saldo.c_str());
+            if (row.struken.has_value()) {
+                imguiTextRightAlign(row.saldo.c_str());
+                const ImVec2 text_start = ImGui::GetItemRectMin();
+                const ImVec2 text_end = ImGui::GetItemRectMax();
+                const float y = (text_start.y + text_end.y) * 0.5f;
+                ImGui::GetWindowDrawList()->AddLine(
+                    ImVec2(text_start.x, y), ImVec2(text_end.x, y),
+                    ImGui::GetColorU32(ImGuiCol_Text), 2.0f);
+            } else {
+                imguiTextRightAlign(row.saldo.c_str());
+            }
         }
 
         ImGui::EndTable();
@@ -98,6 +121,7 @@ void OneVerifikatWindow::update(bool need_update) {
             srow.konto = std::to_string(row.getKonto());
             srow.namn = _file_handler.getDoc().getKonto(row.getKonto()).getText();
             srow.saldo = to_string(row.getPengar());
+            srow.struken = row.getStruken();
             _rows.push_back(std::move(srow));
         }
     }

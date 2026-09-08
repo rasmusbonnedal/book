@@ -1,6 +1,8 @@
 #pragma once
 
+#include <optional>
 #include <string>
+#include "date.h"
 #include <vector>
 
 #include "imgui-window.h"
@@ -25,6 +27,7 @@ class OneVerifikatWindow : public ImGuiWindowBase {
         std::string konto;
         std::string namn;
         std::string saldo;
+        std::optional<Date> struken;
     };
     std::vector<Row> _rows;
     std::string _text;

@@ -24,6 +24,7 @@ class NewVerifikatDialog : public ImGuiDialog {
     std::vector<int> m_konton_id;
     std::vector<ImGui::ComboAutoSelectData> m_konto_rad_data;
     std::vector<Pengar> m_pengar_rad;
+    std::vector<std::optional<Date>> m_struken_rad;
     std::vector<std::filesystem::path> m_kvitton;
     std::vector<std::filesystem::path> m_attached_kvitton;
     bool m_can_attach_kvitto;
