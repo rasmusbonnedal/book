@@ -76,6 +76,7 @@ void NewVerifikatDialog::launchVer() {
     }
     m_konto_rad_data.clear();
     m_pengar_rad.clear();
+    m_struken_rad.clear();
     // If an account is locked in the Saldo window, prefill the first line
     // with it so verifikats from an account statement get it right away.
     int locked_konto = m_app.saldoWindow().getLockedKonto();
@@ -88,6 +89,7 @@ void NewVerifikatDialog::launchVer() {
     }
     m_konto_rad_data.emplace_back(m_konton, locked_index);
     m_pengar_rad.push_back(0);
+    m_struken_rad.push_back(std::nullopt);
     m_kvitton.clear();
     m_attached_kvitton.clear();
     m_can_attach_kvitto = m_file_handler.canAttachKvitto();
@@ -108,6 +110,7 @@ void NewVerifikatDialog::launchEdit(const BollDoc::Verifikat& verifikat) {
     }
     m_konto_rad_data.clear();
     m_pengar_rad.clear();
+    m_struken_rad.clear();
 
     for (const auto& rad : verifikat.getRader()) {
         int konto_index = -1;
@@ -120,9 +123,11 @@ void NewVerifikatDialog::launchEdit(const BollDoc::Verifikat& verifikat) {
         }
         m_konto_rad_data.emplace_back(m_konton, konto_index);
         m_pengar_rad.push_back(rad.getPengar());
+        m_struken_rad.push_back(rad.getStruken());
     }
     m_konto_rad_data.push_back(m_konton);
     m_pengar_rad.push_back(0);
+    m_struken_rad.push_back(std::nullopt);
 
     m_kvitton = m_file_handler.getKvitton(m_verifikat->getUnid());
     m_attached_kvitton.clear();
@@ -151,10 +156,20 @@ void NewVerifikatDialog::doit() {
     }
 
     Pengar balans = 0;
-    for (Pengar v : m_pengar_rad) {
-        balans += v;
+    for (size_t i = 0; i < m_pengar_rad.size(); ++i) {
+        if (m_struken_rad[i].has_value()) {
+            continue;
+        }
+        balans += m_pengar_rad[i];
     }
     for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
+        const bool struken = m_struken_rad[i].has_value();
+        const ImVec2 row_start = ImGui::GetCursorScreenPos();
+        if (struken) {
+            // A struck row is retained for audit purposes and must not be
+            // changed into a different transaction.
+            ImGui::BeginDisabled();
+        }
         std::string id = "##kontocombo" + std::to_string(i);
         if (ImGui::ComboAutoSelect(id.c_str(), m_konto_rad_data[i], m_konton, 0)) {
             ImGui::SetKeyboardFocusHere();
@@ -167,10 +182,37 @@ void NewVerifikatDialog::doit() {
                 }
             }
         }
+        bool transaction_hovered = struken && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
         ImGui::SameLine();
         id = "##pengarbox" + std::to_string(i);
         InputSaldo(id.c_str(), &m_pengar_rad[i]);
-        if (ImGui::IsItemDeactivated()) {
+        bool jump_to_next = ImGui::IsItemDeactivated();
+        transaction_hovered = transaction_hovered ||
+                              (struken && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled));
+        const ImVec2 transaction_end = ImGui::GetItemRectMax();
+        if (struken) {
+            ImGui::EndDisabled();
+        }
+        if (m_dialog_mode == EDIT) {
+            if (!struken) {
+                ImGui::SameLine();
+                ImGui::PushID(static_cast<int>(i));
+                if (ImGui::Button("X")) {
+                    m_struken_rad[i] = now();
+                }
+                ImGui::PopID();
+            }
+        }
+        if (struken) {
+            const float y = row_start.y + ImGui::GetFrameHeight() * 0.5f;
+            ImGui::GetWindowDrawList()->AddLine(
+                ImVec2(row_start.x, y), ImVec2(transaction_end.x, y),
+                ImGui::GetColorU32(ImGuiCol_Text), 2.0f);
+            if (transaction_hovered) {
+                ImGui::SetTooltip("Struken %s", to_string(*m_struken_rad[i]).c_str());
+            }
+        }
+        if (jump_to_next) {
             ImGui::SetKeyboardFocusHere();
         }
     }
@@ -182,12 +224,17 @@ void NewVerifikatDialog::doit() {
     if (m_konto_rad_data.back().index >= 0 && m_pengar_rad.back() != 0) {
         m_konto_rad_data.push_back(m_konton);
         m_pengar_rad.push_back(0);
+        m_struken_rad.push_back(std::nullopt);
     }
 
     bool rader_ok = true;
 
     bool in_active_rows = true;
     for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
+        // Skip struck rows
+        if (m_struken_rad[i].has_value()) {
+            continue;
+        }
         int konto = m_konto_rad_data[i].index;
         bool rad_ok = konto >= 0 && m_pengar_rad[i] != 0;
         // If on the import verifikat, rows with 0 is ok
@@ -293,6 +340,10 @@ void NewVerifikatDialog::doit() {
     if (m_dialog_mode == NEW) {
         if (ImGui::Button("Add")) {
             for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
+                // Skip struck rows
+                if (m_struken_rad[i].has_value()) {
+                    continue;
+                }
                 int konto_idx = m_konto_rad_data[i].index;
                 if (konto_idx >= 0) {
                     int konto = m_konton_id[konto_idx];
@@ -314,7 +365,7 @@ void NewVerifikatDialog::doit() {
                 if (konto_idx >= 0 && m_pengar_rad[i] != 0) {
                     int konto = m_konton_id[konto_idx];
                     // TODO: Fix edit date if not now
-                    rader.emplace_back(now(), konto, m_pengar_rad[i]);
+                    rader.emplace_back(now(), konto, m_pengar_rad[i], m_struken_rad[i]);
                 }
             }
             int unid = m_verifikat->getUnid();
