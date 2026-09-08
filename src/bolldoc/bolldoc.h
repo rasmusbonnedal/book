@@ -107,6 +107,10 @@ class BollDoc {
 
         void promoteToVerifikat();
 
+        bool canConvertToBokforingsorder(const Date& date) const;
+
+        void convertToBokforingsorder(const Date& date);
+
         void addRad(Rad&& rad);
 
         const Rad& getRad(int i) const;

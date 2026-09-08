@@ -1,5 +1,6 @@
 #include "bolldoc.h"
 
+#include <algorithm>
 #include <optional>
 #include <sstream>
 
@@ -288,6 +289,21 @@ bool BollDoc::Verifikat::isBokforingsorder() const {
 
 void BollDoc::Verifikat::promoteToVerifikat() {
     _bokforingsorder = false;
+}
+
+bool BollDoc::Verifikat::canConvertToBokforingsorder(const Date& date) const {
+    return !_bokforingsorder &&
+           std::all_of(_rader.begin(), _rader.end(), [&date](const Rad& rad) {
+               return rad.getBokdatum() == date;
+           });
+}
+
+void BollDoc::Verifikat::convertToBokforingsorder(const Date& date) {
+    if (!canConvertToBokforingsorder(date)) {
+        throw std::runtime_error(
+            "Only a verifikat whose rows were entered on the conversion date can be converted to a bokforingsorder");
+    }
+    _bokforingsorder = true;
 }
 
 void BollDoc::Verifikat::addRad(Rad&& rad) {

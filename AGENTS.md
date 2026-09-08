@@ -14,6 +14,9 @@ it can add stuff to this list and the human will test it in the GUI.
 * Edit a bokföringsorder and choose **Bokför**. The dialog should close, the
   entry should use the ordinary verifikat color, and reopening it should show
   **Editera verifikat** without a **Bokför** button.
+* Edit a verifikat whose rows were all entered today and choose **Gör till
+  bokföringsorder**. It should get the bokföringsorder color and become freely
+  editable. The button should be disabled if any row was entered earlier.
 
 # Todo List
 * Upgrade Imgui from 1.89 to 1.92 - some build errors ✅

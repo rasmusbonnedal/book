@@ -406,31 +406,56 @@ void NewVerifikatDialog::doit() {
             ImGui::CloseCurrentPopup();
         }
     } else if (m_dialog_mode == EDIT) {
+        const Date today = now();
         const bool update = ImGui::Button("Update");
         bool promote = false;
+        bool convert_to_bokforingsorder = false;
         if (m_verifikat->isBokforingsorder()) {
             ImGui::SameLine();
             promote = ImGui::Button("Bokför");
+        } else {
+            bool can_convert = true;
+            for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
+                if (m_konto_rad_data[i].index >= 0 &&
+                    m_bokdatum_rad[i] != today) {
+                    can_convert = false;
+                    break;
+                }
+            }
+            ImGui::SameLine();
+            ImGui::BeginDisabled(!can_convert);
+            convert_to_bokforingsorder = ImGui::Button("Gör till bokföringsorder");
+            ImGui::EndDisabled();
+            if (!can_convert &&
+                ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                ImGui::SetTooltip(
+                    "Kan bara göras när alla rader bokfördes idag");
+            }
         }
-        if (update || promote) {
-            std::vector<BollDoc::Rad> rader;
+        if (update || promote || convert_to_bokforingsorder) {
+            BollDoc::Verifikat updated_verifikat{
+                m_verifikat->getUnid(), m_verifikat->getText(),
+                m_verifikat->getTransdatum(),
+                m_verifikat->isBokforingsorder()};
             for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
                 int konto_idx = m_konto_rad_data[i].index;
                 if (konto_idx >= 0 && m_pengar_rad[i] != 0) {
                     int konto = m_konton_id[konto_idx];
-                    rader.emplace_back(m_bokdatum_rad[i], konto,
-                                       m_pengar_rad[i], m_struken_rad[i]);
+                    updated_verifikat.addRad(BollDoc::Rad(
+                        m_bokdatum_rad[i], konto, m_pengar_rad[i],
+                        m_struken_rad[i]));
                 }
             }
             if (promote) {
-                m_verifikat->promoteToVerifikat();
+                updated_verifikat.promoteToVerifikat();
+            } else if (convert_to_bokforingsorder) {
+                updated_verifikat.convertToBokforingsorder(today);
             }
-            int unid = m_verifikat->getUnid();
             for (const auto& kvitto : m_attached_kvitton) {
                 m_file_handler.attachKvitto(m_verifikat->getUnid(), kvitto);
             }
-            m_file_handler.getDoc().updateVerifikat(std::move(*m_verifikat));
-            m_file_handler.getDoc().updateVerifikat(unid, rader);
+            m_file_handler.getDoc().updateVerifikat(
+                std::move(updated_verifikat));
             m_verifikat.release();
             ImGui::CloseCurrentPopup();
         }
