@@ -4,6 +4,7 @@
 #include <nfd.h>
 
 #include <filesystem>
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
@@ -228,9 +229,94 @@ bool FileHandler::save() {
     if (_filename.empty()) {
         return saveas();
     }
-    std::ofstream ofs(_filename);
-    Serialize::saveDocumentCustom(*_doc, ofs);
-    _doc->clearDirty();
+    // Stage every source before moving to final names, so number reuse and
+    // permutations cannot overwrite another entry's receipts.
+    namespace fs = std::filesystem;
+    struct Move { fs::path source, staged, destination; };
+    std::vector<Move> moves;
+    fs::path staging;
+    size_t staged = 0, installed = 0;
+    bool documentBackedUp = false;
+    try {
+        auto receiptDir = _filename;
+        receiptDir.replace_extension("kvitton");
+        for (const auto& v : _doc->getVerifikationer()) {
+            if (v.getKvittoId() == v.getUnid()) continue;
+            const auto oldNames = kvittoStrings(v.getKvittoId());
+            const auto newNames = kvittoStrings(v.getUnid());
+            for (size_t i = 0; i < oldNames.size(); ++i) {
+                for (const auto* extension : {".pdf", ".png"}) {
+                    auto source = receiptDir / (oldNames[i] + extension);
+                    if (fs::is_regular_file(source))
+                        moves.push_back({source, {}, receiptDir / (newNames[i] + extension)});
+                }
+            }
+        }
+        for (const auto& move : moves) {
+            if (fs::exists(move.destination) &&
+                std::none_of(moves.begin(), moves.end(), [&](const auto& other) {
+                    return other.source == move.destination;
+                })) {
+                throw std::runtime_error("Receipt destination already exists: " + move.destination.u8string());
+            }
+        }
+        for (int i = 0; ; ++i) {
+            auto candidate = _filename;
+            candidate += ".save-" + std::to_string(i);
+            if (fs::create_directory(candidate)) {
+                staging = candidate;
+                break;
+            }
+        }
+        auto savedDoc = *_doc;
+        savedDoc.useVerifikatIdsForKvitton();
+        {
+            std::ofstream ofs(staging / "document", std::ios::binary);
+            if (!ofs) throw std::runtime_error("Cannot create saved document");
+            Serialize::saveDocumentCustom(savedDoc, ofs);
+            ofs.close();
+            if (!ofs) throw std::runtime_error("Cannot write saved document");
+        }
+        for (size_t i = 0; i < moves.size(); ++i) {
+            moves[i].staged = staging / std::to_string(i);
+            fs::rename(moves[i].source, moves[i].staged);
+            ++staged;
+        }
+        for (const auto& move : moves) {
+            fs::rename(move.staged, move.destination);
+            ++installed;
+        }
+        if (fs::exists(_filename)) {
+            fs::rename(_filename, staging / "original");
+            documentBackedUp = true;
+        }
+        fs::rename(staging / "document", _filename);
+        *_doc = std::move(savedDoc);
+        _doc->clearDirty();
+    } catch (const std::exception& e) {
+        std::cerr << "Could not save book and receipts: " << e.what() << std::endl;
+        // Undo the complete permutation in two phases as well.
+        try {
+            for (size_t i = 0; i < installed; ++i)
+                fs::rename(moves[i].destination, moves[i].staged);
+            for (size_t i = 0; i < staged; ++i)
+                fs::rename(moves[i].staged, moves[i].source);
+            if (documentBackedUp) fs::rename(staging / "original", _filename);
+        } catch (const std::exception& rollbackError) {
+            std::cerr << "Recovery files retained at " << staging << ": "
+                      << rollbackError.what() << std::endl;
+            return false;
+        }
+        std::error_code ec;
+        if (!staging.empty()) {
+            fs::remove(staging / "document", ec);
+            fs::remove(staging, ec);
+        }
+        return false;
+    }
+    std::error_code ec;
+    fs::remove(staging / "original", ec);
+    fs::remove(staging, ec);
     return true;
 }
 
@@ -250,6 +336,8 @@ bool FileHandler::saveas() {
 }
 
 bool FileHandler::export_sie() {
+    // Persist numbering and matching receipt filenames before exporting.
+    if (!save()) return false;
     nfdchar_t* out_path = NULL;
     nfdresult_t result = NFD_SaveDialog("se", NULL, &out_path);
 
@@ -282,12 +370,13 @@ std::vector<std::filesystem::path> FileHandler::getKvitton(int unid) const {
     std::filesystem::path kvitto_dir = _filename;
     kvitto_dir.replace_extension("kvitton");
     if (std::filesystem::is_directory(kvitto_dir)) {
-        for (const auto& kvitto_str : kvittoStrings(unid)) {
+        for (const auto& kvitto_str : kvittoStrings(_doc->getVerifikat(unid).getKvittoId())) {
             std::filesystem::path p_pdf = kvitto_dir / (kvitto_str + ".pdf");
             std::filesystem::path p_png = kvitto_dir / (kvitto_str + ".png");
             if (std::filesystem::is_regular_file(p_pdf)) {
                 kvitton.push_back(p_pdf);
-            } else if (std::filesystem::is_regular_file(p_png)) {
+            }
+            if (std::filesystem::is_regular_file(p_png)) {
                 kvitton.push_back(p_png);
             }
         }
@@ -311,7 +400,7 @@ bool FileHandler::attachKvitto(int unid, const std::filesystem::path& kvitto) co
         std::filesystem::path kvitto_dir = _filename;
         kvitto_dir.replace_extension("kvitton");
         if (std::filesystem::is_directory(kvitto_dir)) {
-            for (const auto& kvitto_str : kvittoStrings(unid)) {
+            for (const auto& kvitto_str : kvittoStrings(_doc->getVerifikat(unid).getKvittoId())) {
                 std::filesystem::path p_pdf = kvitto_dir / (kvitto_str + ".pdf");
                 std::filesystem::path p_png = kvitto_dir / (kvitto_str + ".png");
                 if (std::filesystem::is_regular_file(p_pdf) || std::filesystem::is_regular_file(p_png)) {

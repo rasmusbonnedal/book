@@ -7,16 +7,19 @@ From the root, `cmake --build build`. Run tests with `ctest --test-dir build`
 # What to test
 This is a GUI application so many things need manual testing. When the agent make changes
 it can add stuff to this list and the human will test it in the GUI.
-* Example item
+* Create a bokföringsorder when the highest verifikat is 192. It should display **BO** instead of its internal ID; the next ordinary verifikat should be 193. Choose **Bokför** on the order and verify it receives 194. Save/reopen and check attached receipts on both entries. ✅
+* Convert the last verifikat to a bokföringsorder, reuse its ordinary number, and verify each entry retains its own receipts. ✅
+* Create two bokföringsorders and click each **BO** button in the verifikat list. Each should open the correct entry, with **BO** instead of a number in the detail window. After **Bokför**, the ordinary number should appear and same-day rows should remain editable. ✅
+* Attach PDF and PNG receipts to a bokföringsorder, choose **Bokför**, then save/export SIE. In the `.kvitton` directory, verify the files are named `V<number>.pdf`, `V<number>_1.png`, etc. using the posted verifikat number. Reopen and verify the attachments still open. ✅
 * Edit a verifikat and choose **Struk** on a row. The row should become
   read-only and struck through, the remaining rows should still balance, and
-  after Update the struck row should not affect Saldo or reports.
+  after Update the struck row should not affect Saldo or reports. ✅
 * Edit a bokföringsorder and choose **Bokför**. The dialog should close, the
   entry should use the ordinary verifikat color, and reopening it should show
-  **Editera verifikat** without a **Bokför** button.
+  **Editera verifikat** without a **Bokför** button. ✅
 * Edit a verifikat whose rows were all entered today and choose **Gör till
   bokföringsorder**. It should get the bokföringsorder color and become freely
-  editable. The button should be disabled if any row was entered earlier.
+  editable. The button should be disabled if any row was entered earlier. ✅
 
 # Todo List
 * Upgrade Imgui from 1.89 to 1.92 - some build errors ✅

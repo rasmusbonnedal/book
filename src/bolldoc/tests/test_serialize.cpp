@@ -4,6 +4,7 @@
 #include "utils.h"
 
 #include <fstream>
+#include <sstream>
 
 TEST_CASE("Serialize load") {
     std::ifstream input("../../../../docs/bok1.bollbok", std::ios_base::binary);
@@ -26,7 +27,7 @@ TEST_CASE("Serialize load") {
     CHECK(doc.getVerifikat(1).getText() == "Hyra");
     CHECK(doc.getVerifikat(2).getTransdatum() == Date(2018, 2, 1));
     CHECK_THROWS_WITH(doc.getVerifikat(4),
-                      "Verifikat 4 requested, document only has 0-3");
+                      "Could not find verifikat 4");
 
     auto& v1 = doc.getVerifikat(1);
     CHECK(v1.getRad(1).getBokdatum() == Date(2018, 12, 25));
@@ -82,6 +83,75 @@ TEST_CASE("Serialize save") {
     REQUIRE(input.good());
     auto loadedDoc = Serialize::loadDocument(input);
     REQUIRE(doc == loadedDoc);
-    CHECK(loadedDoc.getVerifikat(2).isBokforingsorder());
+    CHECK(loadedDoc.getVerifikat(BollDoc::BokforingsorderIdStart).isBokforingsorder());
     CHECK_FALSE(loadedDoc.getVerifikat(1).isBokforingsorder());
+}
+
+TEST_CASE("Separate ids and receipt associations survive saving after conversion") {
+    BollDoc doc(2074, "Test", "", 2018, "SEK", false);
+    for (int id = 0; id < 4; ++id) {
+        BollDoc::Verifikat v{id, "Entry", Date(2018, 1, 1)};
+        v.addRad({Date(2018, 1, 1), 1910, 100});
+        doc.addVerifikat(std::move(v));
+    }
+    auto v = doc.getVerifikat(1);
+    v.convertToBokforingsorder(Date(2018, 1, 1));
+    doc.updateVerifikat(std::move(v));
+    std::stringstream saved;
+    Serialize::saveDocumentCustom(doc, saved);
+    auto legacyXml = saved.str();
+    const auto idPos = legacyXml.find("unid=\"1000000\"");
+    REQUIRE(idPos != std::string::npos);
+    legacyXml.replace(idPos, std::string("unid=\"1000000\"").size(), "unid=\"1\"");
+    std::stringstream legacy(legacyXml);
+    auto migrated = Serialize::loadDocument(legacy, true);
+    REQUIRE(migrated.getVerifikationer().size() == doc.getVerifikationer().size());
+    for (const auto& entry : doc.getVerifikationer())
+        CHECK(migrated.getVerifikat(entry.getUnid()) == entry);
+    auto loaded = Serialize::loadDocument(saved);
+    REQUIRE(loaded.getVerifikationer().size() == doc.getVerifikationer().size());
+    for (const auto& entry : doc.getVerifikationer())
+        CHECK(loaded.getVerifikat(entry.getUnid()) == entry);
+    CHECK(loaded.getNextVerifikatId() == 4);
+    CHECK(loaded.getNextBokforingsorderId() == 1000001);
+    CHECK(loaded.getVerifikat(1000000).getKvittoId() == 1);
+    auto order = loaded.getVerifikat(1000000);
+    order.promoteToVerifikat();
+    loaded.updateVerifikat(std::move(order));
+    std::stringstream promoted;
+    Serialize::saveDocumentCustom(loaded, promoted);
+    CHECK(Serialize::loadDocument(promoted) == loaded);
+}
+
+TEST_CASE("XML orders promoted verifikat by number and puts drafts last") {
+    BollDoc doc(2074, "Test", "", 2018, "SEK", false);
+    auto add = [&](int id, bool draft = false) {
+        BollDoc::Verifikat v{id, "Entry", Date(2018, 1, 1), draft};
+        v.addRad({Date(2018, 1, 1), 1910, 100});
+        doc.addVerifikat(std::move(v));
+    };
+    add(0);
+    add(183);
+    add(1000000, true);
+    add(1000001, true);
+    add(184);
+    auto order = doc.getVerifikat(1000000);
+    order.promoteToVerifikat();
+    REQUIRE(doc.updateVerifikat(std::move(order)) == 185);
+    const auto original = doc;
+    for (auto save : {Serialize::saveDocumentCustom, Serialize::saveDocument}) {
+        std::stringstream xml;
+        save(doc, xml);
+        const auto text = xml.str();
+        CHECK(text.find("unid=\"184\"") < text.find("unid=\"185\""));
+        CHECK(text.find("unid=\"185\"") < text.find("unid=\"1000001\""));
+        auto loaded = Serialize::loadDocument(xml);
+        REQUIRE(loaded.getVerifikationer().size() == 5);
+        const int expected[] = {0, 183, 184, 185, 1000001};
+        for (size_t i = 0; i < 5; ++i) {
+            CHECK(loaded.getVerifikationer()[i].getUnid() == expected[i]);
+            CHECK(loaded.getVerifikat(expected[i]) == doc.getVerifikat(expected[i]));
+        }
+        CHECK(doc == original);
+    }
 }

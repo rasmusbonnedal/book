@@ -21,7 +21,7 @@ void sortVerifikat(const std::vector<BollDoc::Verifikat>& verifikat, std::vector
             std::swap(lhs, rhs);
         }
         if (spec.ColumnIndex == 0) {
-            return lhs > rhs;
+            return verifikat[lhs].getUnid() > verifikat[rhs].getUnid();
         }
         const auto& v1 = verifikat[lhs];
         const auto& v2 = verifikat[rhs];
@@ -29,11 +29,11 @@ void sortVerifikat(const std::vector<BollDoc::Verifikat>& verifikat, std::vector
             const auto& date1 = v1.getTransdatum();
             const auto& date2 = v2.getTransdatum();
             if (date1 == date2) {
-                return lhs > rhs;
+                return verifikat[lhs].getUnid() > verifikat[rhs].getUnid();
             }
             return date2 < date1;
         }
-        return lhs > rhs;
+        return verifikat[lhs].getUnid() > verifikat[rhs].getUnid();
     });
 }
 }  // namespace
@@ -101,7 +101,12 @@ void VerifikatWindow::doit() {
                 }
                 // Id
                 ImGui::TableSetColumnIndex(0);
-                snprintf(display_buf, sizeof(display_buf), "%d", verifikat.getUnid());
+                // Keep identical BO labels distinct for ImGui interaction.
+                if (verifikat.isBokforingsorder()) {
+                    snprintf(display_buf, sizeof(display_buf), "BO##%d", verifikat.getUnid());
+                } else {
+                    snprintf(display_buf, sizeof(display_buf), "%d", verifikat.getUnid());
+                }
                 if (ImGui::SmallButton(display_buf)) {
                     m_app.oneVerifikatWindow().setVerifikat(verifikat.getUnid());
                 }

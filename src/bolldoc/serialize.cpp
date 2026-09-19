@@ -1,5 +1,6 @@
 #include "serialize.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -16,6 +17,23 @@ using namespace rapidxml;
 namespace {
 using StringPair = std::pair<std::string, std::string>;
 using AttrVec = std::vector<StringPair>;
+
+std::vector<const BollDoc::Verifikat*> entriesForSaving(const BollDoc& doc) {
+    std::vector<const BollDoc::Verifikat*> entries;
+    const auto& source = doc.getVerifikationer();
+    for (const auto& v : source) {
+        // Preserve the existing omission of the trailing empty UI placeholder.
+        if (&v == &source.back() && v.getRader().empty()) continue;
+        entries.push_back(&v);
+    }
+    std::sort(entries.begin(), entries.end(), [](const auto* lhs, const auto* rhs) {
+        if (lhs->isBokforingsorder() != rhs->isBokforingsorder())
+            return !lhs->isBokforingsorder();
+        return lhs->getUnid() < rhs->getUnid();
+    });
+    return entries;
+}
+
 
 std::optional<std::string> getAttrStringOpt(xml_node<>* node, const std::string& name) {
     auto attr = node->first_attribute(name.c_str());
@@ -164,7 +182,8 @@ BollDoc Serialize::loadDocument(std::istream& input, bool ignoreChecksum) {
         auto text = getAttrString(verifikat, "text");
         auto transdatum = getAttrString(verifikat, "transdatum");
         auto bokforingsorder = getAttrStringOpt(verifikat, "bokforingsorder");
-        BollDoc::Verifikat v(unid, std::move(text), parseDate(transdatum), bokforingsorder.value_or("0") == "1");
+        BollDoc::Verifikat v(unid, std::move(text), parseDate(transdatum), bokforingsorder.value_or("0") == "1",
+                             getAttrIntOpt(verifikat, "kvittoid").value_or(unid));
         for (auto rad = getNodeNothrow(verifikat, "rad"); rad; rad = rad->next_sibling("rad")) {
             auto bokdatum = getAttrString(rad, "bokdatum");
             auto konto = getAttrInt(rad, "konto");
@@ -230,17 +249,14 @@ void Serialize::saveDocumentCustom(const BollDoc& doc, std::ostream& output) {
 
     writeXml(ss, indent, "verifikationer", {});
     indent = "\t\t";
-    int last_unid = doc.getVerifikationer().empty() ? 0 : doc.getVerifikationer().back().getUnid();
-    for (const auto& v : doc.getVerifikationer()) {
-        // This is a hack to make sure the last "Nytt verifikat" empty
-        // verifikat is not saved.
-        if (v.getRader().empty() && v.getUnid() == last_unid) {
-            continue;
-        }
+    for (const auto* entry : entriesForSaving(doc)) {
+        const auto& v = *entry;
         AttrVec verifikatAttrs = {{"unid", std::to_string(v.getUnid())}, {"text", toXmlText(v.getText())}, {"transdatum", to_string(v.getTransdatum())}};
         if (v.isBokforingsorder()) {
             verifikatAttrs.push_back({"bokforingsorder", "1"});
         }
+        if (v.getKvittoId() != v.getUnid())
+            verifikatAttrs.push_back({"kvittoid", std::to_string(v.getKvittoId())});
         writeXml(ss, indent, "verifikat", verifikatAttrs);
         indent = "\t\t\t";
         for (auto&& r : v.getRader()) {
@@ -322,16 +338,13 @@ void Serialize::saveDocument(const BollDoc& bolldoc, std::ostream& output) {
 
     xml_node<>* verifikationer = doc->allocate_node(node_element, "verifikationer");
     bollbok->append_node(verifikationer);
-    int last_unid = bolldoc.getVerifikationer().back().getUnid();
-    for (auto&& v : bolldoc.getVerifikationer()) {
-        // This is a hack to make sure the last "Nytt verifikat" empty
-        // verifikat is not saved.
-        if (v.getRader().empty() && v.getUnid() == last_unid) {
-            continue;
-        }
+    for (const auto* entry : entriesForSaving(bolldoc)) {
+        const auto& v = *entry;
         xml_node<>* verifikat = doc->allocate_node(node_element, "verifikat");
         verifikationer->append_node(verifikat);
         appendAttribute(doc, verifikat, "unid", v.getUnid());
+        if (v.getKvittoId() != v.getUnid())
+            appendAttribute(doc, verifikat, "kvittoid", v.getKvittoId());
         appendAttribute(doc, verifikat, "text", v.getText());
         appendAttribute(doc, verifikat, "transdatum", v.getTransdatum());
         if (v.isBokforingsorder()) {
