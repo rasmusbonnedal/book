@@ -83,7 +83,7 @@ class BollDoc {
         friend class BollDoc;
 
        public:
-        Verifikat(int unid, std::string text, Date transdatum, bool bokforingsorder = false);
+        Verifikat(int unid, std::string text, Date transdatum, bool bokforingsorder = false, int kvittoId = -1);
         Verifikat(const Verifikat&) = default;
         Verifikat(Verifikat&&) = default;
         Verifikat& operator=(const Verifikat&) = default;
@@ -104,6 +104,8 @@ class BollDoc {
         void setTransdatum(const Date& date);
 
         bool isBokforingsorder() const;
+
+        int getKvittoId() const;
 
         void promoteToVerifikat();
 
@@ -126,6 +128,7 @@ class BollDoc {
         std::string _text;
         Date _transdatum;
         bool _bokforingsorder;
+        int _kvittoId;
         std::vector<Rad> _rader;
     };
 
@@ -153,7 +156,9 @@ class BollDoc {
 
     const std::vector<std::pair<std::string, std::string>>& getKontoGrupper() const;
 
+    static constexpr int BokforingsorderIdStart = 1000000;
     int getNextVerifikatId() const;
+    int getNextBokforingsorderId() const;
 
     const Verifikat& getVerifikat(int unid) const;
 
@@ -180,13 +185,16 @@ class BollDoc {
 
     void addVerifikat(Verifikat&& verifikat);
 
-    void updateVerifikat(Verifikat&& verifikat);
+    int updateVerifikat(Verifikat&& verifikat);
 
     void updateVerifikat(int unid, const std::vector<Rad>& rader);
 
     void setVerifikatTransdatum(int unid, const Date& date);
 
     void setVerifikatText(int unid, const std::string& text);
+
+    // Used after receipt files have been renamed to match their entries.
+    void useVerifikatIdsForKvitton();
 
     void setMutated();
 
@@ -195,7 +203,7 @@ class BollDoc {
 
     void checkYear(const Date& date) const;
 
-    void checkVerifikatId(int unid) const;
+
 
     int _version;
     std::string _firma;

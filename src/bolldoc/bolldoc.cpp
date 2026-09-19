@@ -83,26 +83,45 @@ const std::vector<std::pair<std::string, std::string>>& BollDoc::getKontoGrupper
 }
 
 void BollDoc::addVerifikat(Verifikat&& verifikat) {
-    if (verifikat.getUnid() != getNextVerifikatId()) {
-        std::stringstream ss;
-        ss << "Verifikat has unid " << verifikat.getUnid() << ", should be " << _verifikat.size();
-        throw std::runtime_error(ss.str());
+    if (verifikat.isBokforingsorder() && verifikat._unid < BokforingsorderIdStart) {
+        // Older documents used the ordinary series for preliminary entries.
+        verifikat._unid = getNextBokforingsorderId();
+    }
+    if (verifikat._unid < 0 ||
+        (!verifikat.isBokforingsorder() && verifikat._unid >= BokforingsorderIdStart) ||
+        std::any_of(_verifikat.begin(), _verifikat.end(), [&](const auto& v) {
+            return v.getUnid() == verifikat.getUnid();
+        })) {
+        throw std::runtime_error("Invalid or duplicate verifikat id");
+    }
+    for (const auto& v : _verifikat) {
+        if (v.getKvittoId() == verifikat._kvittoId) {
+            int next = verifikat._kvittoId + 1;
+            for (const auto& existing : _verifikat)
+                next = std::max(next, existing.getKvittoId() + 1);
+            verifikat._kvittoId = next;
+            break;
+        }
     }
     checkYear(verifikat.getTransdatum());
     _verifikat.push_back(std::move(verifikat));
     setMutated();
 }
 
-void BollDoc::updateVerifikat(Verifikat&& verifikat) {
-    // TODO: Limit this operation to verifikat created today!
-    if (verifikat.getUnid() >= getNextVerifikatId()) {
-        std::stringstream ss;
-        ss << "Verifikat with unid " << verifikat.getUnid() << " does not exist";
-        throw std::runtime_error(ss.str());
-    }
+int BollDoc::updateVerifikat(Verifikat&& verifikat) {
+    auto& existing = getVerifikatMut(verifikat.getUnid());
     checkYear(verifikat.getTransdatum());
-    _verifikat[verifikat.getUnid()] = std::move(verifikat);
+    if (existing.getUnid() == 0 && verifikat.isBokforingsorder())
+        throw std::runtime_error("Opening balances cannot be converted to a bokforingsorder");
+    if (existing.isBokforingsorder() != verifikat.isBokforingsorder()) {
+        verifikat._unid = verifikat.isBokforingsorder()
+            ? getNextBokforingsorderId() : getNextVerifikatId();
+    }
+    // Receipt filenames remain stable when the accounting number changes.
+    verifikat._kvittoId = existing._kvittoId;
+    existing = std::move(verifikat);
     setMutated();
+    return existing.getUnid();
 }
 
 void BollDoc::updateVerifikat(int unid, const std::vector<Rad>& rader) {
@@ -122,17 +141,31 @@ void BollDoc::setVerifikatText(int unid, const std::string& text) {
 }
 
 int BollDoc::getNextVerifikatId() const {
-    return static_cast<int>(_verifikat.size());
+    int next = 0;
+    for (const auto& v : _verifikat)
+        if (!v.isBokforingsorder()) next = std::max(next, v.getUnid() + 1);
+    if (next >= BokforingsorderIdStart)
+        throw std::runtime_error("Verifikat id series exhausted");
+    return next;
+}
+
+int BollDoc::getNextBokforingsorderId() const {
+    int next = BokforingsorderIdStart;
+    for (const auto& v : _verifikat)
+        if (v.isBokforingsorder()) next = std::max(next, v.getUnid() + 1);
+    return next;
 }
 
 const BollDoc::Verifikat& BollDoc::getVerifikat(int unid) const {
-    checkVerifikatId(unid);
-    return _verifikat[unid];
+    auto it = std::find_if(_verifikat.begin(), _verifikat.end(),
+                         [unid](const auto& v) { return v.getUnid() == unid; });
+    if (it == _verifikat.end())
+        throw std::runtime_error("Could not find verifikat " + std::to_string(unid));
+    return *it;
 }
 
 BollDoc::Verifikat& BollDoc::getVerifikatMut(int unid) {
-    checkVerifikatId(unid);
-    return _verifikat[unid];
+    return const_cast<Verifikat&>(static_cast<const BollDoc&>(*this).getVerifikat(unid));
 }
 
 const std::vector<BollDoc::Verifikat>& BollDoc::getVerifikationer() const {
@@ -163,15 +196,6 @@ void BollDoc::checkYear(const Date& date) const {
     if (date.getYear() != 0 && date.getYear() != _bokforingsar) {
         std::stringstream ss;
         ss << "Wrong year in verifikat, document has year " << _bokforingsar << " and verifikat has year " << date.getYear();
-        throw std::runtime_error(ss.str());
-    }
-}
-
-void BollDoc::checkVerifikatId(int unid) const {
-    int nextId = getNextVerifikatId();
-    if (unid >= nextId || unid < 0) {
-        std::stringstream ss;
-        ss << "Verifikat " << unid << " requested, document only has 0-" << nextId - 1;
         throw std::runtime_error(ss.str());
     }
 }
@@ -251,12 +275,12 @@ const std::optional<Date>& BollDoc::Rad::getStruken() const {
     return _struken;
 }
 
-BollDoc::Verifikat::Verifikat(int unid, std::string text, Date transdatum, bool bokforingsorder)
-    : _unid(unid), _text(std::move(text)), _transdatum(std::move(transdatum)), _bokforingsorder(bokforingsorder) {}
+BollDoc::Verifikat::Verifikat(int unid, std::string text, Date transdatum, bool bokforingsorder, int kvittoId)
+    : _unid(unid), _text(std::move(text)), _transdatum(std::move(transdatum)), _bokforingsorder(bokforingsorder), _kvittoId(kvittoId < 0 ? unid : kvittoId) {}
 
 bool BollDoc::Verifikat::operator==(const Verifikat& other) const {
     return _unid == other._unid && _text == other._text && _transdatum == other._transdatum &&
-           _bokforingsorder == other._bokforingsorder && _rader == other._rader;
+           _bokforingsorder == other._bokforingsorder && _kvittoId == other._kvittoId && _rader == other._rader;
 }
 
 int BollDoc::Verifikat::getUnid() const {
@@ -285,6 +309,10 @@ void BollDoc::Verifikat::setTransdatum(const Date& date) {
 
 bool BollDoc::Verifikat::isBokforingsorder() const {
     return _bokforingsorder;
+}
+
+int BollDoc::Verifikat::getKvittoId() const {
+    return _kvittoId;
 }
 
 void BollDoc::Verifikat::promoteToVerifikat() {
@@ -390,4 +418,9 @@ void BollDoc::clearDirty() {
 
 int64_t BollDoc::getRevision() const {
     return _revision;
+}
+
+void BollDoc::useVerifikatIdsForKvitton() {
+    for (auto& v : _verifikat) v._kvittoId = v._unid;
+    setMutated();
 }

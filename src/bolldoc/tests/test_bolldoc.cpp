@@ -179,3 +179,49 @@ TEST_CASE("New Year") {
     CHECK(rad.getKonto() == 1910);
     CHECK(rad.getPengar() == parsePengar("-96000"));
 }
+
+TEST_CASE("Bokforingsorder have an independent id series") {
+    auto doc = createDoc();
+    const int orderId = doc.getNextBokforingsorderId();
+    CHECK(orderId == 1000000);
+    doc.addVerifikat({orderId, "Order", Date(2018, 3, 1), true});
+    CHECK(doc.getNextVerifikatId() == 13);
+    doc.addVerifikat({13, "Posted", Date(2018, 3, 1)});
+    CHECK(doc.getNextVerifikatId() == 14);
+    doc.setVerifikatText(orderId, "Edited order");
+    CHECK(doc.getVerifikat(orderId).getText() == "Edited order");
+    auto order = doc.getVerifikat(orderId);
+    order.promoteToVerifikat();
+    CHECK(doc.updateVerifikat(std::move(order)) == 14);
+    CHECK_FALSE(doc.getVerifikat(14).isBokforingsorder());
+    CHECK(doc.getVerifikat(14).getKvittoId() == orderId);
+    CHECK_THROWS(doc.getVerifikat(orderId));
+    CHECK(doc.getNextVerifikatId() == 15);
+    CHECK_THROWS(doc.updateVerifikat({-1, "Missing", Date(2018, 3, 1)}));
+    CHECK_THROWS(doc.addVerifikat({13, "Duplicate", Date(2018, 3, 1)}));
+}
+
+TEST_CASE("Legacy orders release their ordinary number and retain their receipts") {
+    auto doc = createDoc();
+    doc.addVerifikat({13, "Legacy order", Date(2018, 3, 1), true});
+    CHECK(doc.getNextVerifikatId() == 13);
+    CHECK(doc.getVerifikat(1000000).getKvittoId() == 13);
+    doc.addVerifikat({13, "Posted", Date(2018, 3, 1)});
+    CHECK(doc.getVerifikat(13).getKvittoId() != 13);
+    CHECK(doc.getVerifikat(1000000).isBokforingsorder());
+}
+
+TEST_CASE("Converting the last verifikat releases its number") {
+    auto doc = createDoc();
+    auto last = doc.getVerifikat(12);
+    last.convertToBokforingsorder(Date(2018, 12, 25));
+    CHECK(doc.updateVerifikat(std::move(last)) == 1000000);
+    CHECK(doc.getNextVerifikatId() == 12);
+    doc.addVerifikat({12, "Replacement", Date(2018, 12, 25)});
+    CHECK(doc.getVerifikat(12).getKvittoId() != doc.getVerifikat(1000000).getKvittoId());
+    auto earlier = doc.getVerifikat(5);
+    earlier.convertToBokforingsorder(Date(2018, 12, 25));
+    doc.updateVerifikat(std::move(earlier));
+    CHECK(doc.getNextVerifikatId() == 13);
+    CHECK(doc.getVerifikat(6).getUnid() == 6);
+}

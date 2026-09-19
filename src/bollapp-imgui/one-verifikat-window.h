@@ -34,4 +34,5 @@ class OneVerifikatWindow : public ImGuiWindowBase {
     std::string _datum;
     int64_t _revision;
     int _verifikat;
+    bool _bokforingsorder = false;
 };

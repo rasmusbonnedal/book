@@ -1,6 +1,7 @@
 #include "one-verifikat-window.h"
 
 #include <imgui.h>
+#include <algorithm>
 
 #include "bolldoc.h"
 #include "book-app.h"
@@ -37,11 +38,13 @@ void OneVerifikatWindow::setVerifikat(int v) {
 }
 
 void OneVerifikatWindow::doit() {
-    bool need_update = false;
-    if (ImGui::InputInt("Verifikat", &_verifikat)) {
-        need_update = true;
+    update(false);
+    if (_bokforingsorder) {
+        ImGui::TextColored(ImVec4(1.0f, 191.0f / 255.0f, 0.0f, 1.0f),
+                           "BO - Bokföringsorder");
+    } else if (ImGui::InputInt("Verifikat", &_verifikat)) {
+        update(true);
     }
-    update(need_update);
 
     if (_verifikat < 0) {
         return;
@@ -110,9 +113,16 @@ void OneVerifikatWindow::update(bool need_update) {
 
     _revision = _file_handler.getDoc().getRevision();
     _rows.clear();
+    _bokforingsorder = false;
     const auto& vers = _file_handler.getDoc().getVerifikationer();
-    if (_verifikat < vers.size()) {
-        const auto& ver = vers[_verifikat];
+    _text.clear();
+    _datum.clear();
+    auto it = std::find_if(vers.begin(), vers.end(), [this](const auto& v) {
+        return v.getUnid() == _verifikat;
+    });
+    if (it != vers.end()) {
+        const auto& ver = *it;
+        _bokforingsorder = ver.isBokforingsorder();
         _text = ver.getText();
         _datum = to_string(ver.getTransdatum());
         for (const auto& row : ver.getRader()) {

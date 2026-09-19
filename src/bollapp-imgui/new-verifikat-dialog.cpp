@@ -1,4 +1,5 @@
 #include "new-verifikat-dialog.h"
+#include "one-verifikat-window.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -67,10 +68,12 @@ void NewVerifikatDialog::launchNew(bool bokforingsorder) {
     m_date_ok = true;
     m_dialog_mode = NEW;
     setName(bokforingsorder ? "Ny bokföringsorder" : "Nytt verifikat");
-    int unid = m_file_handler.getDoc().getNextVerifikatId();
+    int unid = bokforingsorder ? m_file_handler.getDoc().getNextBokforingsorderId()
+                              : m_file_handler.getDoc().getNextVerifikatId();
     Date date;
-    if (unid > 0) {
-        date = m_file_handler.getDoc().getVerifikat(unid - 1).getTransdatum();
+    const auto& entries = m_file_handler.getDoc().getVerifikationer();
+    if (!entries.empty()) {
+        date = entries.back().getTransdatum();
     } else {
         date = Date(now().getYear(), 1, 1);
     }
@@ -354,7 +357,7 @@ void NewVerifikatDialog::doit() {
     ImGui::BeginDisabled(!m_can_attach_kvitto);
     if (ImGui::Button("Attach kvitto")) {
         std::string filename;
-        if (fileOpenDialog("pdf;png", filename) == FDR_OKAY) {
+        if (fileOpenDialog("pdf,png", filename) == FDR_OKAY) {
             m_attached_kvitton.push_back(std::filesystem::u8path(filename));
         }
     }
@@ -398,10 +401,11 @@ void NewVerifikatDialog::doit() {
                     m_verifikat->addRad(BollDoc::Rad(now(), konto, m_pengar_rad[i]));
                 }
             }
-            for (const auto& kvitto : m_attached_kvitton) {
-                m_file_handler.attachKvitto(m_verifikat->getUnid(), kvitto);
-            }
+            const int unid = m_verifikat->getUnid();
             m_file_handler.getDoc().addVerifikat(std::move(*m_verifikat));
+            for (const auto& kvitto : m_attached_kvitton) {
+                m_file_handler.attachKvitto(unid, kvitto);
+            }
             m_verifikat.release();
             ImGui::CloseCurrentPopup();
         }
@@ -414,7 +418,7 @@ void NewVerifikatDialog::doit() {
             ImGui::SameLine();
             promote = ImGui::Button("Bokför");
         } else {
-            bool can_convert = true;
+            bool can_convert = m_verifikat->getUnid() != 0;
             for (size_t i = 0; i < m_konto_rad_data.size(); ++i) {
                 if (m_konto_rad_data[i].index >= 0 &&
                     m_bokdatum_rad[i] != today) {
@@ -451,11 +455,12 @@ void NewVerifikatDialog::doit() {
             } else if (convert_to_bokforingsorder) {
                 updated_verifikat.convertToBokforingsorder(today);
             }
-            for (const auto& kvitto : m_attached_kvitton) {
-                m_file_handler.attachKvitto(m_verifikat->getUnid(), kvitto);
-            }
-            m_file_handler.getDoc().updateVerifikat(
+            const int unid = m_file_handler.getDoc().updateVerifikat(
                 std::move(updated_verifikat));
+            m_app.oneVerifikatWindow().setVerifikat(unid);
+            for (const auto& kvitto : m_attached_kvitton) {
+                m_file_handler.attachKvitto(unid, kvitto);
+            }
             m_verifikat.release();
             ImGui::CloseCurrentPopup();
         }
